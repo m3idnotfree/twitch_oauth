@@ -40,7 +40,6 @@ fn pkce_verify(msg: String, key: Key) -> impl Fn(String) -> Result<(), Error> {
     move |tag| {
         let url_decode = URL_SAFE.decode(tag)?;
         hmac::verify(&key, msg.as_bytes(), url_decode.as_ref())?;
-        println!("verify success");
         Ok(())
     }
 }
