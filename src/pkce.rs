@@ -7,7 +7,7 @@ use ring::{
 };
 
 #[derive(thiserror::Error, Debug, PartialEq)]
-pub enum PkceError {
+pub enum Error {
     #[error("Failed decode base64: {0}")]
     DecodeBase64(#[from] base64::DecodeError),
     #[error("Failed verify: {0}")]
@@ -18,7 +18,7 @@ pub enum PkceError {
 pub struct Pkce {}
 
 impl Pkce {
-    pub fn new_sha256() -> Result<(String, impl Fn(String) -> Result<(), PkceError>), Unspecified> {
+    pub fn new_sha256() -> Result<(String, impl Fn(String) -> Result<(), Error>), Unspecified> {
         let msg: String = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(24)
@@ -36,7 +36,7 @@ impl Pkce {
     }
 }
 
-fn pkce_verify(msg: String, key: Key) -> impl Fn(String) -> Result<(), PkceError> {
+fn pkce_verify(msg: String, key: Key) -> impl Fn(String) -> Result<(), Error> {
     move |tag| {
         let url_decode = URL_SAFE.decode(tag)?;
         hmac::verify(&key, msg.as_bytes(), url_decode.as_ref())?;

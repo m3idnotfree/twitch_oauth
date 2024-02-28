@@ -11,7 +11,7 @@ pub enum Error {
     #[error("Failed to post token {0}")]
     PostToken(#[from] reqwest::Error),
     #[error("Failed to pkce verity {0}")]
-    PostPkce(#[from] pkce::PkceError),
+    PostPkce(#[from] pkce::Error),
     #[error("Io Error Timeout{0}")]
     IO(#[from] std::io::Error),
     #[error("Failed Get Authorize code {0}")]
