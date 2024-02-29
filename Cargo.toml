@@ -1,7 +1,13 @@
 [package]
 name = "twitch_oauth"
-version = "0.1.0"
+version = "0.0.1"
+authors = ["m3id"]
 edition = "2021"
+description = "Twitch oauth"
+repository = "https://github.com/m3idnotfree/twitch_oauth.git"
+license = "MIT OR Apache-2.0"
+keywords = ["twitch", "oauth"]
+
 
 [dependencies]
 base64 = "0.21.7"
