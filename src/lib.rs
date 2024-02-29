@@ -10,6 +10,7 @@
 //!
 //!     let auth_url = oauth.auth_request_url("chat:read");
 //!
+//!     // only can bind 3000
 //!     let listener = TcpListener::bind("127.0.0.1:3000")
 //!         .await
 //!         .expect("Failed already bind 3000");
