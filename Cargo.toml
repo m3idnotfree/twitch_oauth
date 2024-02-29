@@ -1,5 +1,5 @@
 [package]
-name = "twitch_oauth"
+name = "twitch_oauth_token"
 version = "0.0.1"
 authors = ["m3id"]
 edition = "2021"
