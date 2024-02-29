@@ -103,7 +103,7 @@ impl<'a> TwitchOauth<'a> {
 
                                 eprintln!("Error response : {}",value);
                                 return Err(
-                                    Error::GetAuthCode(AuthorizeError { error:value.into_owned(), error_description , state:rev_state  })
+                                    Error::GetAuthCodeError(AuthorizeError { error:value.into_owned(), error_description , state:rev_state  })
                                 )
                             }
                             code = query_find(&url, "code");
@@ -118,7 +118,7 @@ impl<'a> TwitchOauth<'a> {
 
                         Ok((code,rev_state))
                     },
-                Err(e)=>{Err(Error::IO(e))}
+                Err(e)=>{Err(Error::IoError(e))}
                 }
             }
             _= async {
@@ -131,10 +131,10 @@ impl<'a> TwitchOauth<'a> {
                     a -= 1;
                 }
             }=>{
-                Err(Error::IO(std::io::ErrorKind::TimedOut.into()))
+                Err(Error::IoError(std::io::ErrorKind::TimedOut.into()))
             }
             _= tokio::time::sleep(Duration::from_secs(self.duration)) =>{
-                Err(Error::IO(std::io::ErrorKind::TimedOut.into()))
+                Err(Error::IoError(std::io::ErrorKind::TimedOut.into()))
             }
         }
     }
@@ -169,11 +169,11 @@ impl<'a> TwitchOauth<'a> {
             }
             StatusCode::FORBIDDEN => {
                 let result: FailToken = result.json().await?;
-                Err(Error::GetOauthToken(result))
+                Err(Error::GetOauthTokenError(result))
             }
             _ => {
                 let result: FailToken = result.json().await?;
-                Err(Error::GetOauthToken(result))
+                Err(Error::GetOauthTokenError(result))
             }
         }
     }

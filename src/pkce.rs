@@ -9,9 +9,9 @@ use ring::{
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum Error {
     #[error("Failed decode base64: {0}")]
-    DecodeBase64(#[from] base64::DecodeError),
+    DecodeBase64Error(#[from] base64::DecodeError),
     #[error("Failed verify: {0}")]
-    VerifyHmac(#[from] ring::error::Unspecified),
+    VerifyHmacError(#[from] ring::error::Unspecified),
 }
 
 #[derive(Debug)]

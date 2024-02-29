@@ -7,17 +7,17 @@ use crate::pkce;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("Failed to token deserialize {0}")]
-    ParseJson(#[from] serde_json::Error),
-    #[error("Failed to post token {0}")]
-    PostToken(#[from] reqwest::Error),
+    ParseJsonError(#[from] serde_json::Error),
+    #[error("Failed to get token {0}")]
+    PostTokenError(#[from] reqwest::Error),
     #[error("Failed to pkce verity {0}")]
-    PostPkce(#[from] pkce::Error),
+    VerityPkceError(#[from] pkce::Error),
     #[error("Io Error Timeout{0}")]
-    IO(#[from] std::io::Error),
+    IoError(#[from] std::io::Error),
     #[error("Failed Get Authorize code {0}")]
-    GetAuthCode(AuthorizeError),
+    GetAuthCodeError(AuthorizeError),
     #[error("Failed get token {0}")]
-    GetOauthToken(FailToken),
+    GetOauthTokenError(FailToken),
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
