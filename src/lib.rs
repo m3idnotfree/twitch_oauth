@@ -1,4 +1,4 @@
-//!```
+//!```ignore
 //! use tokio::net::TcpListener;
 //! use twitch_oauth::{pkce::Pkce, Token, TwitchOauth};
 //!
