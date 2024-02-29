@@ -13,24 +13,24 @@ pub struct TwitchOauth<'a> {
     client_id: &'a str,
     client_secret: &'a str,
     duration: u64,
-    state: String,
+    state: &'a str,
     oauth_url: &'a str,
     token_url: &'a str,
     pub redirect_url: &'a str,
 }
 
 impl<'a> TwitchOauth<'a> {
-    pub fn new<T: Into<String>>(
+    pub fn new(
         client_id: &'a str,
         client_secret: &'a str,
-        state: T,
+        state: &'a str,
         duration: u64,
     ) -> TwitchOauth<'a> {
         TwitchOauth {
             client_id,
             client_secret,
             duration,
-            state: state.into(),
+            state,
             oauth_url: "https://id.twitch.tv/oauth2/authorize",
             redirect_url: "http://localhost:3000",
             token_url: "https://id.twitch.tv/oauth2/token",
@@ -132,8 +132,8 @@ impl<'a> TwitchOauth<'a> {
         Ok(result)
     }
 
-    pub async fn get_token_json(self, code: String) -> Result<Token, Error> {
-        let result = self.get_token(&code).await.expect("Failed get token");
+    pub async fn get_token_json(self, code: &str) -> Result<Token, Error> {
+        let result = self.get_token(code).await.expect("Failed get token");
 
         let status = result.status();
         match status {
