@@ -1,1 +1,1 @@
-# twitch oauth
+# twitch oauth token

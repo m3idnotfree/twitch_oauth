@@ -1,4 +1,4 @@
-use twitch_oauth::pkce::Pkce;
+use twitch_oauth_token::pkce::Pkce;
 
 #[test]
 fn pkce_base() {

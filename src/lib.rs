@@ -1,6 +1,6 @@
 //!```ignore
 //! use tokio::net::TcpListener;
-//! use twitch_oauth::{pkce::Pkce, Token, TwitchOauth};
+//! use twitch_oauth_token::{pkce::Pkce, Token, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), twitch_oauth::Error> {
