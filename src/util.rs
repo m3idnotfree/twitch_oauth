@@ -17,7 +17,7 @@ pub enum Error {
     #[error("Failed Get Authorize code {0}")]
     GetAuthCodeError(AuthorizeError),
     #[error("Failed get token {0}")]
-    GetOauthTokenError(FailToken),
+    OauthTokenError(FailToken),
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
@@ -47,18 +47,23 @@ impl fmt::Display for AuthorizeError {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FailToken {
+    pub kind: String,
     pub message: String,
-    pub status: u64,
 }
 
 impl fmt::Display for FailToken {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Failed to get oauth token message: {}, status: {}",
-            self.message, self.status
-        )
+        write!(f, "kind: {} message: {} ", self.kind, self.message)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ValidateToken {
+    pub client_id: String,
+    pub login: String,
+    pub scopes: Vec<String>,
+    pub user_id: String,
+    pub expires_in: u64,
 }

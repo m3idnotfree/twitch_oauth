@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
@@ -10,7 +10,7 @@ keywords = ["twitch", "oauth"]
 
 
 [dependencies]
-base64 = "0.21.7"
+base64 = "0.22.0"
 rand = "0.8.5"
 reqwest = { version = "0.11.24", default_features = false, features = [
   "json",
@@ -31,4 +31,3 @@ url = "2.5.0"
 
 [dev-dependencies]
 actix-web = "4.5.1"
-reqwest = "0.11.24"

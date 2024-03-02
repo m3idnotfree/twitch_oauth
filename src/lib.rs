@@ -158,7 +158,7 @@ impl<'a> TwitchOauth<'a> {
         Ok(result)
     }
 
-    pub async fn get_token_json(self, code: &str) -> Result<Token, Error> {
+    pub async fn get_token_json(&self, code: &str) -> Result<Token, Error> {
         let result = self.get_token(code).await.expect("Failed get token");
 
         let status = result.status();
@@ -167,14 +167,10 @@ impl<'a> TwitchOauth<'a> {
                 let result: Token = result.json().await?;
                 Ok(result)
             }
-            StatusCode::FORBIDDEN => {
-                let result: FailToken = result.json().await?;
-                Err(Error::GetOauthTokenError(result))
-            }
-            _ => {
-                let result: FailToken = result.json().await?;
-                Err(Error::GetOauthTokenError(result))
-            }
+            StatusCode::FORBIDDEN => Err(Error::OauthTokenError(FailToken {
+                kind: "403".into(),
+                message: result.text().await?,
+            })),
             _ => Err(Error::OauthTokenError(FailToken {
                 kind: status.as_str().into(),
                 message: result.text().await?,
@@ -196,6 +192,7 @@ impl<'a> TwitchOauth<'a> {
             .form(&params)
             .send()
             .await?;
+
         let status = result.status();
         match status {
             StatusCode::OK => Ok(result.json().await?),
@@ -206,7 +203,7 @@ impl<'a> TwitchOauth<'a> {
         }
     }
 
-    pub async fn validate_token(access_token: &str) -> Result<Token, Error> {
+    pub async fn validate_token(access_token: &str) -> Result<ValidateToken, Error> {
         let validate_format = format!("OAuth {}", access_token);
 
         let reqwest_client = reqwest::Client::new();
@@ -240,7 +237,7 @@ fn query_find(url: &url::Url, key: &str) -> String {
     value.into_owned()
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
     pub access_token: String,
     pub expires_in: u64,
