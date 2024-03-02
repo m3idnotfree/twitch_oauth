@@ -175,6 +175,54 @@ impl<'a> TwitchOauth<'a> {
                 let result: FailToken = result.json().await?;
                 Err(Error::GetOauthTokenError(result))
             }
+            _ => Err(Error::OauthTokenError(FailToken {
+                kind: status.as_str().into(),
+                message: result.text().await?,
+            })),
+        }
+    }
+
+    pub async fn refresh_token(&self, refresh_token: &str) -> Result<Token, Error> {
+        let reqwest_client = reqwest::Client::new();
+
+        let mut params = HashMap::new();
+        params.insert("client_id", self.client_id);
+        params.insert("client_secret", self.client_secret);
+        params.insert("grant_type", "refresh_token");
+        params.insert("refresh_token", refresh_token);
+
+        let result = reqwest_client
+            .post(self.token_url)
+            .form(&params)
+            .send()
+            .await?;
+        let status = result.status();
+        match status {
+            StatusCode::OK => Ok(result.json().await?),
+            _ => Err(Error::OauthTokenError(FailToken {
+                kind: "refresh token".into(),
+                message: result.text().await?,
+            })),
+        }
+    }
+
+    pub async fn validate_token(access_token: &str) -> Result<Token, Error> {
+        let validate_format = format!("OAuth {}", access_token);
+
+        let reqwest_client = reqwest::Client::new();
+        let result = reqwest_client
+            .get("https://id.twitch.tv/oauth2/validate")
+            .header("Authorization", validate_format)
+            .send()
+            .await?;
+
+        let status = result.status();
+        match status {
+            StatusCode::OK => Ok(result.json().await?),
+            _ => Err(Error::OauthTokenError(FailToken {
+                kind: "validate token".into(),
+                message: result.text().await?,
+            })),
         }
     }
 }
