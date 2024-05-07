@@ -2,6 +2,7 @@ use oauth2::{
     basic::{BasicClient, BasicErrorResponseType, BasicTokenType},
     http::HeaderMap,
     reqwest::{async_http_client, http_client},
+    url::Url,
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, ConfigurationError, CsrfToken,
     EmptyExtraTokenFields, HttpRequest, HttpResponse, PkceCodeChallenge, PkceCodeVerifier,
     RedirectUrl, RefreshToken, RequestTokenError, RevocationErrorResponseType, RevocationRequest,
@@ -119,12 +120,25 @@ impl TwitchOauth {
     ) -> Result<HttpResponse, oauth2::reqwest::Error<reqwest::Error>> {
         let auth_value = format!("OAuth {}", token.access_token);
 
-        let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, auth_value.parse().unwrap());
+        http_client(self.validate_request(auth_value))
+    }
 
-        let valitade = HttpRequest {
+    pub async fn validate_token_async(
+        &self,
+        token: &Token,
+    ) -> Result<HttpResponse, oauth2::reqwest::Error<reqwest::Error>> {
+        let auth_value = format!("OAuth {}", token.access_token);
+
+        async_http_client(self.validate_request(auth_value)).await
+    }
+
+    fn validate_request(&self, access_token: String) -> HttpRequest {
+        let mut headers = HeaderMap::new();
+        headers.insert(AUTHORIZATION, access_token.parse().unwrap());
+
+        HttpRequest {
             url: "https://id.twitch.tv/oauth2/validate"
-                .parse::<url::Url>()
+                .parse::<Url>()
                 .unwrap(),
             method: Method::GET,
             headers,
