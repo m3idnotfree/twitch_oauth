@@ -93,19 +93,42 @@ impl TwitchOauth {
             .await
     }
 
-    pub fn refresh_token(
+    pub fn revoke_token(
         &self,
         token: &Token,
     ) -> Result<
-        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
-        RequestTokenError<
-            oauth2::reqwest::Error<reqwest::Error>,
-            StandardErrorResponse<BasicErrorResponseType>,
+        RevocationRequest<
+            '_,
+            StandardRevocableToken,
+            StandardErrorResponse<RevocationErrorResponseType>,
         >,
+        ConfigurationError,
     > {
         self.0
-            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone()))
-            .request(http_client)
+            .revoke_token(oauth2::StandardRevocableToken::AccessToken(
+                AccessToken::new(token.access_token.to_string()),
+            ))
+    }
+
+    pub fn validate_token(
+        &self,
+        token: &Token,
+    ) -> Result<HttpResponse, oauth2::reqwest::Error<reqwest::Error>> {
+        let auth_value = format!("OAuth {}", token.access_token);
+
+        let mut headers = HeaderMap::new();
+        headers.insert(AUTHORIZATION, auth_value.parse().unwrap());
+
+        let valitade = HttpRequest {
+            url: "https://id.twitch.tv/oauth2/validate"
+                .parse::<url::Url>()
+                .unwrap(),
+            method: Method::GET,
+            headers,
+            body: Vec::new(),
+        };
+
+        http_client(valitade)
     }
 }
 
