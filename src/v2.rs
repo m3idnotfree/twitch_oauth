@@ -47,11 +47,7 @@ impl TwitchOauth {
         PkceCodeChallenge::new_random_sha256()
     }
 
-    pub fn auth_url(
-        &self,
-        scopes: Vec<&str>,
-        pkce: PkceCodeChallenge,
-    ) -> (reqwest::Url, oauth2::CsrfToken) {
+    pub fn auth_url(&self, scopes: Vec<&str>, pkce: PkceCodeChallenge) -> (Url, CsrfToken) {
         let scopes = scopes.iter().map(|value| Scope::new(value.to_string()));
         self.0
             .authorize_url(CsrfToken::new_random)
@@ -143,9 +139,7 @@ impl TwitchOauth {
             method: Method::GET,
             headers,
             body: Vec::new(),
-        };
-
-        http_client(valitade)
+        }
     }
 }
 
