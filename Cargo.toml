@@ -10,7 +10,10 @@ keywords = ["twitch", "oauth"]
 
 
 [dependencies]
+anyhow = "1.0.81"
 base64 = "0.22.0"
+config = "0.14.0"
+oauth2 = "4.4.2"
 rand = "0.8.5"
 reqwest = { version = "0.11.24", default_features = false, features = [
   "json",
@@ -28,6 +31,3 @@ tokio = { version = "1.36.0", features = [
   "io-std",
 ] }
 url = "2.5.0"
-
-[dev-dependencies]
-actix-web = "4.5.1"
