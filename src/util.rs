@@ -67,3 +67,31 @@ pub struct ValidateToken {
     pub user_id: String,
     pub expires_in: u64,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+pub struct Cli {
+    pub config_path: String,
+    pub output_path: Option<String>,
+}
+
+impl Cli {
+    pub fn parse_args(vec: &[String]) -> Result<Cli, String> {
+        match vec.len() {
+            0 => Err("must got least one".to_string()),
+            1 => Ok(Cli {
+                config_path: vec[0].clone(),
+                output_path: None,
+            }),
+            2 => Ok(Cli {
+                config_path: vec[0].clone(),
+                output_path: Some(vec[1].clone()),
+            }),
+            _ => Err("expeced 1 or 2 args".to_string()),
+        }
+    }
+}
