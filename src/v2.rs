@@ -76,6 +76,37 @@ impl TwitchOauth {
             .set_pkce_verifier(pkce_verifier)
             .request(http_client)
     }
+
+    pub async fn refresh_token_async(
+        &self,
+        token: &Token,
+    ) -> Result<
+        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
+        RequestTokenError<
+            oauth2::reqwest::Error<reqwest::Error>,
+            StandardErrorResponse<BasicErrorResponseType>,
+        >,
+    > {
+        self.0
+            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone()))
+            .request_async(async_http_client)
+            .await
+    }
+
+    pub fn refresh_token(
+        &self,
+        token: &Token,
+    ) -> Result<
+        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
+        RequestTokenError<
+            oauth2::reqwest::Error<reqwest::Error>,
+            StandardErrorResponse<BasicErrorResponseType>,
+        >,
+    > {
+        self.0
+            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone()))
+            .request(http_client)
+    }
 }
 
 // #[derive(Debug, thiserror::Error)]
