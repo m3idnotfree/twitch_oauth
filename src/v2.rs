@@ -1,10 +1,24 @@
 use oauth2::{
     basic::{BasicClient, BasicErrorResponseType, BasicTokenType},
+    http::HeaderMap,
     reqwest::{async_http_client, http_client},
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, EmptyExtraTokenFields,
-    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RequestTokenError, Scope,
-    StandardErrorResponse, StandardTokenResponse, TokenUrl,
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, ConfigurationError, CsrfToken,
+    EmptyExtraTokenFields, HttpRequest, HttpResponse, PkceCodeChallenge, PkceCodeVerifier,
+    RedirectUrl, RefreshToken, RequestTokenError, RevocationErrorResponseType, RevocationRequest,
+    RevocationUrl, Scope, StandardErrorResponse, StandardRevocableToken, StandardTokenResponse,
+    TokenUrl,
 };
+use reqwest::{header::AUTHORIZATION, Method};
+
+use crate::Token;
+
+pub type RequestTokenResult = Result<
+    StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
+    RequestTokenError<
+        oauth2::reqwest::Error<reqwest::Error>,
+        StandardErrorResponse<BasicErrorResponseType>,
+    >,
+>;
 
 pub struct TwitchOauth(BasicClient);
 
@@ -20,6 +34,10 @@ impl TwitchOauth {
             BasicClient::new(client_id, Some(client_secret), auth_url, Some(token_url))
                 .set_redirect_uri(
                     RedirectUrl::new(redirect.to_string()).expect("Invalid redirect URL"),
+                )
+                .set_revocation_uri(
+                    RevocationUrl::new("https://id.twitch.tv/oauth2/revoke".to_string())
+                        .expect("Invalid revok URL"),
                 ),
         )
     }
@@ -41,18 +59,23 @@ impl TwitchOauth {
             .url()
     }
 
+    pub async fn exchange_token(
+        &self,
+        auth_code: AuthorizationCode,
+        pkce_verifier: PkceCodeVerifier,
+    ) -> RequestTokenResult {
+        self.0
+            .exchange_code(auth_code)
+            .set_pkce_verifier(pkce_verifier)
+            .request(http_client)
+    }
+
     pub async fn exchange_token_async(
         &self,
         auth_code: AuthorizationCode,
         pkce_verifier: PkceCodeVerifier,
         // ) -> oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>
-    ) -> Result<
-        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
-        RequestTokenError<
-            oauth2::reqwest::Error<reqwest::Error>,
-            StandardErrorResponse<BasicErrorResponseType>,
-        >,
-    > {
+    ) -> RequestTokenResult {
         self.0
             .exchange_code(auth_code)
             .set_pkce_verifier(pkce_verifier)
@@ -60,33 +83,13 @@ impl TwitchOauth {
             .await
     }
 
-    pub async fn exchange_token(
-        &self,
-        auth_code: AuthorizationCode,
-        pkce_verifier: PkceCodeVerifier,
-    ) -> Result<
-        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
-        RequestTokenError<
-            oauth2::reqwest::Error<reqwest::Error>,
-            StandardErrorResponse<BasicErrorResponseType>,
-        >,
-    > {
+    pub fn refresh_token(&self, token: &Token) -> RequestTokenResult {
         self.0
-            .exchange_code(auth_code)
-            .set_pkce_verifier(pkce_verifier)
+            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone()))
             .request(http_client)
     }
 
-    pub async fn refresh_token_async(
-        &self,
-        token: &Token,
-    ) -> Result<
-        StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
-        RequestTokenError<
-            oauth2::reqwest::Error<reqwest::Error>,
-            StandardErrorResponse<BasicErrorResponseType>,
-        >,
-    > {
+    pub async fn refresh_token_async(&self, token: &Token) -> RequestTokenResult {
         self.0
             .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone()))
             .request_async(async_http_client)
