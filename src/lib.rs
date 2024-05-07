@@ -37,8 +37,6 @@ pub mod pkce;
 mod util;
 pub use util::*;
 
-mod server;
-
 mod v2;
 pub use v2::*;
 
