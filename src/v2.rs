@@ -68,41 +68,6 @@ pub enum OauthError {
     ReadStream(String),
 }
 
-pub async fn oauth_server(
-    timeout: Duration,
-    listener: tokio::net::TcpListener,
-) -> Result<(AuthorizationCode, CsrfToken), OauthError> {
-    // ) -> (AuthorizationCode, CsrfToken)  {
-    let stream = tokio::time::timeout(timeout, listener.accept()).await?;
-
-    if let Ok((mut stream, _)) = stream {
-        let mut reader = tokio::io::BufReader::new(&mut stream);
-        let mut request_line = String::new();
-        reader.read_line(&mut request_line).await.unwrap();
-
-        let redirect_url = request_line.split_whitespace().nth(1).unwrap();
-        let url = url::Url::parse(&("http://localhost".to_string() + redirect_url)).unwrap();
-
-        let code = query_find_code(&url);
-        let state = query_find_state(&url);
-
-        let message = "close this page";
-        let response = format!(
-            "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
-            message.len(),
-            message
-        );
-        stream.write_all(response.as_bytes()).await.unwrap();
-
-        Ok((code, state))
-    } else {
-        // Err(Error::IoError(std::io::ErrorKind::NotFound.into()))
-        Err(OauthError::ReadStream(
-            "oauth server cant read stream".to_string(),
-        ))
-    }
-}
-
 fn query_find_code(url: &url::Url) -> AuthorizationCode {
     url.query_pairs()
         .find(|(key, _)| key == "code")
