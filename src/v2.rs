@@ -21,6 +21,7 @@ pub type RequestTokenResult = Result<
     >,
 >;
 
+#[derive(Clone)]
 pub struct TwitchOauth(BasicClient);
 
 impl TwitchOauth {
