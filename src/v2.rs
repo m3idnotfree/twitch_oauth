@@ -48,35 +48,25 @@ impl TwitchOauth {
         PkceCodeChallenge::new_random_sha256()
     }
 
-    pub fn auth_url(&self, scopes: Vec<String>, pkce: PkceCodeChallenge) -> (Url, CsrfToken) {
+    pub fn auth_url(&self, scopes: Vec<String>) -> (Url, CsrfToken) {
         let scopes = scopes.into_iter().map(Scope::new);
         self.0
             .authorize_url(CsrfToken::new_random)
             .add_scopes(scopes)
-            .set_pkce_challenge(pkce)
             .url()
     }
 
-    pub async fn exchange_token(
-        &self,
-        auth_code: AuthorizationCode,
-        pkce_verifier: PkceCodeVerifier,
-    ) -> RequestTokenResult {
-        self.0
-            .exchange_code(auth_code)
-            .set_pkce_verifier(pkce_verifier)
-            .request(http_client)
+    pub async fn exchange_token(&self, auth_code: AuthorizationCode) -> RequestTokenResult {
+        self.0.exchange_code(auth_code).request(http_client)
     }
 
     pub async fn exchange_token_async(
         &self,
         auth_code: AuthorizationCode,
-        pkce_verifier: PkceCodeVerifier,
         // ) -> oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>
     ) -> RequestTokenResult {
         self.0
             .exchange_code(auth_code)
-            .set_pkce_verifier(pkce_verifier)
             .request_async(async_http_client)
             .await
     }
