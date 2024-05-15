@@ -56,7 +56,7 @@ impl TwitchOauth {
             .url()
     }
 
-    pub async fn exchange_token(&self, auth_code: AuthorizationCode) -> RequestTokenResult {
+    pub fn exchange_token(&self, auth_code: AuthorizationCode) -> RequestTokenResult {
         self.0.exchange_code(auth_code).request(http_client)
     }
 
