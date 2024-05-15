@@ -1,7 +1,6 @@
 use oauth2::{
     basic::{BasicClient, BasicErrorResponseType, BasicTokenType},
     http::HeaderMap,
-    reqwest::{async_http_client, http_client},
     url::Url,
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, ConfigurationError, CsrfToken,
     EmptyExtraTokenFields, HttpRequest, HttpResponse, PkceCodeChallenge, PkceCodeVerifier,
@@ -21,8 +20,10 @@ pub type RequestTokenResult = Result<
     >,
 >;
 
+pub use oauth2::reqwest::{async_http_client, http_client};
+
 #[derive(Clone)]
-pub struct TwitchOauth(BasicClient);
+pub struct TwitchOauth(pub BasicClient);
 
 impl TwitchOauth {
     pub fn new(client_id: &str, client_secret: &str, redirect: &str) -> Self {
@@ -60,11 +61,7 @@ impl TwitchOauth {
         self.0.exchange_code(auth_code).request(http_client)
     }
 
-    pub async fn exchange_token_async(
-        &self,
-        auth_code: AuthorizationCode,
-        // ) -> oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>
-    ) -> RequestTokenResult {
+    pub async fn exchange_token_async(&self, auth_code: AuthorizationCode) -> RequestTokenResult {
         self.0
             .exchange_code(auth_code)
             .request_async(async_http_client)
