@@ -1,7 +1,7 @@
 mod authorize_request;
 pub use authorize_request::*;
-// mod codetoken_request;
-// pub use codetoken_request::*;
+mod codetoken_request;
+pub use codetoken_request::*;
 // mod refresh_request;
 // pub use refresh_request::*;
 // mod revoke_request;
