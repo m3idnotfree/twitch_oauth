@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "0.0.4"
+version = "0.1.0"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
@@ -10,9 +10,16 @@ keywords = ["twitch", "oauth"]
 
 
 [dependencies]
+anyhow = "1.0.90"
+http = "1.1.0"
+http-serde = "2.1.1"
 oauth2 = "4.4.2"
-reqwest = { version = "0.11", default_features = false, features = [
-  "rustls-tls",
-] }
-serde = { version = "1.0.201", features = ["derive"] }
-serde_json = "1.0.117"
+reqwest = { version = "0.12.8", features = ["rustls-tls", "json"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.131"
+thiserror = "1.0.64"
+tokio = { version = "1.40.0", features = ["full"] }
+url = "2.5.2"
+
+[dev-dependencies]
+wiremock = "0.6.2"
