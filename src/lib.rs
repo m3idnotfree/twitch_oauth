@@ -26,16 +26,15 @@
 //!     Ok(())
 //! }
 //! ```
-use serde::{Deserialize, Serialize};
 
-mod v2;
-pub use v2::*;
+// mod twitch_oauth;
+// pub use twitch_oauth::*;
+// mod oauth_oneshot_server;
+// pub use oauth_oneshot_server::*;
+// mod error;
+// pub use error::*;
+// pub mod request;
+// pub mod traits;
+pub mod types;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Token {
-    pub access_token: String,
-    pub expires_in: u64,
-    pub refresh_token: String,
-    pub scope: Vec<String>,
-    pub token_type: String,
-}
+pub type Result<R> = std::result::Result<R, crate::Error>;
