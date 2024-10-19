@@ -7,6 +7,9 @@
 //!         .set_client_id("client_id")
 //!         .set_client_secret("client_secret");
 //!
+//!     let client_credentials = client.client_credentials().await?;
+//!     println!("client credentials: {client_credentials:#?}");
+//!
 //!     let authorize_url = client.authorize_url().add_scope("channel:bot").url();
 //!
 //!     println!("{authorize_url}");
