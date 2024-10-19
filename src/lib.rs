@@ -1,27 +1,32 @@
 //!```ignore
-//! use tokio::net::TcpListener;
-//! use twitch_oauth_token::{pkce::Pkce, Token, TwitchOauth};
+//! use twitch_oauth_token::{oauth_oneshot_server, TwitchOauth};
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), twitch_oauth::Error> {
-//!     let (pkce_challenge, code_verifier) = Pkce::new_sha256().unwrap();
-//!     // duration 10 sec
-//!     let oauth = TwitchOauth::new("client_id", "client_secret", &pkce_challenge, 10);
+//! async fn main() -> Result<(), anyhow::Error> {
+//!     let mut client = TwitchOauth::default()
+//!         .set_client_id("client_id")
+//!         .set_client_secret("client_secret");
 //!
-//!     let auth_url = oauth.auth_request_url("chat:read");
+//!     let authorize_url = client.authorize_url().add_scope("channel:bot").url();
 //!
-//!     // only can bind 3000
-//!     let listener = TcpListener::bind("127.0.0.1:3000")
-//!         .await
-//!         .expect("Failed already bind 3000");
+//!     println!("{authorize_url}");
 //!
-//!     println!("{}", auth_url);
+//!     let rev = oauth_oneshot_server(
+//!         client.get_addr().unwrap(),
+//!         std::time::Duration::from_secs(60),
+//!     )
+//!     .await?;
 //!
-//!     let (code, state) = oauth.oauth_server_sync(listener).await?;
+//!     let token = client.exchange_code_with_statuscode(rev).await?;
+//!     println!("token: {:#?}", token);
 //!
-//!     code_verifier(state).unwrap();
+//!     let validate_token = client.validate_token(&token.access_token).await.unwrap();
+//!     println!("validate token: {validate_token:#?}");
 //!
-//!     let token = oauth.get_token_json(&code).await?;
+//!     let refresh_token = client.exchange_refresh_token(&token.refresh_token).await?;
+//!     println!("refresh token: {refresh_token:#?}");
+//!
+//!     client.revoke_token(&token.access_token).await?;
 //!
 //!     Ok(())
 //! }
