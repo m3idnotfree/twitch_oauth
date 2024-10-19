@@ -21,7 +21,7 @@ const PORT: u16 = 60928;
 
 #[derive(Debug)]
 pub struct TwitchOauth {
-    client_id: ClientId,
+    pub client_id: ClientId,
     client_secret: ClientSecret,
     auth_url: AuthUrl,
     token_url: TokenUrl,
