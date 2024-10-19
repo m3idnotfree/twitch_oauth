@@ -10,10 +10,12 @@ use url::Url;
 use crate::{
     error::Error,
     request::{
-        oauth_request, AuthrozationRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
-        ValidateRequest, ValidateUrl,
+        oauth_request, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
+        RefreshRequest, RevokeRequest, ValidateRequest, ValidateUrl,
     },
-    types::{CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken},
+    types::{
+        ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
+    },
     Result,
 };
 
@@ -185,5 +187,17 @@ impl TwitchOauth {
         })
         .await?;
         Ok(())
+    }
+
+    pub async fn client_credentials(&self) -> Result<ClientCredentials> {
+        let response = oauth_request(ClientCredentialsRequest {
+            client_id: &self.client_id,
+            client_secret: &self.client_secret,
+            grant_type: GrantType::ClientCredentials,
+            token_url: &self.token_url,
+        })
+        .await?;
+
+        response.json()
     }
 }

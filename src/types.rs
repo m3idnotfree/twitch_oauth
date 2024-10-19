@@ -22,6 +22,13 @@ pub struct ValidateToken {
     pub expires_in: u64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClientCredentials {
+    access_token: AccessToken,
+    expires_in: u64,
+    token_type: String,
+}
+
 #[derive(Debug)]
 pub enum ResponseType {
     Token,

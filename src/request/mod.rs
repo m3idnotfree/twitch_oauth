@@ -10,3 +10,5 @@ mod validate_request;
 pub use validate_request::*;
 mod oauth_request;
 pub use oauth_request::*;
+mod client_credentials;
+pub use client_credentials::*;
