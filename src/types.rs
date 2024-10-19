@@ -1,6 +1,8 @@
-use http::StatusCode;
+use http::{HeaderMap, StatusCode};
 use oauth2::{AccessToken, RefreshToken};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+use crate::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -72,6 +74,31 @@ impl AsRef<str> for GrantType {
             Self::ClientCredentials => "client_credentials",
             Self::AuthorizationCode => "authorization_code",
             Self::RefreshToken => "refresh_token",
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct HttpResponse {
+    pub status: StatusCode,
+    pub headers: HeaderMap,
+    pub body: String,
+}
+
+impl HttpResponse {
+    pub fn json<RT>(self) -> crate::Result<RT>
+    where
+        RT: DeserializeOwned,
+    {
+        match self.status {
+            StatusCode::OK => {
+                let token: RT = serde_json::from_str(&self.body).unwrap();
+                Ok(token)
+            }
+            _ => {
+                let token: ErrorResponse = serde_json::from_str(&self.body).unwrap();
+                Err(Error::ResponseError(token))
+            }
         }
     }
 }
