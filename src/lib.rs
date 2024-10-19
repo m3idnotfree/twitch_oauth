@@ -27,8 +27,8 @@
 //! }
 //! ```
 
-// mod twitch_oauth;
-// pub use twitch_oauth::*;
+mod twitch_oauth;
+pub use twitch_oauth::*;
 // mod oauth_oneshot_server;
 // pub use oauth_oneshot_server::*;
 mod error;

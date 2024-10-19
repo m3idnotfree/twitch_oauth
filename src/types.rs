@@ -1,5 +1,5 @@
 use http::{HeaderMap, StatusCode};
-use oauth2::{AccessToken, RefreshToken};
+use oauth2::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::Error;
@@ -101,4 +101,17 @@ impl HttpResponse {
             }
         }
     }
+}
+
+#[derive(Debug)]
+pub enum ServerStatus {
+    Recive,
+    Shutdown,
+    Timeout,
+}
+
+pub struct CodeState {
+    pub state: ServerStatus,
+    pub code: Option<AuthorizationCode>,
+    pub csrf_token: Option<CsrfToken>,
 }
