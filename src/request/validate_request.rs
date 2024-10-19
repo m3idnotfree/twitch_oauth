@@ -73,7 +73,7 @@ impl<'de> serde::Deserialize<'de> for ValidateUrl {
             type Value = ValidateUrl;
 
             fn expecting(&self, formatter: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                formatter.write_str(stringify!($name))
+                formatter.write_str(stringify!(ValidateUrl))
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
