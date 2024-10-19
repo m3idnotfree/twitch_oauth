@@ -24,9 +24,9 @@ pub struct ValidateToken {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientCredentials {
-    access_token: AccessToken,
-    expires_in: u64,
-    token_type: String,
+    pub access_token: AccessToken,
+    pub expires_in: u64,
+    pub token_type: String,
 }
 
 #[derive(Debug)]
