@@ -1,5 +1,5 @@
 //!```ignore
-//! use twitch_oauth_token::{oauth_oneshot_server, TwitchOauth};
+//! use twitch_oauth_token::{oauth_oneshot_server, types::ServerStatus, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), anyhow::Error> {
@@ -10,24 +10,34 @@
 //!     let authorize_url = client.authorize_url().add_scope("channel:bot").url();
 //!
 //!     println!("{authorize_url}");
+//!     let timeout = 60;
 //!
 //!     let rev = oauth_oneshot_server(
 //!         client.get_addr().unwrap(),
-//!         std::time::Duration::from_secs(60),
+//!         std::time::Duration::from_secs(timeout),
 //!     )
 //!     .await?;
 //!
-//!     let token = client.exchange_code_with_statuscode(rev).await?;
-//!     println!("token: {:#?}", token);
+//!     match rev.state {
+//!         ServerStatus::Shutdown => {
+//!             println!("ctrl + c shutdown");
+//!         }
+//!         ServerStatus::Timeout => {
+//!             println!("recive time out {}s", timeout);
+//!         }
+//!         ServerStatus::Recive => {
+//!             let token = client.exchange_code(rev.code.unwrap()).await?;
+//!             println!("token: {:#?}", token);
 //!
-//!     let validate_token = client.validate_token(&token.access_token).await.unwrap();
-//!     println!("validate token: {validate_token:#?}");
+//!             let validate_token = client.validate_token(&token.access_token).await.unwrap();
+//!             println!("validate token: {validate_token:#?}");
 //!
-//!     let refresh_token = client.exchange_refresh_token(&token.refresh_token).await?;
-//!     println!("refresh token: {refresh_token:#?}");
+//!             let refresh_token = client.exchange_refresh_token(&token.refresh_token).await?;
+//!             println!("refresh token: {refresh_token:#?}");
 //!
-//!     client.revoke_token(&token.access_token).await?;
-//!
+//!             client.revoke_token(&token.access_token).await?;
+//!         }
+//!     }
 //!     Ok(())
 //! }
 //! ```

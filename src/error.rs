@@ -20,4 +20,8 @@ pub enum Error {
     CsrfTokenPartialEqError,
     #[error("can't get SocketAddr: {0}")]
     GetSocketAddrError(String),
+    #[error("timeout error")]
+    TimeoutError(String),
+    #[error("graceful shutdown")]
+    GraceFulShutdown(String),
 }

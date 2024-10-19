@@ -1,8 +1,7 @@
 use std::ops::Deref;
 
-use http::{header::AUTHORIZATION, HeaderMap, HeaderValue, StatusCode};
+use http::{header::AUTHORIZATION, HeaderMap, HeaderValue};
 use oauth2::AccessToken;
-use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::traits::OauthRequest;
@@ -121,20 +120,6 @@ impl PartialEq for ValidateUrl {
 }
 
 impl Eq for ValidateUrl {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ValidateToken {
-    pub client_id: String,
-    pub login: String,
-    pub scopes: Vec<String>,
-    pub user_id: String,
-    pub expires_in: u64,
-}
-
-pub struct FailValidate {
-    pub status: StatusCode,
-    pub message: String,
-}
 
 #[cfg(test)]
 mod tests {

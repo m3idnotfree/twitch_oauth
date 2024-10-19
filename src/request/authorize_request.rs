@@ -21,7 +21,6 @@ impl<'a> AuthrozationRequest<'a> {
     pub fn add_scopes<'de, I>(mut self, scopes: I) -> Self
     where
         I: IntoIterator<Item = &'de str>,
-        // T: AsRef<str>,
     {
         self.scopes.extend(
             scopes

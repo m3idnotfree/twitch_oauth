@@ -5,14 +5,15 @@ use oauth2::{
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
     RefreshToken, RevocationUrl, TokenUrl,
 };
+use url::Url;
 
 use crate::{
     error::Error,
     request::{
         oauth_request, AuthrozationRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
-        ValidateRequest, ValidateToken, ValidateUrl,
+        ValidateRequest, ValidateUrl,
     },
-    types::{CodeState, GrantType, HttpResponse, ResponseType, ServerStatus, Token},
+    types::{CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken},
     Result,
 };
 
@@ -57,8 +58,8 @@ impl Default for TwitchOauth {
 
 impl TwitchOauth {
     pub fn get_addr(&self) -> Result<SocketAddr> {
-        let a = self.redirect_url.url().host_str().unwrap();
-        if a != "localhost" {
+        let host = self.redirect_url.url().host_str().unwrap();
+        if host != "localhost" {
             Err(Error::GetSocketAddrError(
                 "redirect url not localhost".to_string(),
             ))
@@ -77,7 +78,7 @@ impl TwitchOauth {
     }
 
     pub fn set_redirect_uri(mut self, redir_url: &str) -> Result<Self> {
-        let url = url::Url::parse(redir_url)?;
+        let url = Url::parse(redir_url)?;
 
         if url.scheme() == "http" || url.scheme() == "https" {
             if let Some(port) = url.port() {
@@ -109,15 +110,16 @@ impl TwitchOauth {
     }
 
     pub fn authorize_url(&mut self) -> AuthrozationRequest {
-        let crf = CsrfToken::new_random();
-        self.csrf_state = Some(crf.clone());
+        let csrf_token = CsrfToken::new_random();
+        self.csrf_state = Some(csrf_token.clone());
+
         AuthrozationRequest {
             auth_url: &self.auth_url,
             client_id: &self.client_id,
             redirect_url: &self.redirect_url,
             response_type: ResponseType::Code,
             scopes: Vec::new(),
-            state: crf,
+            state: csrf_token,
         }
     }
 
@@ -125,8 +127,8 @@ impl TwitchOauth {
         self.csrf_state.as_ref().unwrap().secret() == state.secret()
     }
 
-    pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<HttpResponse> {
-        oauth_request(CodeTokenRequest {
+    pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<Token> {
+        let response = oauth_request(CodeTokenRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             code,
@@ -134,23 +136,27 @@ impl TwitchOauth {
             token_url: &self.token_url,
             redirect_url: &self.redirect_url,
         })
-        .await
+        .await?;
+
+        response.json()
     }
 
-    pub async fn exchange_code_with_statuscode(&self, code_state: CodeState) -> Result<Token> {
+    pub async fn exchange_code_with_statuscode(&mut self, code_state: CodeState) -> Result<Token> {
         if !self.csrf_cmp(code_state.csrf_token.unwrap()) {
+            self.csrf_state = None;
             Err(Error::CsrfTokenPartialEqError)
         } else {
+            self.csrf_state = None;
             match code_state.state {
-                ServerStatus::Timeout => Err(Error::UrlQueryFindError("".to_string())),
-                ServerStatus::Shutdown => Err(Error::UrlQueryFindError("".to_string())),
-                ServerStatus::Recive => self.exchange_code(code_state.code.unwrap()).await?.json(),
+                ServerStatus::Timeout => Err(Error::TimeoutError("".to_string())),
+                ServerStatus::Shutdown => Err(Error::GraceFulShutdown("".to_string())),
+                ServerStatus::Recive => self.exchange_code(code_state.code.unwrap()).await,
             }
         }
     }
 
     pub async fn exchange_refresh_token(&self, refresh_token: &RefreshToken) -> Result<Token> {
-        let a = oauth_request(RefreshRequest {
+        let response = oauth_request(RefreshRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             grant_type: GrantType::RefreshToken,
@@ -159,16 +165,16 @@ impl TwitchOauth {
         })
         .await?;
 
-        a.json()
+        response.json()
     }
     pub async fn validate_token(&self, access_token: &AccessToken) -> Result<ValidateToken> {
-        let a = oauth_request(ValidateRequest {
+        let response = oauth_request(ValidateRequest {
             access_token,
             validate_url: &self.validate_url,
         })
         .await?;
 
-        a.json()
+        response.json()
     }
 
     pub async fn revoke_token(&self, acces_token: &AccessToken) -> Result<()> {

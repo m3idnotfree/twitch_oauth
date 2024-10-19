@@ -14,17 +14,12 @@ pub struct Token {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(with = "http_serde::status_code")]
-    pub status: StatusCode,
-    pub message: String,
-    pub error: Option<String>,
-}
-
-impl std::fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self)
-    }
+pub struct ValidateToken {
+    pub client_id: String,
+    pub login: String,
+    pub scopes: Vec<String>,
+    pub user_id: String,
+    pub expires_in: u64,
 }
 
 #[derive(Debug)]
@@ -103,15 +98,29 @@ impl HttpResponse {
     }
 }
 
-#[derive(Debug)]
-pub enum ServerStatus {
-    Recive,
-    Shutdown,
-    Timeout,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ErrorResponse {
+    #[serde(with = "http_serde::status_code")]
+    pub status: StatusCode,
+    pub message: String,
+    pub error: Option<String>,
+}
+
+impl std::fmt::Display for ErrorResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self)
+    }
 }
 
 pub struct CodeState {
     pub state: ServerStatus,
     pub code: Option<AuthorizationCode>,
     pub csrf_token: Option<CsrfToken>,
+}
+
+#[derive(Debug)]
+pub enum ServerStatus {
+    Recive,
+    Shutdown,
+    Timeout,
 }

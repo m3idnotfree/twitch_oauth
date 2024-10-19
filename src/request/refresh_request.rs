@@ -1,4 +1,4 @@
-use oauth2::{AccessToken, ClientId, ClientSecret, RefreshToken, TokenUrl};
+use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl};
 
 use crate::{traits::OauthRequest, types::GrantType};
 
@@ -29,14 +29,6 @@ impl OauthRequest for RefreshRequest<'_> {
     fn url(&self) -> &str {
         self.token_url.as_str()
     }
-}
-
-pub struct SucessRefresh {
-    pub access_token: AccessToken,
-    pub expires_in: u64,
-    pub token_type: String,
-    pub refresh_token: RefreshToken,
-    pub scope: Vec<String>,
 }
 
 #[cfg(test)]

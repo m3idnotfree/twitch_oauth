@@ -20,9 +20,9 @@ pub async fn oauth_oneshot_server(addr: SocketAddr, duration: Duration) -> Resul
     let mut signal = std::pin::pin!(shutdown_signal());
 
     tokio::select! {
-     res = timeout(duration, listener.accept()) => {
+     rev = timeout(duration, listener.accept()) => {
 
-            match res {
+            match rev {
                 Ok(res)=>{
                     let (stream, _addr) = res?;
 
