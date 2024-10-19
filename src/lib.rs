@@ -33,7 +33,7 @@
 // pub use oauth_oneshot_server::*;
 mod error;
 pub use error::*;
-// pub mod request;
+pub mod request;
 pub mod traits;
 pub mod types;
 
