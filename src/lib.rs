@@ -34,7 +34,7 @@
 // mod error;
 // pub use error::*;
 // pub mod request;
-// pub mod traits;
+pub mod traits;
 pub mod types;
 
-pub type Result<R> = std::result::Result<R, crate::Error>;
+// pub type Result<R> = std::result::Result<R, crate::Error>;
