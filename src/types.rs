@@ -58,6 +58,7 @@ pub enum GrantType {
     ClientCredentials,
     AuthorizationCode,
     RefreshToken,
+    UserToken,
 }
 
 impl std::fmt::Display for GrantType {
@@ -66,6 +67,7 @@ impl std::fmt::Display for GrantType {
             Self::ClientCredentials => write!(f, "client_credentials"),
             Self::AuthorizationCode => write!(f, "authorization_code"),
             Self::RefreshToken => write!(f, "refresh_token"),
+            Self::UserToken => write!(f, "user_token"),
         }
     }
 }
@@ -76,6 +78,7 @@ impl AsRef<str> for GrantType {
             Self::ClientCredentials => "client_credentials",
             Self::AuthorizationCode => "authorization_code",
             Self::RefreshToken => "refresh_token",
+            Self::UserToken => "user_token",
         }
     }
 }
