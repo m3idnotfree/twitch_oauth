@@ -69,6 +69,7 @@ impl TwitchOauth {
             Ok(self.addr)
         }
     }
+
     pub fn set_client_id(mut self, client_id: &str) -> Self {
         self.client_id = ClientId::new(client_id.to_string());
         self
@@ -100,8 +101,29 @@ impl TwitchOauth {
         self.access_token = Some(access_token);
         self
     }
+
     pub fn set_refresh_token(mut self, refresh_token: RefreshToken) -> Self {
         self.refresh_token = Some(refresh_token);
+        self
+    }
+
+    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
+        self.auth_url = auth_url;
+        self
+    }
+
+    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
+        self.token_url = token_url;
+        self
+    }
+
+    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+        self.revoke_url = revoke_url;
+        self
+    }
+
+    pub fn set_validate_url(mut self, validate_url: ValidateUrl) -> Self {
+        self.validate_url = validate_url;
         self
     }
 
