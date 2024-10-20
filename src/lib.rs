@@ -56,3 +56,8 @@ pub mod traits;
 pub mod types;
 
 pub type Result<R> = std::result::Result<R, crate::Error>;
+
+pub use oauth2::{
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
+    RefreshToken, RevocationUrl, Scope, TokenUrl,
+};
