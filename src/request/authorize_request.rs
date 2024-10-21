@@ -3,18 +3,20 @@ use url::Url;
 
 use crate::types::ResponseType;
 
+use super::ScopeBuilder;
+
 pub struct AuthrozationRequest<'a> {
     pub auth_url: &'a AuthUrl,
     pub client_id: &'a ClientId,
     pub redirect_url: &'a RedirectUrl,
     pub response_type: ResponseType,
-    pub scopes: Vec<Scope>,
+    pub scopes: ScopeBuilder,
     pub state: CsrfToken,
 }
 
 impl<'a> AuthrozationRequest<'a> {
     pub fn add_scope(mut self, scope: &str) -> Self {
-        self.scopes.push(Scope::new(scope.to_string()));
+        self.scopes.add_scope(scope);
         self
     }
 
@@ -22,22 +24,12 @@ impl<'a> AuthrozationRequest<'a> {
     where
         I: IntoIterator<Item = &'de str>,
     {
-        self.scopes.extend(
-            scopes
-                .into_iter()
-                .map(|x| Scope::new(x.to_string()))
-                .collect::<Vec<Scope>>(),
-        );
+        self.scopes.add_scopes(scopes);
         self
     }
 
     pub fn url(self) -> Url {
-        let scopes = self
-            .scopes
-            .iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>()
-            .join(" ");
+        let scopes = self.scopes.build();
 
         let url = {
             let mut pairs = vec![
@@ -67,7 +59,7 @@ mod tests {
     use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
     use url::Url;
 
-    use crate::types::ResponseType;
+    use crate::{request::ScopeBuilder, types::ResponseType};
 
     use super::AuthrozationRequest;
 
@@ -79,7 +71,7 @@ mod tests {
             client_id: &ClientId::new("test_id".to_string()),
             redirect_url: &RedirectUrl::new("http://localhost:3000".to_string()).unwrap(),
             response_type: ResponseType::Token,
-            scopes: Vec::new(),
+            scopes: ScopeBuilder::default(),
             state: csrf_token.clone(),
         };
 

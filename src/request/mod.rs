@@ -11,6 +11,8 @@ mod validate_request;
 pub use validate_request::*;
 mod client_credentials;
 pub use client_credentials::*;
+mod scope_builder;
+pub use scope_builder::*;
 
 use http::{
     header::{ACCEPT, CONTENT_TYPE},
