@@ -1,17 +1,20 @@
 use std::net::SocketAddr;
 
 use anyhow::anyhow;
-use oauth2::{
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    RefreshToken, RevocationUrl, TokenUrl,
+use asknothingx2_util::{
+    api::api_request,
+    oauth::{
+        AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
+        RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
+    },
 };
 use url::Url;
 
 use crate::{
     error::Error,
     request::{
-        oauth_request, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
-        RefreshRequest, RevokeRequest, ValidateRequest, ValidateUrl,
+        AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
+        RevokeRequest, ValidateRequest,
     },
     types::{
         ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
@@ -152,7 +155,7 @@ impl TwitchOauth {
     }
 
     pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<Token> {
-        let response = oauth_request(CodeTokenRequest {
+        let response = api_request(CodeTokenRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             code,
@@ -162,7 +165,7 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json()
+        response.json().await.map_err(Error::ReqwestError)
     }
 
     pub async fn exchange_code_with_statuscode(&mut self, code_state: CodeState) -> Result<Token> {
@@ -180,7 +183,7 @@ impl TwitchOauth {
     }
 
     pub async fn exchange_refresh_token(&self, refresh_token: &RefreshToken) -> Result<Token> {
-        let response = oauth_request(RefreshRequest {
+        let response = api_request(RefreshRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             grant_type: GrantType::RefreshToken,
@@ -189,20 +192,20 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json()
+        response.json().await.map_err(Error::ReqwestError)
     }
     pub async fn validate_token(&self, access_token: &AccessToken) -> Result<ValidateToken> {
-        let response = oauth_request(ValidateRequest {
+        let response = api_request(ValidateRequest {
             access_token,
             validate_url: &self.validate_url,
         })
         .await?;
 
-        response.json()
+        response.json().await.map_err(Error::ReqwestError)
     }
 
     pub async fn revoke_token(&self, acces_token: &AccessToken) -> Result<()> {
-        oauth_request(RevokeRequest {
+        api_request(RevokeRequest {
             client_id: &self.client_id,
             revoke_url: &self.revoke_url,
             access_token: acces_token,
@@ -212,7 +215,7 @@ impl TwitchOauth {
     }
 
     pub async fn client_credentials(&self) -> Result<ClientCredentials> {
-        let response = oauth_request(ClientCredentialsRequest {
+        let response = api_request(ClientCredentialsRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             grant_type: GrantType::ClientCredentials,
@@ -220,6 +223,6 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json()
+        response.json().await.map_err(Error::ReqwestError)
     }
 }

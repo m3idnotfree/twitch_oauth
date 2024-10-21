@@ -1,5 +1,5 @@
+use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
 use http::{HeaderMap, StatusCode};
-use oauth2::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::Error;

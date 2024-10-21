@@ -1,6 +1,14 @@
-use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl};
+use asknothingx2_util::{
+    api::{APIRequest, CONTENT_TYPE_FORMENCODED, CONTENT_TYPE_JSON},
+    oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
+};
+use http::{
+    header::{ACCEPT, CONTENT_TYPE},
+    HeaderMap,
+};
+use url::Url;
 
-use crate::{traits::OauthRequest, types::GrantType};
+use crate::types::GrantType;
 
 #[derive(Debug)]
 pub struct RefreshRequest<'a> {
@@ -11,8 +19,8 @@ pub struct RefreshRequest<'a> {
     pub token_url: &'a TokenUrl,
 }
 
-impl OauthRequest for RefreshRequest<'_> {
-    fn body(&self) -> Option<Vec<u8>> {
+impl APIRequest for RefreshRequest<'_> {
+    fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
@@ -20,23 +28,35 @@ impl OauthRequest for RefreshRequest<'_> {
             ("refresh_token", self.refresh_token.secret()),
         ];
 
-        Some(Self::urlencoded_serializere_pairs(params))
+        Some(Self::form_urlencoded_serializere_pairs(params))
     }
+
     fn method(&self) -> http::Method {
         http::Method::POST
     }
+    fn headers(&self) -> http::HeaderMap {
+        let mut headers = HeaderMap::new();
 
-    fn url(&self) -> &str {
-        self.token_url.as_str()
+        headers.append(ACCEPT, CONTENT_TYPE_JSON());
+        headers.append(CONTENT_TYPE, CONTENT_TYPE_FORMENCODED());
+        headers
+    }
+
+    fn url(&self) -> Url {
+        self.token_url.url().clone()
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl};
+    use asknothingx2_util::{
+        api::APIRequest,
+        oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
+    };
+    use url::Url;
 
-    use crate::{request::RefreshRequest, traits::OauthRequest, types::GrantType};
+    use crate::{request::RefreshRequest, types::GrantType};
 
     #[test]
     fn refresh_request() {
@@ -60,8 +80,11 @@ mod tests {
             .into_bytes();
 
         assert_eq!(http::Method::POST, request.method());
-        assert_eq!("https://id.twitch.tv/oauth2/token", request.url());
-        assert_eq!(None, request.headers());
-        assert_eq!(Some(expected_body), request.body());
+        assert_eq!(
+            Url::parse("https://id.twitch.tv/oauth2/token").unwrap(),
+            request.url()
+        );
+        assert_eq!(2, request.headers().len());
+        assert_eq!(Some(expected_body), request.urlencoded());
     }
 }

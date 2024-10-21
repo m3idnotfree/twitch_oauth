@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, time::Duration};
 
-use oauth2::{AuthorizationCode, CsrfToken};
+use asknothingx2_util::oauth::{AuthorizationCode, CsrfToken};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     net::{TcpListener, TcpStream},

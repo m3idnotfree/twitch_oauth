@@ -1,6 +1,10 @@
-use oauth2::{ClientId, ClientSecret, TokenUrl};
+use asknothingx2_util::{
+    api::APIRequest,
+    oauth::{ClientId, ClientSecret, TokenUrl},
+};
+use url::Url;
 
-use crate::{traits::OauthRequest, types::GrantType};
+use crate::types::GrantType;
 
 #[derive(Debug)]
 pub struct ClientCredentialsRequest<'a> {
@@ -10,28 +14,32 @@ pub struct ClientCredentialsRequest<'a> {
     pub token_url: &'a TokenUrl,
 }
 
-impl OauthRequest for ClientCredentialsRequest<'_> {
-    fn body(&self) -> Option<Vec<u8>> {
+impl APIRequest for ClientCredentialsRequest<'_> {
+    fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
             ("grant_type", self.grant_type.as_ref()),
         ];
 
-        Some(Self::urlencoded_serializere_pairs(params))
+        Some(Self::form_urlencoded_serializere_pairs(params))
     }
     fn method(&self) -> http::Method {
         http::Method::POST
     }
-    fn url(&self) -> &str {
-        self.token_url.as_str()
+    fn url(&self) -> Url {
+        self.token_url.url().clone()
     }
 }
 #[cfg(test)]
 mod tests {
-    use oauth2::{ClientId, ClientSecret, TokenUrl};
+    use asknothingx2_util::{
+        api::APIRequest,
+        oauth::{ClientId, ClientSecret, TokenUrl},
+    };
+    use url::Url;
 
-    use crate::{traits::OauthRequest, types::GrantType};
+    use crate::types::GrantType;
 
     use super::ClientCredentialsRequest;
 
@@ -56,8 +64,11 @@ mod tests {
             .into_bytes();
 
         assert_eq!(http::Method::POST, request.method());
-        assert_eq!("https://id.twitch.tv/oauth2/token", request.url());
-        assert_eq!(None, request.headers());
-        assert_eq!(Some(expected_body), request.body());
+        assert_eq!(
+            Url::parse("https://id.twitch.tv/oauth2/token").unwrap(),
+            request.url()
+        );
+        assert_eq!(0, request.headers().len());
+        assert_eq!(Some(expected_body), request.urlencoded());
     }
 }

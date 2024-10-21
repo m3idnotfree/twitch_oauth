@@ -44,7 +44,6 @@
 //!     Ok(())
 //! }
 //! ```
-
 mod twitch_oauth;
 pub use twitch_oauth::*;
 mod oauth_oneshot_server;
@@ -52,12 +51,9 @@ pub use oauth_oneshot_server::*;
 mod error;
 pub use error::*;
 pub mod request;
-pub mod traits;
 pub mod types;
 
-pub type Result<R> = std::result::Result<R, crate::Error>;
+#[cfg(feature = "twitch-cli")]
+pub mod twitch_cli;
 
-pub use oauth2::{
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-    RefreshToken, RevocationUrl, Scope, TokenUrl,
-};
+pub type Result<R> = std::result::Result<R, crate::Error>;

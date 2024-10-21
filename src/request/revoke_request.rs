@@ -1,6 +1,12 @@
-use oauth2::{AccessToken, ClientId, RevocationUrl};
-
-use crate::traits::OauthRequest;
+use asknothingx2_util::{
+    api::{APIRequest, CONTENT_TYPE_FORMENCODED, CONTENT_TYPE_JSON},
+    oauth::{AccessToken, ClientId, RevocationUrl},
+};
+use http::{
+    header::{ACCEPT, CONTENT_TYPE},
+    HeaderMap,
+};
+use url::Url;
 
 #[derive(Debug)]
 pub struct RevokeRequest<'a> {
@@ -9,29 +15,40 @@ pub struct RevokeRequest<'a> {
     pub revoke_url: &'a RevocationUrl,
 }
 
-impl OauthRequest for RevokeRequest<'_> {
-    fn body(&self) -> Option<Vec<u8>> {
+impl APIRequest for RevokeRequest<'_> {
+    fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
             ("token", self.access_token.secret()),
         ];
 
-        Some(Self::urlencoded_serializere_pairs(params))
+        Some(Self::form_urlencoded_serializere_pairs(params))
+    }
+
+    fn headers(&self) -> http::HeaderMap {
+        let mut headers = HeaderMap::new();
+
+        headers.append(ACCEPT, CONTENT_TYPE_JSON());
+        headers.append(CONTENT_TYPE, CONTENT_TYPE_FORMENCODED());
+        headers
     }
 
     fn method(&self) -> http::Method {
         http::Method::POST
     }
-    fn url(&self) -> &str {
-        self.revoke_url.as_str()
+
+    fn url(&self) -> Url {
+        self.revoke_url.url().clone()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use oauth2::{AccessToken, ClientId, RevocationUrl};
-
-    use crate::traits::OauthRequest;
+    use asknothingx2_util::{
+        api::APIRequest,
+        oauth::{AccessToken, ClientId, RevocationUrl},
+    };
+    use url::Url;
 
     use super::RevokeRequest;
 
@@ -52,8 +69,11 @@ mod tests {
             .into_bytes();
 
         assert_eq!(http::Method::POST, request.method());
-        assert_eq!("https://id.twitch.tv/oauth2/revoke", request.url());
-        assert_eq!(None, request.headers());
-        assert_eq!(Some(expected_body), request.body());
+        assert_eq!(
+            Url::parse("https://id.twitch.tv/oauth2/revoke").unwrap(),
+            request.url()
+        );
+        assert_eq!(2, request.headers().len());
+        assert_eq!(Some(expected_body), request.urlencoded());
     }
 }

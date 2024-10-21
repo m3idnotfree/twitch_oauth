@@ -1,4 +1,4 @@
-use oauth2::{AuthUrl, ClientId, CsrfToken, RedirectUrl, Scope};
+use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl, Scope};
 use url::Url;
 
 use crate::types::ResponseType;
@@ -64,7 +64,7 @@ impl<'a> AuthrozationRequest<'a> {
 
 #[cfg(test)]
 mod tests {
-    use oauth2::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
+    use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
     use url::Url;
 
     use crate::types::ResponseType;
