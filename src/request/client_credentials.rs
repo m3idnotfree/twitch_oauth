@@ -6,6 +6,8 @@ use url::Url;
 
 use crate::types::GrantType;
 
+use super::POST_formencoded_header;
+
 #[derive(Debug)]
 pub struct ClientCredentialsRequest<'a> {
     pub client_id: &'a ClientId,
@@ -24,6 +26,11 @@ impl APIRequest for ClientCredentialsRequest<'_> {
 
         Some(Self::form_urlencoded_serializere_pairs(params))
     }
+
+    fn headers(&self) -> http::HeaderMap {
+        POST_formencoded_header()
+    }
+
     fn method(&self) -> http::Method {
         http::Method::POST
     }
