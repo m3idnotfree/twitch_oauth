@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use wiremock::{
     matchers::{body_bytes, header, method, path},
     Mock, MockServer, ResponseTemplate,
@@ -24,15 +25,12 @@ pub async fn revoke() -> String {
 
     mock_server.uri()
 }
-pub async fn validate() -> String {
+pub async fn validate(access_token: &str) -> String {
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
         .and(path("/validate"))
-        .and(header(
-            "Authorization",
-            "OAuth rfx2uswqe8l4g1mkagrvg5tv0ks3",
-        ))
+        .and(header("Authorization", format!("OAuth {}", access_token)))
         .respond_with(ResponseTemplate::new(200))
         .mount(&mock_server)
         .await;

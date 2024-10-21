@@ -1,16 +1,16 @@
-use http::StatusCode;
-use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl};
-use twitch_oauth_token::{
-    request::{oauth_request, RefreshRequest},
-    types::GrantType,
+use asknothingx2_util::{
+    api::api_request,
+    oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
+use http::StatusCode;
+use twitch_oauth_token::{request::RefreshRequest, types::GrantType};
 
 mod server;
 #[tokio::test]
 async fn refresh_token() {
     let mock_uri = server::refresh().await;
 
-    let a = oauth_request(RefreshRequest {
+    let a = api_request(RefreshRequest {
         client_id: &ClientId::new("hof5gwx0su6owfnys0yan9c87zr6t".to_string()),
         client_secret: &ClientSecret::new("".to_string()),
         grant_type: GrantType::RefreshToken,
@@ -22,5 +22,5 @@ async fn refresh_token() {
     .await
     .unwrap();
 
-    assert_eq!(StatusCode::OK, a.status);
+    assert_eq!(StatusCode::OK, a.status());
 }
