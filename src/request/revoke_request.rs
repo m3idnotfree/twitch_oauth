@@ -1,12 +1,10 @@
 use asknothingx2_util::{
-    api::{APIRequest, CONTENT_TYPE_FORMENCODED, CONTENT_TYPE_JSON},
+    api::APIRequest,
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
-use http::{
-    header::{ACCEPT, CONTENT_TYPE},
-    HeaderMap,
-};
 use url::Url;
+
+use super::POST_formencoded_header;
 
 #[derive(Debug)]
 pub struct RevokeRequest<'a> {
@@ -26,11 +24,7 @@ impl APIRequest for RevokeRequest<'_> {
     }
 
     fn headers(&self) -> http::HeaderMap {
-        let mut headers = HeaderMap::new();
-
-        headers.append(ACCEPT, CONTENT_TYPE_JSON());
-        headers.append(CONTENT_TYPE, CONTENT_TYPE_FORMENCODED());
-        headers
+        POST_formencoded_header()
     }
 
     fn method(&self) -> http::Method {

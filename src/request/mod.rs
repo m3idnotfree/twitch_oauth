@@ -18,6 +18,8 @@ use http::{
 };
 
 #[allow(non_snake_case)]
+/// ACCEPT: application/json
+/// CONTENT-TYPE: application/x-www-form-urlencoded
 pub(crate) fn POST_formencoded_header() -> HeaderMap {
     let mut headers = HeaderMap::new();
 
