@@ -14,8 +14,9 @@ use crate::{
     error::Error,
     request::{
         AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
-        RevokeRequest, ScopeBuilder, ValidateRequest,
+        RevokeRequest, ValidateRequest,
     },
+    scopes::ScopeBuilder,
     types::{
         ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
     },

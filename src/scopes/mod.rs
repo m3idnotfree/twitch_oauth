@@ -1,5 +1,5 @@
-mod ircs_scopes;
-pub use ircs_scopes::*;
+// mod ircs_scopes;
+// pub use ircs_scopes::*;
 mod scope_builder;
 pub use scope_builder::*;
 
@@ -155,6 +155,10 @@ pub enum Scopes {
     /// There may be additional scopes needed for some PubSub topics, but those are not listed here.
     /// Receive whisper messages for your user using PubSub.
     WhispersRead,
+    /// Send chat messages to a chatroom using an IRC connection.
+    ChatEdit,
+    /// View chat messages sent in a chatroom using an IRC connection.
+    ChatRead,
 }
 
 impl Scopes {
@@ -236,6 +240,9 @@ impl Scopes {
             Self::UserWriteChat => "user:write:chat",
 
             Self::WhispersRead => "whispers:read",
+
+            Self::ChatEdit => "chat:edit",
+            Self::ChatRead => "chat:read",
         }
     }
 }
@@ -319,6 +326,9 @@ impl Display for Scopes {
             Self::UserWriteChat => write!(f, "user:write:chat"),
 
             Self::WhispersRead => write!(f, "whispers:read"),
+
+            Self::ChatEdit => write!(f, "chat:edit"),
+            Self::ChatRead => write!(f, "chat:read"),
         }
     }
 }
