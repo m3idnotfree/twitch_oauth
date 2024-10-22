@@ -46,13 +46,15 @@
 //! ```
 mod twitch_oauth;
 pub use twitch_oauth::*;
-mod oauth_oneshot_server;
-pub use oauth_oneshot_server::*;
 mod error;
 pub use error::*;
 pub mod request;
 pub mod scopes;
 pub mod types;
+
+#[cfg(feature = "oneshot-server")]
+mod oauth_oneshot_server;
+pub use oauth_oneshot_server::*;
 
 #[cfg(feature = "twitch-cli")]
 pub mod twitch_cli;
