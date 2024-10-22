@@ -1,57 +1,38 @@
-use asknothingx2_util::{
-    api::api_request,
-    oauth::{AuthUrl, ClientId, ClientSecret, TokenUrl},
-};
+use std::future::Future;
+
+use asknothingx2_util::oauth::AuthUrl;
 use serde::{Deserialize, Serialize};
 use test_access_token::TestAccessToken;
 use url::Url;
 
-use crate::{
-    request::ClientCredentialsRequest,
-    scopes::ScopeBuilder,
-    types::{ClientCredentials, GrantType},
-    Error, Result,
-};
+use crate::{scopes::ScopeBuilder, types::GrantType, TwitchOauth};
 
 mod test_access_token;
 
-pub struct TwitchCli {
-    client_id: ClientId,
-    client_secret: ClientSecret,
-    auth_url: AuthUrl,
-    url: Url,
-    base_url: Url,
+pub trait TwitchTest {
+    fn test_init(self, port: Option<u16>) -> Self;
+    fn get_mock_users_info(&self) -> impl Future<Output = Result<Users, reqwest::Error>> + Send;
+    fn get_mock_access_token(&self, user_id: &str) -> TestAccessToken;
 }
 
-impl Default for TwitchCli {
-    fn default() -> Self {
-        Self {
-            client_id: ClientId::new("".to_string()),
-            client_secret: ClientSecret::new("".to_string()),
-            auth_url: AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
-            url: Url::parse("http://localhost:8080/mock").unwrap(),
-            base_url: Url::parse("http://localhost:8080").unwrap(),
+impl TwitchTest for TwitchOauth {
+    fn test_init(self, port: Option<u16>) -> Self {
+        let mut base_url = Url::parse("http://localhost:8080").unwrap();
+        if let Some(port) = port {
+            base_url.set_port(Some(port)).unwrap();
         }
-    }
-}
 
-impl TwitchCli {
-    pub fn set_client_id(mut self, client_id: &str) -> Self {
-        self.client_id = ClientId::new(client_id.to_string());
-        self
-    }
+        let mut auth_url = base_url.clone();
+        auth_url
+            .path_segments_mut()
+            .unwrap()
+            .extend(["auth", "authorize"]);
 
-    pub fn set_client_secret(mut self, client_secret: &str) -> Self {
-        self.client_secret = ClientSecret::new(client_secret.to_string());
-        self
+        self.set_base_url(base_url)
+            .set_auth_url(AuthUrl::new(auth_url.to_string()).unwrap())
     }
 
-    pub fn set_port(mut self, port: u16) -> Self {
-        self.base_url.set_port(Some(port)).unwrap();
-        self
-    }
-
-    pub async fn get_mock_users_info(&self) -> std::result::Result<Users, reqwest::Error> {
+    async fn get_mock_users_info(&self) -> Result<Users, reqwest::Error> {
         let mut units_clients = self.base_url.clone();
         units_clients
             .path_segments_mut()
@@ -59,38 +40,18 @@ impl TwitchCli {
             .push("units")
             .push("clients");
 
-        let client: Users = reqwest::get(units_clients).await?.json().await?;
-
-        Ok(client)
+        reqwest::get(units_clients).await?.json().await
     }
 
-    pub fn get_access_token(&self) -> TestAccessToken {
+    fn get_mock_access_token(&self, user_id: &str) -> TestAccessToken {
         TestAccessToken {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             grant_type: GrantType::UserToken,
-            user_id: "".to_string(),
+            user_id: user_id.to_string(),
             scopes: ScopeBuilder::default(),
-            base_url: &self.base_url,
+            auth_url: &self.auth_url,
         }
-    }
-    pub async fn client_credentials(&self) -> Result<ClientCredentials> {
-        let mut token_url = self.base_url.clone();
-        token_url
-            .path_segments_mut()
-            .unwrap()
-            .push("auth")
-            .push("token");
-
-        let response = api_request(ClientCredentialsRequest {
-            client_id: &self.client_id,
-            client_secret: &self.client_secret,
-            grant_type: GrantType::ClientCredentials,
-            token_url: &TokenUrl::new(token_url.to_string()).unwrap(),
-        })
-        .await?;
-
-        response.json().await.map_err(Error::ReqwestError)
     }
 }
 

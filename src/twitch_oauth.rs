@@ -29,8 +29,8 @@ const PORT: u16 = 60928;
 #[derive(Debug)]
 pub struct TwitchOauth {
     pub client_id: ClientId,
-    client_secret: ClientSecret,
-    auth_url: AuthUrl,
+    pub client_secret: ClientSecret,
+    pub auth_url: AuthUrl,
     token_url: TokenUrl,
     redirect_url: RedirectUrl,
     revoke_url: RevocationUrl,
@@ -40,6 +40,7 @@ pub struct TwitchOauth {
     // access_token: Option<AccessToken>,
     // refresh_token: Option<RefreshToken>,
     addr: SocketAddr,
+    pub base_url: Url,
 }
 
 impl Default for TwitchOauth {
@@ -59,6 +60,7 @@ impl Default for TwitchOauth {
             // access_token: None,
             // refresh_token: None,
             addr: SocketAddr::from(([127, 0, 0, 1], PORT)),
+            base_url: Url::parse("https://id.twitch.tv").unwrap(),
         }
     }
 }
@@ -111,6 +113,10 @@ impl TwitchOauth {
     //     self.refresh_token = Some(refresh_token);
     //     self
     // }
+    pub fn set_base_url(mut self, base_url: Url) -> Self {
+        self.base_url = base_url;
+        self
+    }
 
     pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
         self.auth_url = auth_url;

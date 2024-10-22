@@ -1,10 +1,11 @@
 use asknothingx2_util::{
     api::APIRequest,
-    oauth::{ClientId, ClientSecret},
+    oauth::{AuthUrl, ClientId, ClientSecret},
 };
 use url::Url;
 
 use crate::{
+    request::POST_formencoded_header,
     scopes::{ScopeBuilder, Scopes},
     types::GrantType,
 };
@@ -15,7 +16,7 @@ pub struct TestAccessToken<'a> {
     pub grant_type: GrantType,
     pub user_id: String,
     pub scopes: ScopeBuilder,
-    pub base_url: &'a Url,
+    pub auth_url: &'a AuthUrl,
 }
 
 impl TestAccessToken<'_> {
@@ -39,13 +40,7 @@ impl TestAccessToken<'_> {
 
 impl APIRequest for TestAccessToken<'_> {
     fn url(&self) -> Url {
-        let mut auth_url = self.base_url.clone();
-
-        auth_url
-            .path_segments_mut()
-            .unwrap()
-            .push("auth")
-            .push("authorize");
+        let mut auth_url = self.auth_url.url().clone();
 
         let scopes = self.scopes.clone().build();
 
@@ -63,6 +58,10 @@ impl APIRequest for TestAccessToken<'_> {
         auth_url.query_pairs_mut().extend_pairs(params);
 
         auth_url
+    }
+
+    fn headers(&self) -> http::HeaderMap {
+        POST_formencoded_header()
     }
 
     fn method(&self) -> http::Method {
