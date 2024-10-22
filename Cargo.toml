@@ -9,9 +9,10 @@ license = "MIT OR Apache-2.0"
 keywords = ["twitch", "oauth"]
 
 [features]
-twitch-cli = []
+default = ["asknothingx2"]
+twitch-cli = ["asknothingx2"]
 full = ["twitch-cli", "oneshot-server"]
-oneshot-server = ["tokio"]
+oneshot-server = ["tokio", "asknothingx2"]
 
 [dependencies]
 anyhow = "1.0.90"
@@ -29,7 +30,7 @@ tokio = { version = "1.40.0", optional = true, features = [
   "net",
   "macros",
 ] }
-asknothingx2-util = { version = "0.0.3", features = ["full"] }
+asknothingx2-util = { version = "0.0.3", optional = true, features = ["full"] }
 
 [dev-dependencies]
 wiremock = "0.6.2"
