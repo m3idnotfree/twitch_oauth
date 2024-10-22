@@ -1,33 +1,32 @@
-use super::IRCScopes;
+use super::Scopes;
 
 #[derive(Default, Clone)]
 pub struct ScopeBuilder {
-    scopes: Vec<String>,
+    scopes: Vec<Scopes>,
 }
 
 impl ScopeBuilder {
     /// chat:ediet, chat:read
     pub fn add_irc_scopes(&mut self) {
-        self.add_scopes([IRCScopes::ChatEdit, IRCScopes::ChatRead]);
+        self.add_scopes([Scopes::ChatEdit, Scopes::ChatRead]);
     }
 
-    pub fn add_scope(&mut self, scope: &str) {
-        self.scopes.push(scope.to_string());
+    pub fn add_scope(&mut self, scope: Scopes) {
+        self.scopes.push(scope);
     }
 
-    pub fn add_scopes<I, T>(&mut self, scopes: I)
+    pub fn add_scopes<I>(&mut self, scopes: I)
     where
-        I: IntoIterator<Item = T>,
-        T: Into<String>,
+        I: IntoIterator<Item = Scopes>,
     {
-        self.scopes.extend(
-            scopes
-                .into_iter()
-                .map(|x| x.into())
-                .collect::<Vec<String>>(),
-        );
+        self.scopes.extend(scopes);
     }
+
     pub fn build(self) -> String {
-        self.scopes.join(" ")
+        self.scopes
+            .into_iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join(" ")
     }
 }

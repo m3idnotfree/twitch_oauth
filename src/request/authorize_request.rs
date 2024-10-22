@@ -1,9 +1,10 @@
-use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl, Scope};
+use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
 use url::Url;
 
-use crate::types::ResponseType;
-
-use super::ScopeBuilder;
+use crate::{
+    scopes::{ScopeBuilder, Scopes},
+    types::ResponseType,
+};
 
 pub struct AuthrozationRequest<'a> {
     pub auth_url: &'a AuthUrl,
@@ -15,14 +16,14 @@ pub struct AuthrozationRequest<'a> {
 }
 
 impl<'a> AuthrozationRequest<'a> {
-    pub fn add_scope(mut self, scope: &str) -> Self {
+    pub fn add_scope(mut self, scope: Scopes) -> Self {
         self.scopes.add_scope(scope);
         self
     }
 
-    pub fn add_scopes<'de, I>(mut self, scopes: I) -> Self
+    pub fn add_scopes<I>(mut self, scopes: I) -> Self
     where
-        I: IntoIterator<Item = &'de str>,
+        I: IntoIterator<Item = Scopes>,
     {
         self.scopes.add_scopes(scopes);
         self
@@ -59,7 +60,10 @@ mod tests {
     use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
     use url::Url;
 
-    use crate::{request::ScopeBuilder, types::ResponseType};
+    use crate::{
+        scopes::{ScopeBuilder, Scopes},
+        types::ResponseType,
+    };
 
     use super::AuthrozationRequest;
 
@@ -75,10 +79,15 @@ mod tests {
             state: csrf_token.clone(),
         };
 
-        let request = request.add_scope("chat:read");
-        let request = request.add_scopes(vec!["addscopes:vec"]);
+        let request = request.add_scope(Scopes::ChatRead);
+        let request = request
+            .add_scopes([
+                Scopes::ChannelManageSchedule,
+                Scopes::ModeratorManageAutomod,
+            ])
+            .add_scope(Scopes::UserBot);
 
-        let expected_scopes = "chat:read addscopes:vec";
+        let expected_scopes = "chat:read channel:manage:schedule moderator:manage:automod user:bot";
         let expected_pairs = vec![
             ("client_id", "test_id"),
             ("redirect_uri", "http://localhost:3000"),
