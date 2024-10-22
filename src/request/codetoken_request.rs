@@ -83,7 +83,7 @@ mod tests {
             Url::parse("https://id.twitch.tv/oauth2/token").unwrap(),
             request.url()
         );
-        assert_eq!(0, request.headers().len());
+        assert_eq!(2, request.headers().len());
         assert_eq!(Some(expected_body), request.urlencoded());
     }
 }
