@@ -1,5 +1,3 @@
-// mod ircs_scopes;
-// pub use ircs_scopes::*;
 mod scope_builder;
 pub use scope_builder::*;
 

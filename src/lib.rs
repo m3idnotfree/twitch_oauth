@@ -44,10 +44,12 @@
 //!     Ok(())
 //! }
 //! ```
-mod twitch_oauth;
-pub use twitch_oauth::*;
 mod error;
 pub use error::*;
+
+mod twitch_oauth;
+pub use twitch_oauth::*;
+
 pub mod request;
 pub mod scopes;
 pub mod types;
