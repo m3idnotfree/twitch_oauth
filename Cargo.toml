@@ -12,7 +12,7 @@ keywords = ["twitch", "oauth"]
 default = ["asknothingx2-util"]
 twitch-cli = ["asknothingx2-util"]
 full = ["twitch-cli", "oneshot-server"]
-oneshot-server = ["tokio", "asknothingx2"]
+oneshot-server = ["tokio", "asknothingx2-util"]
 
 [dependencies]
 anyhow = "1.0.90"
