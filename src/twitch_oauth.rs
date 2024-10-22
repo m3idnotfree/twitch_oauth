@@ -66,6 +66,12 @@ impl Default for TwitchOauth {
 }
 
 impl TwitchOauth {
+    pub fn new(client_id: &str, client_secret: &str) -> Self {
+        Self::default()
+            .set_client_id(client_id)
+            .set_client_secret(client_secret)
+    }
+
     pub fn get_addr(&self) -> Result<SocketAddr> {
         let host = self.redirect_url.url().host_str().unwrap();
         if host != "localhost" {
