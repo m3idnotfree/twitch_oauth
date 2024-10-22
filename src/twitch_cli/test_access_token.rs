@@ -1,11 +1,10 @@
 use asknothingx2_util::{
-    api::APIRequest,
+    api::{APIRequest, Method},
     oauth::{AuthUrl, ClientId, ClientSecret},
 };
 use url::Url;
 
 use crate::{
-    request::POST_formencoded_header,
     scopes::{ScopeBuilder, Scopes},
     types::GrantType,
 };
@@ -60,11 +59,57 @@ impl APIRequest for TestAccessToken<'_> {
         auth_url
     }
 
-    fn headers(&self) -> http::HeaderMap {
-        POST_formencoded_header()
+    fn method(&self) -> Method {
+        Method::POST
     }
+}
 
-    fn method(&self) -> http::Method {
-        http::Method::POST
+#[cfg(test)]
+mod test {
+    use asknothingx2_util::{
+        api::{APIRequest, Method},
+        oauth::{AuthUrl, ClientId, ClientSecret},
+    };
+    use url::Url;
+
+    use crate::{
+        scopes::{ScopeBuilder, Scopes},
+        types::GrantType,
+    };
+
+    use super::TestAccessToken;
+
+    #[test]
+    fn test_access_token() {
+        let test_client = TestAccessToken {
+            client_id: &ClientId::new("ef74yew8ew".to_string()),
+            client_secret: &ClientSecret::new("fl790fiits".to_string()),
+            grant_type: GrantType::UserToken,
+            user_id: "8086138".to_string(),
+            scopes: ScopeBuilder::default(),
+            auth_url: &AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
+        };
+
+        let test_client = test_client.add_scope(Scopes::UserBot);
+        let test_client = test_client.add_scopes([Scopes::ChannelBot, Scopes::UserWriteChat]);
+
+        let mut expected_auth_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
+
+        let expected_params = vec![
+            ("client_id", "ef74yew8ew"),
+            ("client_secret", "fl790fiits"),
+            ("grant_type", "user_token"),
+            ("user_id", "8086138"),
+            ("scope", "user:bot channel:bot user:write:chat"),
+        ];
+
+        expected_auth_url
+            .query_pairs_mut()
+            .extend_pairs(expected_params);
+
+        assert_eq!(0, test_client.headers().len());
+        assert_eq!(Method::POST, test_client.method());
+        assert_eq!(expected_auth_url, test_client.url());
+        assert_eq!(None, test_client.urlencoded());
     }
 }

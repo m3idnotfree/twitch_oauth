@@ -1,8 +1,7 @@
 use asknothingx2_util::{
-    api::APIRequest,
+    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{AccessToken, ValidateUrl},
 };
-use http::{header::AUTHORIZATION, HeaderMap, HeaderValue};
 use url::Url;
 
 #[derive(Debug)]
@@ -13,17 +12,13 @@ pub struct ValidateRequest<'a> {
 
 impl APIRequest for ValidateRequest<'_> {
     fn headers(&self) -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers.append(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("OAuth {}", self.access_token.secret())).unwrap(),
-        );
-
-        headers
+        HeaderBuilder::new()
+            .authorization("OAuth", self.access_token.secret())
+            .build()
     }
 
-    fn method(&self) -> http::Method {
-        http::Method::GET
+    fn method(&self) -> Method {
+        Method::GET
     }
     fn url(&self) -> Url {
         self.validate_url.url().clone()
@@ -33,10 +28,9 @@ impl APIRequest for ValidateRequest<'_> {
 #[cfg(test)]
 mod tests {
     use asknothingx2_util::{
-        api::APIRequest,
+        api::{APIRequest, HeaderBuilder, Method},
         oauth::{AccessToken, ValidateUrl},
     };
-    use http::{header::AUTHORIZATION, HeaderMap, HeaderValue};
     use url::Url;
 
     use crate::request::ValidateRequest;
@@ -49,13 +43,11 @@ mod tests {
                 .unwrap(),
         };
 
-        let mut expected_headers = HeaderMap::new();
-        expected_headers.append(
-            AUTHORIZATION,
-            HeaderValue::from_str("OAuth ue85uei4ui").unwrap(),
-        );
+        let expected_headers = HeaderBuilder::new()
+            .authorization("OAuth", "ue85uei4ui")
+            .build();
 
-        assert_eq!(http::Method::GET, request.method());
+        assert_eq!(Method::GET, request.method());
         assert_eq!(
             Url::parse("https://id.twitch.tv/oauth2/validate").unwrap(),
             request.url()

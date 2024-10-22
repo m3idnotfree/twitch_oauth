@@ -1,8 +1,7 @@
 use asknothingx2_util::{
-    api::api_request,
+    api::{api_request, StatusCode},
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
-use http::StatusCode;
 use twitch_oauth_token::{request::RefreshRequest, types::GrantType};
 
 mod server;

@@ -1,7 +1,9 @@
 use std::{fmt::Debug, marker::PhantomData};
 
-use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
-use http::StatusCode;
+use asknothingx2_util::{
+    api::StatusCode,
+    oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken},
+};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::Error;
@@ -85,7 +87,6 @@ impl AsRef<str> for GrantType {
     }
 }
 
-// #[derive(Defs)]
 pub struct OauthResponse<RT>
 where
     RT: DeserializeOwned,

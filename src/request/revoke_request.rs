@@ -1,10 +1,8 @@
 use asknothingx2_util::{
-    api::APIRequest,
+    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
 use url::Url;
-
-use super::POST_formencoded_header;
 
 #[derive(Debug)]
 pub struct RevokeRequest<'a> {
@@ -23,12 +21,15 @@ impl APIRequest for RevokeRequest<'_> {
         Some(Self::form_urlencoded_serializere_pairs(params))
     }
 
-    fn headers(&self) -> http::HeaderMap {
-        POST_formencoded_header()
+    fn headers(&self) -> HeaderMap {
+        HeaderBuilder::new()
+            .accept_json()
+            .content_type_formencoded()
+            .build()
     }
 
-    fn method(&self) -> http::Method {
-        http::Method::POST
+    fn method(&self) -> Method {
+        Method::POST
     }
 
     fn url(&self) -> Url {
@@ -39,7 +40,7 @@ impl APIRequest for RevokeRequest<'_> {
 #[cfg(test)]
 mod tests {
     use asknothingx2_util::{
-        api::APIRequest,
+        api::{APIRequest, Method},
         oauth::{AccessToken, ClientId, RevocationUrl},
     };
     use url::Url;
@@ -62,7 +63,7 @@ mod tests {
             .finish()
             .into_bytes();
 
-        assert_eq!(http::Method::POST, request.method());
+        assert_eq!(Method::POST, request.method());
         assert_eq!(
             Url::parse("https://id.twitch.tv/oauth2/revoke").unwrap(),
             request.url()

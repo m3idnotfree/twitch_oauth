@@ -1,10 +1,9 @@
 mod server;
 
 use asknothingx2_util::{
-    api::api_request,
+    api::{api_request, StatusCode},
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
-use http::StatusCode;
 use twitch_oauth_token::request::RevokeRequest;
 
 #[tokio::test]
