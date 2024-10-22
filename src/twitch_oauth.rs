@@ -36,8 +36,8 @@ pub struct TwitchOauth {
     csrf_state: Option<CsrfToken>,
     validate_url: ValidateUrl,
     pub port: u16,
-    access_token: Option<AccessToken>,
-    refresh_token: Option<RefreshToken>,
+    // access_token: Option<AccessToken>,
+    // refresh_token: Option<RefreshToken>,
     addr: SocketAddr,
 }
 
@@ -55,8 +55,8 @@ impl Default for TwitchOauth {
             port: PORT,
             validate_url: ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string())
                 .unwrap(),
-            access_token: None,
-            refresh_token: None,
+            // access_token: None,
+            // refresh_token: None,
             addr: SocketAddr::from(([127, 0, 0, 1], PORT)),
         }
     }
@@ -101,15 +101,15 @@ impl TwitchOauth {
         }
     }
 
-    pub fn set_access_token(mut self, access_token: AccessToken) -> Self {
-        self.access_token = Some(access_token);
-        self
-    }
-
-    pub fn set_refresh_token(mut self, refresh_token: RefreshToken) -> Self {
-        self.refresh_token = Some(refresh_token);
-        self
-    }
+    // pub fn set_access_token(mut self, access_token: AccessToken) -> Self {
+    //     self.access_token = Some(access_token);
+    //     self
+    // }
+    //
+    // pub fn set_refresh_token(mut self, refresh_token: RefreshToken) -> Self {
+    //     self.refresh_token = Some(refresh_token);
+    //     self
+    // }
 
     pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
         self.auth_url = auth_url;
