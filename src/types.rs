@@ -122,6 +122,7 @@ impl std::fmt::Display for ErrorResponse {
     }
 }
 
+#[derive(Debug)]
 pub struct CodeState {
     pub state: ServerStatus,
     pub code: Option<AuthorizationCode>,
