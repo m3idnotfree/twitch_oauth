@@ -51,6 +51,7 @@ pub use oauth_oneshot_server::*;
 mod error;
 pub use error::*;
 pub mod request;
+pub mod scopes;
 pub mod types;
 
 #[cfg(feature = "twitch-cli")]
