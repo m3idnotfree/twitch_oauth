@@ -18,7 +18,8 @@ use crate::{
     },
     scopes::ScopeBuilder,
     types::{
-        ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
+        ClientCredentials, CodeState, GrantType, OauthResponse, ResponseType, ServerStatus, Token,
+        ValidateToken,
     },
     Result,
 };
@@ -155,7 +156,7 @@ impl TwitchOauth {
         self.csrf_state.as_ref().unwrap().secret() == state.secret()
     }
 
-    pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<Token> {
+    pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<OauthResponse<Token>> {
         let response = api_request(CodeTokenRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
@@ -166,10 +167,16 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json().await.map_err(Error::ReqwestError)
+        Ok(OauthResponse::<Token>::new(
+            response.status(),
+            response.text().await?,
+        ))
     }
 
-    pub async fn exchange_code_with_statuscode(&mut self, code_state: CodeState) -> Result<Token> {
+    pub async fn exchange_code_with_statuscode(
+        &mut self,
+        code_state: CodeState,
+    ) -> Result<OauthResponse<Token>> {
         if !self.csrf_cmp(code_state.csrf_token.unwrap()) {
             self.csrf_state = None;
             Err(Error::CsrfTokenPartialEqError)
@@ -183,7 +190,10 @@ impl TwitchOauth {
         }
     }
 
-    pub async fn exchange_refresh_token(&self, refresh_token: &RefreshToken) -> Result<Token> {
+    pub async fn exchange_refresh_token(
+        &self,
+        refresh_token: &RefreshToken,
+    ) -> Result<OauthResponse<Token>> {
         let response = api_request(RefreshRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
@@ -193,16 +203,25 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json().await.map_err(Error::ReqwestError)
+        Ok(OauthResponse::<Token>::new(
+            response.status(),
+            response.text().await?,
+        ))
     }
-    pub async fn validate_token(&self, access_token: &AccessToken) -> Result<ValidateToken> {
+    pub async fn validate_token(
+        &self,
+        access_token: &AccessToken,
+    ) -> Result<OauthResponse<ValidateToken>> {
         let response = api_request(ValidateRequest {
             access_token,
             validate_url: &self.validate_url,
         })
         .await?;
 
-        response.json().await.map_err(Error::ReqwestError)
+        Ok(OauthResponse::<ValidateToken>::new(
+            response.status(),
+            response.text().await?,
+        ))
     }
 
     pub async fn revoke_token(&self, acces_token: &AccessToken) -> Result<()> {
@@ -215,7 +234,7 @@ impl TwitchOauth {
         Ok(())
     }
 
-    pub async fn client_credentials(&self) -> Result<ClientCredentials> {
+    pub async fn client_credentials(&self) -> Result<OauthResponse<ClientCredentials>> {
         let response = api_request(ClientCredentialsRequest {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
@@ -224,6 +243,9 @@ impl TwitchOauth {
         })
         .await?;
 
-        response.json().await.map_err(Error::ReqwestError)
+        Ok(OauthResponse::<ClientCredentials>::new(
+            response.status(),
+            response.text().await?,
+        ))
     }
 }
