@@ -9,8 +9,8 @@ license = "MIT OR Apache-2.0"
 keywords = ["twitch", "oauth"]
 
 [features]
-default = ["asknothingx2"]
-twitch-cli = ["asknothingx2"]
+default = ["asknothingx2-util"]
+twitch-cli = ["asknothingx2-util"]
 full = ["twitch-cli", "oneshot-server"]
 oneshot-server = ["tokio", "asknothingx2"]
 
