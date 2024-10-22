@@ -1,6 +1,2 @@
 /target
 Cargo.lock
-/tests/server.rs
-configuration.toml
-src/pkce.rs
-src/util.rs
