@@ -12,7 +12,6 @@ pub use get_users_info::*;
 
 pub trait TwitchTest {
     fn test_init(self, port: Option<u16>) -> Self;
-    fn get_mock_users_info(&self) -> impl Future<Output = Result<Users, reqwest::Error>> + Send;
     fn get_mock_access_token(&self, user_id: &str) -> TestAccessToken;
 }
 
@@ -31,17 +30,6 @@ impl TwitchTest for TwitchOauth {
 
         self.set_base_url(base_url)
             .set_auth_url(AuthUrl::new(auth_url.to_string()).unwrap())
-    }
-
-    async fn get_mock_users_info(&self) -> Result<Users, reqwest::Error> {
-        let mut units_clients = self.base_url.clone();
-        units_clients
-            .path_segments_mut()
-            .unwrap()
-            .push("units")
-            .push("clients");
-
-        reqwest::get(units_clients).await?.json().await
     }
 
     fn get_mock_access_token(&self, user_id: &str) -> TestAccessToken {
