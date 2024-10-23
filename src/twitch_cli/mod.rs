@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use test_access_token::TestAccessToken;
 use url::Url;
 
-use crate::{scopes::ScopeBuilder, types::GrantType, TwitchOauth};
+use crate::{types::GrantType, TwitchOauth};
 
 mod test_access_token;
 
@@ -49,7 +49,7 @@ impl TwitchTest for TwitchOauth {
             client_secret: &self.client_secret,
             grant_type: GrantType::UserToken,
             user_id: user_id.to_string(),
-            scopes: ScopeBuilder::default(),
+            scopes: Vec::new(),
             auth_url: &self.auth_url,
         }
     }

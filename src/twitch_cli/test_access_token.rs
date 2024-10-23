@@ -5,7 +5,7 @@ use asknothingx2_util::{
 use url::Url;
 
 use crate::{
-    scopes::{ScopeBuilder, Scopes},
+    scopes::{self, Scopes, ScopesMut},
     types::GrantType,
 };
 
@@ -14,34 +14,44 @@ pub struct TestAccessToken<'a> {
     pub client_secret: &'a ClientSecret,
     pub grant_type: GrantType,
     pub user_id: String,
-    pub scopes: ScopeBuilder,
+    pub scopes: Vec<Scopes>,
     pub auth_url: &'a AuthUrl,
 }
 
 impl TestAccessToken<'_> {
+    pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
+        scopes::new(&mut self.scopes)
+    }
+
     pub fn set_user_id(mut self, user_id: &str) -> Self {
         self.user_id = user_id.to_string();
         self
     }
-    pub fn add_scope(mut self, scope: Scopes) -> Self {
-        self.scopes.add_scope(scope);
-        self
-    }
-
-    pub fn add_scopes<I>(mut self, scopes: I) -> Self
-    where
-        I: IntoIterator<Item = Scopes>,
-    {
-        self.scopes.add_scopes(scopes);
-        self
-    }
+    // pub fn add_scope(mut self, scope: Scopes) -> Self {
+    //     self.scopes.add_scope(scope);
+    //     self
+    // }
+    //
+    // pub fn add_scopes<I>(mut self, scopes: I) -> Self
+    // where
+    //     I: IntoIterator<Item = Scopes>,
+    // {
+    //     self.scopes.add_scopes(scopes);
+    //     self
+    // }
 }
 
 impl APIRequest for TestAccessToken<'_> {
     fn url(&self) -> Url {
         let mut auth_url = self.auth_url.url().clone();
 
-        let scopes = self.scopes.clone().build();
+        let scopes = self
+            .scopes
+            .clone()
+            .into_iter()
+            .map(String::from)
+            .collect::<Vec<String>>()
+            .join(" ");
 
         let mut params = vec![
             ("client_id", self.client_id.as_str()),
@@ -72,26 +82,28 @@ mod test {
     };
     use url::Url;
 
-    use crate::{
-        scopes::{ScopeBuilder, Scopes},
-        types::GrantType,
-    };
+    use crate::{scopes::Scopes, types::GrantType};
 
     use super::TestAccessToken;
 
     #[test]
     fn test_access_token() {
-        let test_client = TestAccessToken {
+        let mut test_client = TestAccessToken {
             client_id: &ClientId::new("ef74yew8ew".to_string()),
             client_secret: &ClientSecret::new("fl790fiits".to_string()),
             grant_type: GrantType::UserToken,
             user_id: "8086138".to_string(),
-            scopes: ScopeBuilder::default(),
+            scopes: Vec::new(),
             auth_url: &AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
         };
 
-        let test_client = test_client.add_scope(Scopes::UserBot);
-        let test_client = test_client.add_scopes([Scopes::ChannelBot, Scopes::UserWriteChat]);
+        test_client
+            .scopes_mut()
+            .push(Scopes::UserBot)
+            .extend([Scopes::ChannelBot, Scopes::UserWriteChat]);
+
+        // let test_client = test_client.add_scope(Scopes::UserBot);
+        // let test_client = test_client.add_scopes([Scopes::ChannelBot, Scopes::UserWriteChat]);
 
         let mut expected_auth_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
 

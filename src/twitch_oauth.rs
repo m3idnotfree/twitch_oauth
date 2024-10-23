@@ -16,7 +16,6 @@ use crate::{
         AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
         RevokeRequest, ValidateRequest,
     },
-    scopes::ScopeBuilder,
     types::{
         ClientCredentials, CodeState, GrantType, OauthResponse, ResponseType, ServerStatus, Token,
         ValidateToken,
@@ -146,7 +145,7 @@ impl TwitchOauth {
             client_id: &self.client_id,
             redirect_url: &self.redirect_url,
             response_type: ResponseType::Code,
-            scopes: ScopeBuilder::default(),
+            scopes: Vec::new(),
             state: csrf_token,
         }
     }
