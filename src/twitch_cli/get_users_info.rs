@@ -11,7 +11,9 @@ pub struct Users {
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
+    /// client_id
     pub ID: String,
+    /// client_secret
     pub Secret: String,
     pub Name: String,
     pub IsExtension: bool,

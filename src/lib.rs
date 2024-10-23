@@ -1,4 +1,7 @@
-//! features --oneshot-server
+//! //! ```toml
+//! twitch_oauth_token = { version = "3", features = ["oneshot-server"] }
+//! ```
+//!
 //!```ignore
 //! use twitch_oauth_token::{oauth_oneshot_server, scopes::Scopes, types::ServerStatus, TwitchOauth};
 //!
@@ -50,6 +53,36 @@
 //!     Ok(())
 //! }
 //! ```
+//! # Twitch Cli
+//! //! ```toml
+//! twitch_oauth_token = { version = "3", features = ["twitch-cli"] }
+//! asknothingx2-util = { version = "0.0.7", features = ["api"] }
+//! ```
+//!
+//!```ignore
+//! use asknothingx2_util::api::api_request;
+//! use twitch_oauth_token::{twitch_cli::{get_users_info, TwitchTest}, types::Token, TwitchOauth};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), anyhow::Error> {
+//!     // Does not contain a user_id
+//!     // When first run twitch mock-api generate
+//!     //copy user_id
+//!     let users = get_users_info(None).await?;
+//!     let user = users.data.first().unwrap();
+//!
+//!     let client = TwitchOauth::new(user.ID.as_str(), user.Secret.as_str()).test_init(None);
+//!
+//!     let mut mock_token = client.get_mock_access_token("user_id");
+//!     mock_token.scopes_mut().push(Scopes::ChannelReadPolls);
+//!
+//!     let token = api_request(test_user).await;
+//!     let token: Token = token.unwrap().json().await.unwrap();
+//!     println!("{:#?}", token);
+//!
+//!     Ok(())
+//! }
+//!```
 mod error;
 pub use error::*;
 
