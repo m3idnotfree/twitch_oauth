@@ -4,16 +4,18 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), anyhow::Error> {
-//!     let mut client = TwitchOauth::default()
-//!         .set_client_id("client_id")
-//!         .set_client_secret("client_secret");
+//!     let mut client = TwitchOauth::new(
+//!         "client_id",
+//!         "client_secret"
+//!     );
 //!
 //!     let client_credentials = client.client_credentials().await?.json()?;
 //!     println!("client credentials: {client_credentials:#?}");
 //!
-//!     let authorize_url = client.authorize_url().add_scope(Scopes::ChannelBot).url();
+//!     let mut authorize_url = client.authorize_url();
+//!     authorize_url.scopes_mut().push(Scopes::ChatRead);
 //!
-//!     println!("{authorize_url}");
+//!     println!("{}", authorize_url.url());
 //!     let timeout = 60;
 //!
 //!     let rev = oauth_oneshot_server(
