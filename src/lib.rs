@@ -1,4 +1,4 @@
-//! //! ```toml
+//! ```toml
 //! twitch_oauth_token = { version = "3", features = ["oneshot-server"] }
 //! ```
 //!
@@ -54,7 +54,7 @@
 //! }
 //! ```
 //! # Twitch Cli
-//! //! ```toml
+//! ```toml
 //! twitch_oauth_token = { version = "3", features = ["twitch-cli"] }
 //! asknothingx2-util = { version = "0.0.7", features = ["api"] }
 //! ```
