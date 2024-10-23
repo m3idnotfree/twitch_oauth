@@ -1,13 +1,14 @@
 use std::future::Future;
 
 use asknothingx2_util::oauth::AuthUrl;
-use serde::{Deserialize, Serialize};
 use test_access_token::TestAccessToken;
 use url::Url;
 
 use crate::{types::GrantType, TwitchOauth};
 
+mod get_users_info;
 mod test_access_token;
+pub use get_users_info::*;
 
 pub trait TwitchTest {
     fn test_init(self, port: Option<u16>) -> Self;
@@ -53,20 +54,4 @@ impl TwitchTest for TwitchOauth {
             auth_url: &self.auth_url,
         }
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Users {
-    pub cursor: String,
-    pub total: u64,
-    pub data: Vec<User>,
-}
-
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize)]
-pub struct User {
-    pub ID: String,
-    pub Secret: String,
-    pub Name: String,
-    pub IsExtension: bool,
 }
