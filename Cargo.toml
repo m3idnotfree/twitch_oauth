@@ -5,7 +5,7 @@ authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
 repository = "https://github.com/m3idnotfree/twitch_oauth.git"
-license = "MIT OR Apache-2.0"
+license = "MIT"
 keywords = ["twitch", "oauth"]
 
 [features]
