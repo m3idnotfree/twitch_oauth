@@ -1,14 +1,12 @@
-use std::future::Future;
-
 use asknothingx2_util::oauth::AuthUrl;
-use test_access_token::TestAccessToken;
 use url::Url;
 
 use crate::{types::GrantType, TwitchOauth};
 
 mod get_users_info;
-mod test_access_token;
 pub use get_users_info::*;
+mod test_access_token;
+pub use test_access_token::*;
 
 pub trait TwitchTest {
     fn test_init(self, port: Option<u16>) -> Self;
