@@ -140,14 +140,13 @@ impl TwitchOauth {
         let csrf_token = CsrfToken::new_random();
         self.csrf_state = Some(csrf_token.clone());
 
-        AuthrozationRequest {
-            auth_url: &self.auth_url,
-            client_id: &self.client_id,
-            redirect_url: &self.redirect_url,
-            response_type: ResponseType::Code,
-            scopes: Vec::new(),
-            state: csrf_token,
-        }
+        AuthrozationRequest::new(
+            &self.auth_url,
+            &self.client_id,
+            &self.redirect_url,
+            ResponseType::Code,
+            csrf_token,
+        )
     }
 
     fn csrf_cmp(&self, state: CsrfToken) -> bool {
