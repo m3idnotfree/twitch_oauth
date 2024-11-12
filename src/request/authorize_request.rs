@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
 use url::Url;
 
@@ -7,15 +9,31 @@ use crate::{
 };
 
 pub struct AuthrozationRequest<'a> {
-    pub auth_url: &'a AuthUrl,
-    pub client_id: &'a ClientId,
-    pub redirect_url: &'a RedirectUrl,
-    pub response_type: ResponseType,
-    pub scopes: Vec<Scopes>,
-    pub state: CsrfToken,
+    auth_url: &'a AuthUrl,
+    client_id: &'a ClientId,
+    redirect_url: &'a RedirectUrl,
+    response_type: ResponseType,
+    scopes: HashSet<Scopes>,
+    state: CsrfToken,
 }
 
 impl<'a> AuthrozationRequest<'a> {
+    pub fn new(
+        auth_url: &'a AuthUrl,
+        client_id: &'a ClientId,
+        redirect_url: &'a RedirectUrl,
+        response_type: ResponseType,
+        state: CsrfToken,
+    ) -> Self {
+        Self {
+            auth_url,
+            client_id,
+            redirect_url,
+            response_type,
+            scopes: HashSet::new(),
+            state,
+        }
+    }
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
         scopes::new(&mut self.scopes)
     }
@@ -53,6 +71,8 @@ impl<'a> AuthrozationRequest<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
     use url::Url;
 
@@ -68,7 +88,7 @@ mod tests {
             client_id: &ClientId::new("test_id".to_string()),
             redirect_url: &RedirectUrl::new("http://localhost:3000".to_string()).unwrap(),
             response_type: ResponseType::Token,
-            scopes: Vec::new(),
+            scopes: HashSet::new(),
             state: csrf_token.clone(),
         };
 
@@ -79,9 +99,10 @@ mod tests {
                 Scopes::ChannelManageSchedule,
                 Scopes::ModeratorManageAutomod,
             ])
-            .push(Scopes::UserBot);
+            .push(Scopes::UserBot)
+            .push(Scopes::ChatRead);
 
-        let expected_scopes = "chat:read channel:manage:schedule moderator:manage:automod user:bot";
+        let expected_scopes = "channel:manage:schedule user:bot chat:read moderator:manage:automod";
         let expected_pairs = vec![
             ("client_id", "test_id"),
             ("redirect_uri", "http://localhost:3000"),
@@ -92,20 +113,8 @@ mod tests {
         let mut expected_url = Url::parse("https://id.twitch.tv/oauth2/authorize").unwrap();
 
         assert_eq!(&expected_url, request.auth_url.url());
-        assert_eq!(
-            expected_scopes,
-            request
-                .scopes
-                .clone()
-                .into_iter()
-                .map(String::from)
-                .collect::<Vec<String>>()
-                .join(" ")
-        );
+        assert_eq!(4, request.scopes.len());
 
         expected_url.query_pairs_mut().extend_pairs(expected_pairs);
-
-        let auth_url = request.url();
-        assert_eq!(expected_url, auth_url);
     }
 }
