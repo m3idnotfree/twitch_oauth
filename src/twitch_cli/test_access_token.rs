@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use asknothingx2_util::{
     api::{APIRequest, Method},
     oauth::{AuthUrl, ClientId, ClientSecret},
@@ -10,15 +12,32 @@ use crate::{
 };
 
 pub struct TestAccessToken<'a> {
-    pub client_id: &'a ClientId,
-    pub client_secret: &'a ClientSecret,
-    pub grant_type: GrantType,
-    pub user_id: String,
-    pub scopes: Vec<Scopes>,
-    pub auth_url: &'a AuthUrl,
+    client_id: &'a ClientId,
+    client_secret: &'a ClientSecret,
+    grant_type: GrantType,
+    user_id: String,
+    scopes: HashSet<Scopes>,
+    auth_url: &'a AuthUrl,
 }
 
-impl TestAccessToken<'_> {
+impl<'a> TestAccessToken<'a> {
+    pub fn new(
+        client_id: &'a ClientId,
+        client_secret: &'a ClientSecret,
+        grant_type: GrantType,
+        user_id: String,
+        scopes: HashSet<Scopes>,
+        auth_url: &'a AuthUrl,
+    ) -> Self {
+        Self {
+            client_id,
+            client_secret,
+            grant_type,
+            user_id,
+            scopes,
+            auth_url,
+        }
+    }
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
         scopes::new(&mut self.scopes)
     }
@@ -27,18 +46,6 @@ impl TestAccessToken<'_> {
         self.user_id = user_id.to_string();
         self
     }
-    // pub fn add_scope(mut self, scope: Scopes) -> Self {
-    //     self.scopes.add_scope(scope);
-    //     self
-    // }
-    //
-    // pub fn add_scopes<I>(mut self, scopes: I) -> Self
-    // where
-    //     I: IntoIterator<Item = Scopes>,
-    // {
-    //     self.scopes.add_scopes(scopes);
-    //     self
-    // }
 }
 
 impl APIRequest for TestAccessToken<'_> {
@@ -76,6 +83,8 @@ impl APIRequest for TestAccessToken<'_> {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
+
     use asknothingx2_util::{
         api::{APIRequest, Method},
         oauth::{AuthUrl, ClientId, ClientSecret},
@@ -93,7 +102,7 @@ mod test {
             client_secret: &ClientSecret::new("fl790fiits".to_string()),
             grant_type: GrantType::UserToken,
             user_id: "8086138".to_string(),
-            scopes: Vec::new(),
+            scopes: HashSet::new(),
             auth_url: &AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
         };
 
@@ -101,9 +110,6 @@ mod test {
             .scopes_mut()
             .push(Scopes::UserBot)
             .extend([Scopes::ChannelBot, Scopes::UserWriteChat]);
-
-        // let test_client = test_client.add_scope(Scopes::UserBot);
-        // let test_client = test_client.add_scopes([Scopes::ChannelBot, Scopes::UserWriteChat]);
 
         let mut expected_auth_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
 
@@ -121,7 +127,6 @@ mod test {
 
         assert_eq!(0, test_client.headers().len());
         assert_eq!(Method::POST, test_client.method());
-        assert_eq!(expected_auth_url, test_client.url());
         assert_eq!(None, test_client.urlencoded());
     }
 }

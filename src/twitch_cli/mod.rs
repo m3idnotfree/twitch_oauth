@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use asknothingx2_util::oauth::AuthUrl;
 use url::Url;
 
@@ -31,13 +33,13 @@ impl TwitchTest for TwitchOauth {
     }
 
     fn get_mock_access_token(&self, user_id: &str) -> TestAccessToken {
-        TestAccessToken {
-            client_id: &self.client_id,
-            client_secret: &self.client_secret,
-            grant_type: GrantType::UserToken,
-            user_id: user_id.to_string(),
-            scopes: Vec::new(),
-            auth_url: &self.auth_url,
-        }
+        TestAccessToken::new(
+            &self.client_id,
+            &self.client_secret,
+            GrantType::UserToken,
+            user_id.to_string(),
+            HashSet::new(),
+            &self.auth_url,
+        )
     }
 }
