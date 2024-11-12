@@ -73,8 +73,8 @@
 //!
 //!     let client = TwitchOauth::new(user.ID.as_str(), user.Secret.as_str()).test_init(None);
 //!
-//!     let mut mock_token = client.get_mock_access_token("user_id");
-//!     mock_token.scopes_mut().push(Scopes::ChannelReadPolls);
+//!     let mut test_user = client.get_mock_access_token("user_id");
+//!     test_user.scopes_mut().push(Scopes::ChannelReadPolls);
 //!
 //!     let token = api_request(test_user).await;
 //!     let token: Token = token.unwrap().json().await.unwrap();
