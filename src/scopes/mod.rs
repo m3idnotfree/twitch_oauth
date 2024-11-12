@@ -3,7 +3,7 @@ pub use scopes_mut::*;
 
 use std::fmt::Display;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scopes {
     /// View analytics data for the Twitch Extensions owned by the authenticated account.
     /// API
