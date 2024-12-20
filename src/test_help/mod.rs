@@ -3,9 +3,9 @@ use std::collections::HashSet;
 use crate::{types::GrantType, TwitchOauth};
 
 mod get_users_info;
-pub use get_users_info::*;
+pub use get_users_info::{get_users_info, User, Users};
 mod user_access_token;
-pub use user_access_token::*;
+pub use user_access_token::TestAccessToken;
 
 pub trait TwitchTest {
     fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self;

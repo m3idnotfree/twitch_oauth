@@ -98,10 +98,10 @@
 //! }
 //!```
 mod error;
-pub use error::*;
+pub use error::Error;
 
 mod twitch_oauth;
-pub use twitch_oauth::*;
+pub use twitch_oauth::TwitchOauth;
 
 pub mod request;
 pub mod scopes;
@@ -110,7 +110,7 @@ pub mod types;
 #[cfg(feature = "oneshot-server")]
 mod oauth_oneshot_server;
 #[cfg(feature = "oneshot-server")]
-pub use oauth_oneshot_server::*;
+pub use oauth_oneshot_server::oauth_oneshot_server;
 
 #[cfg(feature = "test")]
 pub mod test_help;

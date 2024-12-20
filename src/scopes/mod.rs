@@ -1,5 +1,6 @@
 mod scopes_mut;
-pub use scopes_mut::*;
+pub(crate) use scopes_mut::new;
+pub use scopes_mut::ScopesMut;
 
 use std::fmt::Display;
 

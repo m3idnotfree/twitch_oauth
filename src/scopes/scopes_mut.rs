@@ -9,7 +9,7 @@ pub struct ScopesMut<'a> {
     scopes: &'a mut HashSet<Scopes>,
 }
 
-pub(crate) fn new(scopes: &mut HashSet<Scopes>) -> ScopesMut<'_> {
+pub fn new(scopes: &mut HashSet<Scopes>) -> ScopesMut<'_> {
     ScopesMut { scopes }
 }
 
@@ -87,7 +87,8 @@ impl ScopesMut<'_> {
 mod test {
     use std::collections::HashSet;
 
-    use crate::scopes::{self};
+    use crate::scopes;
+
     #[test]
     fn scopes_mut() {
         let mut scopes = HashSet::new();
