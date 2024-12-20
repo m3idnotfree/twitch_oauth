@@ -19,6 +19,7 @@ impl TwitchTest for TwitchOauth {
         self
     }
 
+    /// Getting a user access token
     fn get_mock_user_access_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken {
         TestAccessToken::new(
             self.client_id.clone(),
@@ -30,6 +31,7 @@ impl TwitchTest for TwitchOauth {
         )
     }
 
+    /// Getting an app access token
     fn get_mock_app_access_token(&self) -> TestAccessToken {
         TestAccessToken::new(
             self.client_id.clone(),
