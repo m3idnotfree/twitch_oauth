@@ -15,19 +15,10 @@ use crate::{
 
 /// only support localhost
 pub async fn oauth_oneshot_server(url: Url, duration: Duration) -> Result<CodeState> {
-    match url.host_str() {
-        Some(url) => {
-            if url != "localhost" {
-                return Err(Error::GetSocketAddrError(format!(
-                    "expect localhost, get {url}"
-                )));
-            }
-        }
-        None => {
-            return Err(Error::GetSocketAddrError(format!("invalid url: {url}")));
-        }
-    };
-
+    let host = url.host_str().ok_or(Error::MissingRedirectHost)?;
+    if host != "localhost" {
+        return Err(Error::InvalidRedirectHost(host.to_string()));
+    }
     let listener = TcpListener::bind(format!("127.0.0.1:{}", url.port().unwrap())).await?;
 
     // when this signal completes, start shutdown

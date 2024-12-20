@@ -22,6 +22,10 @@ pub enum Error {
     ResponseCsrfTokenError,
     #[error("Failed to bind network address: {0}")]
     GetSocketAddrError(String),
+    #[error("Invalid OAuth redirect host: expected 'localhost', got '{0}'")]
+    InvalidRedirectHost(String),
+    #[error("Missing host in OAuth redirect URL")]
+    MissingRedirectHost,
     #[error("Operation timed out: {0}")]
     TimeoutError(String),
     #[error("Server is shutting down gracefully")]
