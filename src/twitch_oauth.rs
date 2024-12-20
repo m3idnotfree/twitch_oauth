@@ -159,7 +159,7 @@ impl TwitchOauth {
     }
     pub async fn validate_token(
         &self,
-        access_token: &AccessToken,
+        access_token: AccessToken,
     ) -> Result<OauthResponse<ValidateToken>> {
         let response = api_request(ValidateRequest::new(
             access_token.clone(),
