@@ -13,7 +13,7 @@ pub(crate) fn new(scopes: &mut HashSet<Scopes>) -> ScopesMut<'_> {
     ScopesMut { scopes }
 }
 
-impl<'a> ScopesMut<'a> {
+impl ScopesMut<'_> {
     pub fn push(&mut self, s: Scopes) -> &mut Self {
         self.scopes.insert(s);
         self
@@ -48,7 +48,7 @@ impl<'a> ScopesMut<'a> {
     }
 
     /// eventsub: channel:read:subscriptions
-    pub fn eventsub(&mut self) -> &mut Self {
+    pub fn read_eventsub(&mut self) -> &mut Self {
         self.scopes.insert(Scopes::ChannelReadSubscriptions);
         self
     }
