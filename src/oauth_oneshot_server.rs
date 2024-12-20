@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, time::Duration};
+use std::time::Duration;
 
 use asknothingx2_util::oauth::{AuthorizationCode, CsrfToken};
 use tokio::{
@@ -13,8 +13,22 @@ use crate::{
     Error, Result,
 };
 
-pub async fn oauth_oneshot_server(addr: SocketAddr, duration: Duration) -> Result<CodeState> {
-    let listener = TcpListener::bind(addr).await?;
+/// only support localhost
+pub async fn oauth_oneshot_server(url: Url, duration: Duration) -> Result<CodeState> {
+    match url.host_str() {
+        Some(url) => {
+            if url != "localhost" {
+                return Err(Error::GetSocketAddrError(format!(
+                    "expect localhost, get {url}"
+                )));
+            }
+        }
+        None => {
+            return Err(Error::GetSocketAddrError(format!("invalid url: {url}")));
+        }
+    };
+
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", url.port().unwrap())).await?;
 
     // when this signal completes, start shutdown
     let mut signal = std::pin::pin!(shutdown_signal());
