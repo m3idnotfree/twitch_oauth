@@ -8,15 +8,14 @@ mod user_access_token;
 pub use user_access_token::TestAccessToken;
 
 pub trait TwitchTest {
-    fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self;
+    fn with_url<T: Into<String>>(&mut self, url: T);
     fn get_mock_user_access_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken;
     fn get_mock_app_access_token(&self) -> TestAccessToken;
 }
 
 impl TwitchTest for TwitchOauth {
-    fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+    fn with_url<T: Into<String>>(&mut self, url: T) {
         self.test_url = Some(url.into());
-        self
     }
 
     /// Getting a user access token
