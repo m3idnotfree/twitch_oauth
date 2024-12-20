@@ -7,7 +7,7 @@ pub enum Error {
     #[error("invalid url: {0}")]
     UrlParseError(#[from] url::ParseError),
     #[error("invalid redirect_uri: {0}")]
-    RedirectUrlError(anyhow::Error),
+    RedirectUrlError(String),
     #[error("can't find query: {0}")]
     UrlQueryFindError(String),
     #[error("reqwest error: {0}")]

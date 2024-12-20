@@ -11,23 +11,23 @@ use crate::{
     types::GrantType,
 };
 
-pub struct TestAccessToken<'a> {
-    client_id: &'a ClientId,
-    client_secret: &'a ClientSecret,
+pub struct TestAccessToken {
+    client_id: ClientId,
+    client_secret: ClientSecret,
     grant_type: GrantType,
     user_id: String,
     scopes: HashSet<Scopes>,
-    auth_url: &'a AuthUrl,
+    auth_url: AuthUrl,
 }
 
-impl<'a> TestAccessToken<'a> {
+impl TestAccessToken {
     pub fn new(
-        client_id: &'a ClientId,
-        client_secret: &'a ClientSecret,
+        client_id: ClientId,
+        client_secret: ClientSecret,
         grant_type: GrantType,
         user_id: String,
         scopes: HashSet<Scopes>,
-        auth_url: &'a AuthUrl,
+        auth_url: AuthUrl,
     ) -> Self {
         Self {
             client_id,
@@ -48,7 +48,7 @@ impl<'a> TestAccessToken<'a> {
     }
 }
 
-impl APIRequest for TestAccessToken<'_> {
+impl APIRequest for TestAccessToken {
     fn url(&self) -> Url {
         let mut auth_url = self.auth_url.url().clone();
 
@@ -64,8 +64,12 @@ impl APIRequest for TestAccessToken<'_> {
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
             ("grant_type", self.grant_type.as_ref()),
-            ("user_id", self.user_id.as_ref()),
+            // ("user_id", self.user_id.as_ref()),
         ];
+
+        if !self.user_id.is_empty() {
+            params.push(("user_id", self.user_id.as_ref()));
+        }
 
         if !scopes.is_empty() {
             params.push(("scope", &scopes));
@@ -98,12 +102,12 @@ mod test {
     #[test]
     fn test_access_token() {
         let mut test_client = TestAccessToken {
-            client_id: &ClientId::new("ef74yew8ew".to_string()),
-            client_secret: &ClientSecret::new("fl790fiits".to_string()),
+            client_id: ClientId::new("ef74yew8ew".to_string()),
+            client_secret: ClientSecret::new("fl790fiits".to_string()),
             grant_type: GrantType::UserToken,
             user_id: "8086138".to_string(),
             scopes: HashSet::new(),
-            auth_url: &AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
+            auth_url: AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
         };
 
         test_client

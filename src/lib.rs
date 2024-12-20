@@ -98,7 +98,7 @@ mod oauth_oneshot_server;
 #[cfg(feature = "oneshot-server")]
 pub use oauth_oneshot_server::*;
 
-#[cfg(feature = "twitch-cli")]
-pub mod twitch_cli;
+#[cfg(feature = "test")]
+pub mod test_help;
 
 pub type Result<R> = std::result::Result<R, crate::Error>;
