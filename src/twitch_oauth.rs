@@ -1,6 +1,3 @@
-use std::net::SocketAddr;
-
-use anyhow::anyhow;
 use asknothingx2_util::{
     api::api_request,
     oauth::{
@@ -8,7 +5,6 @@ use asknothingx2_util::{
         RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
     },
 };
-use url::Url;
 
 use crate::{
     error::Error,
@@ -25,115 +21,69 @@ use crate::{
 
 const PORT: u16 = 60928;
 
+const BASE_URL: &str = "https://id.twitch.tv/oauth2";
+const AUTH: &str = "authorize";
+const TOKEN: &str = "token";
+const REVOKE: &str = "revoke";
+const VALIDATE: &str = "validate";
+
 #[derive(Debug)]
 pub struct TwitchOauth {
     pub client_id: ClientId,
     pub client_secret: ClientSecret,
-    pub auth_url: AuthUrl,
-    token_url: TokenUrl,
+    /// default: http://localhost:60928
     redirect_url: RedirectUrl,
-    revoke_url: RevocationUrl,
     csrf_state: Option<CsrfToken>,
-    validate_url: ValidateUrl,
-    pub port: u16,
-    addr: SocketAddr,
-    pub base_url: Url,
-}
-
-impl Default for TwitchOauth {
-    fn default() -> Self {
-        Self {
-            client_id: ClientId::new("".to_string()),
-            client_secret: ClientSecret::new("".to_string()),
-            auth_url: AuthUrl::new("https://id.twitch.tv/oauth2/authorize".to_string()).unwrap(),
-            token_url: TokenUrl::new("https://id.twitch.tv/oauth2/token".to_string()).unwrap(),
-            redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
-            revoke_url: RevocationUrl::new("https://id.twitch.tv/oauth2/revoke".to_string())
-                .expect("Invalid revok URL"),
-            csrf_state: None,
-            port: PORT,
-            validate_url: ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string())
-                .unwrap(),
-            addr: SocketAddr::from(([127, 0, 0, 1], PORT)),
-            base_url: Url::parse("https://id.twitch.tv").unwrap(),
-        }
-    }
+    #[cfg(feature = "test")]
+    pub test_url: Option<String>,
 }
 
 impl TwitchOauth {
-    pub fn new(client_id: &str, client_secret: &str) -> Self {
-        Self::default()
-            .set_client_id(client_id)
-            .set_client_secret(client_secret)
-    }
-
-    pub fn get_addr(&self) -> Result<SocketAddr> {
-        let host = self.redirect_url.url().host_str().unwrap();
-        if host != "localhost" {
-            Err(Error::GetSocketAddrError(
-                "redirect url not localhost".to_string(),
-            ))
-        } else {
-            Ok(self.addr)
+    pub fn new<T: Into<String>>(client_id: T, client_secret: T) -> Self {
+        Self {
+            client_id: ClientId::new(client_id.into()),
+            client_secret: ClientSecret::new(client_secret.into()),
+            redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
+            csrf_state: None,
+            #[cfg(feature = "test")]
+            test_url: None,
         }
     }
 
-    pub fn set_client_id(mut self, client_id: &str) -> Self {
-        self.client_id = ClientId::new(client_id.to_string());
+    pub fn set_client_id<T: Into<String>>(mut self, client_id: T) -> Self {
+        self.client_id = ClientId::new(client_id.into());
         self
     }
 
-    pub fn set_client_secret(mut self, client_secret: &str) -> Self {
-        self.client_secret = ClientSecret::new(client_secret.to_string());
+    pub fn set_client_secret<T: Into<String>>(mut self, client_secret: T) -> Self {
+        self.client_secret = ClientSecret::new(client_secret.into());
         self
     }
 
-    pub fn set_redirect_uri(mut self, redir_url: &str) -> Result<Self> {
-        let url = Url::parse(redir_url)?;
+    pub fn set_redirect_uri<T: Into<String>>(mut self, redir_url: T) -> Result<Self> {
+        self.redirect_url = RedirectUrl::new(redir_url.into())?;
+        Ok(self)
+    }
 
-        if url.scheme() == "http" || url.scheme() == "https" {
-            if let Some(port) = url.port() {
-                self.port = port
-            }
-
-            self.redirect_url = RedirectUrl::new(url.to_string())?;
-            Ok(self)
-        } else {
-            Err(Error::RedirectUrlError(anyhow!(
-                "must set scheme http or https"
-            )))
+    pub fn get_auth_url(&self) -> AuthUrl {
+        #[cfg(feature = "test")]
+        if let Some(url) = &self.test_url {
+            return AuthUrl::new(url.to_string()).unwrap();
         }
+
+        AuthUrl::new(format!("{BASE_URL}/{AUTH}")).unwrap()
     }
 
-    pub fn set_base_url(mut self, base_url: Url) -> Self {
-        self.base_url = base_url;
-        self
+    fn get_token_url(&self) -> TokenUrl {
+        TokenUrl::new(format!("{BASE_URL}/{TOKEN}")).unwrap()
     }
 
-    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
-        self.auth_url = auth_url;
-        self
+    fn get_revoke_url(&self) -> RevocationUrl {
+        RevocationUrl::new(format!("{BASE_URL}/{REVOKE}")).unwrap()
     }
 
-    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
-        self
-    }
-
-    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
-        self.revoke_url = revoke_url;
-        self
-    }
-
-    pub fn set_validate_url(mut self, validate_url: ValidateUrl) -> Self {
-        self.validate_url = validate_url;
-        self
-    }
-
-    pub fn set_port(mut self, port: u16) -> Self {
-        self.port = port;
-        self.addr = SocketAddr::from(([127, 0, 0, 1], port));
-        self
+    fn get_validate_url(&self) -> ValidateUrl {
+        ValidateUrl::new(format!("{BASE_URL}/{VALIDATE}")).unwrap()
     }
 
     pub fn authorize_url(&mut self) -> AuthrozationRequest {
@@ -141,9 +91,9 @@ impl TwitchOauth {
         self.csrf_state = Some(csrf_token.clone());
 
         AuthrozationRequest::new(
-            &self.auth_url,
-            &self.client_id,
-            &self.redirect_url,
+            self.get_auth_url(),
+            self.client_id.clone(),
+            self.redirect_url.clone(),
             ResponseType::Code,
             csrf_token,
         )
@@ -159,7 +109,7 @@ impl TwitchOauth {
             client_secret: &self.client_secret,
             code,
             grant_type: GrantType::AuthorizationCode,
-            token_url: &self.token_url,
+            token_url: &self.get_token_url(),
             redirect_url: &self.redirect_url,
         })
         .await?;
@@ -196,7 +146,7 @@ impl TwitchOauth {
             client_secret: &self.client_secret,
             grant_type: GrantType::RefreshToken,
             refresh_token,
-            token_url: &self.token_url,
+            token_url: &self.get_token_url(),
         })
         .await?;
 
@@ -211,7 +161,7 @@ impl TwitchOauth {
     ) -> Result<OauthResponse<ValidateToken>> {
         let response = api_request(ValidateRequest {
             access_token,
-            validate_url: &self.validate_url,
+            validate_url: &self.get_validate_url(),
         })
         .await?;
 
@@ -224,7 +174,7 @@ impl TwitchOauth {
     pub async fn revoke_token(&self, acces_token: &AccessToken) -> Result<()> {
         api_request(RevokeRequest {
             client_id: &self.client_id,
-            revoke_url: &self.revoke_url,
+            revoke_url: &self.get_revoke_url(),
             access_token: acces_token,
         })
         .await?;
@@ -236,7 +186,7 @@ impl TwitchOauth {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
             grant_type: GrantType::ClientCredentials,
-            token_url: &self.token_url,
+            token_url: &self.get_token_url(),
         })
         .await?;
 
