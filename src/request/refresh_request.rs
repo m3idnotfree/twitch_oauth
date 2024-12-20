@@ -38,7 +38,7 @@ impl APIRequest for RefreshRequest {
         let params = vec![
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
-            ("grant_type", self.grant_type.as_ref()),
+            ("grant_type", self.grant_type.as_str()),
             ("refresh_token", self.refresh_token.secret()),
         ];
 

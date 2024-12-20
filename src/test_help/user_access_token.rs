@@ -63,7 +63,7 @@ impl APIRequest for TestAccessToken {
         let mut params = vec![
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
-            ("grant_type", self.grant_type.as_ref()),
+            ("grant_type", self.grant_type.as_str()),
             // ("user_id", self.user_id.as_ref()),
         ];
 

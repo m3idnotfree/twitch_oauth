@@ -42,7 +42,7 @@ impl APIRequest for CodeTokenRequest {
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
             ("code", self.code.secret()),
-            ("grant_type", self.grant_type.as_ref()),
+            ("grant_type", self.grant_type.as_str()),
             ("redirect_uri", self.redirect_url.as_str()),
         ];
 

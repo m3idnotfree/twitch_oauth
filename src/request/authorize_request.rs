@@ -51,7 +51,7 @@ impl AuthrozationRequest {
             let mut pairs = vec![
                 ("client_id", self.client_id.as_str()),
                 ("redirect_uri", self.redirect_url.as_str()),
-                ("response_type", self.response_type.as_ref()),
+                ("response_type", self.response_type.as_str()),
                 ("state", self.state.secret()),
             ];
 

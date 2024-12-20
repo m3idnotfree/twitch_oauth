@@ -39,23 +39,23 @@ pub enum ResponseType {
     Code,
 }
 
-impl std::fmt::Display for ResponseType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Token => write!(f, "token"),
-            Self::Code => write!(f, "code"),
-        }
-    }
-}
-
-impl AsRef<str> for ResponseType {
-    fn as_ref(&self) -> &str {
+impl ResponseType {
+    pub fn as_str(&self) -> &str {
         match self {
             Self::Token => "token",
             Self::Code => "code",
         }
     }
 }
+
+// impl std::fmt::Display for ResponseType {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             Self::Token => write!(f, "token"),
+//             Self::Code => write!(f, "code"),
+//         }
+//     }
+// }
 
 #[derive(Debug)]
 pub enum GrantType {
@@ -78,8 +78,8 @@ impl std::fmt::Display for GrantType {
     }
 }
 
-impl AsRef<str> for GrantType {
-    fn as_ref(&self) -> &str {
+impl GrantType {
+    pub fn as_str(&self) -> &str {
         match self {
             Self::ClientCredentials => "client_credentials",
             Self::AuthorizationCode => "authorization_code",
