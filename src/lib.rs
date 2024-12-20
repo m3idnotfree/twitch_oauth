@@ -3,7 +3,14 @@
 //! ```
 //!
 //!```ignore
-//! use twitch_oauth_token::{oauth_oneshot_server, scopes::Scopes, types::ServerStatus, TwitchOauth};
+//! use std::time::Duration;
+//!
+//! use twitch_oauth_token::{
+//!     oauth_oneshot_server,
+//!     scopes::Scopes,
+//!     types::ServerStatus,
+//!     TwitchOauth
+//! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), anyhow::Error> {
@@ -22,8 +29,8 @@
 //!     let timeout = 60;
 //!
 //!     let rev = oauth_oneshot_server(
-//!         client.get_addr().unwrap(),
-//!         std::time::Duration::from_secs(timeout),
+//!         client.redirect_url.url().clone(),
+//!         Duration::from_secs(timeout),
 //!     )
 //!     .await?;
 //!
@@ -61,19 +68,26 @@
 //!
 //!```ignore
 //! use asknothingx2_util::api::api_request;
-//! use twitch_oauth_token::{twitch_cli::{get_users_info, TwitchTest}, types::Token, TwitchOauth};
+//! use twitch_oauth_token::{
+//!     scopes::Scopes,
+//!     test_help::{get_users_info, TwitchTest},
+//!     types::Token,
+//!     TwitchOauth,
+//! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), anyhow::Error> {
 //!     // Does not contain a user_id
 //!     // When first run twitch mock-api generate
-//!     //copy user_id
+//!     // copy user_id
 //!     let users = get_users_info(None).await?;
 //!     let user = users.data.first().unwrap();
 //!
-//!     let client = TwitchOauth::new(user.ID.as_str(), user.Secret.as_str()).test_init(None);
+//!    let mut client = TwitchOauth::new(user.ID.as_str(), user.Secret.as_str());
+//!    client.with_url("http://localhost:8080/auth/authorize");
 //!
-//!     let mut test_user = client.get_mock_access_token("user_id");
+//!     // Getting a user access token
+//!     let mut test_user = client.get_mock_user_access_token("user_id");
 //!     test_user.scopes_mut().push(Scopes::ChannelReadPolls);
 //!
 //!     let token = api_request(test_user).await;
