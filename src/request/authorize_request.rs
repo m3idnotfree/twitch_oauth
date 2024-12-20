@@ -8,20 +8,20 @@ use crate::{
     types::ResponseType,
 };
 
-pub struct AuthrozationRequest<'a> {
-    auth_url: &'a AuthUrl,
-    client_id: &'a ClientId,
-    redirect_url: &'a RedirectUrl,
+pub struct AuthrozationRequest {
+    auth_url: AuthUrl,
+    client_id: ClientId,
+    redirect_url: RedirectUrl,
     response_type: ResponseType,
     scopes: HashSet<Scopes>,
     state: CsrfToken,
 }
 
-impl<'a> AuthrozationRequest<'a> {
+impl AuthrozationRequest {
     pub fn new(
-        auth_url: &'a AuthUrl,
-        client_id: &'a ClientId,
-        redirect_url: &'a RedirectUrl,
+        auth_url: AuthUrl,
+        client_id: ClientId,
+        redirect_url: RedirectUrl,
         response_type: ResponseType,
         state: CsrfToken,
     ) -> Self {
@@ -84,9 +84,9 @@ mod tests {
     fn authorize_request() {
         let csrf_token = CsrfToken::new_random();
         let mut request = AuthrozationRequest {
-            auth_url: &AuthUrl::new("https://id.twitch.tv/oauth2/authorize".to_string()).unwrap(),
-            client_id: &ClientId::new("test_id".to_string()),
-            redirect_url: &RedirectUrl::new("http://localhost:3000".to_string()).unwrap(),
+            auth_url: AuthUrl::new("https://id.twitch.tv/oauth2/authorize".to_string()).unwrap(),
+            client_id: ClientId::new("test_id".to_string()),
+            redirect_url: RedirectUrl::new("http://localhost:3000".to_string()).unwrap(),
             response_type: ResponseType::Token,
             scopes: HashSet::new(),
             state: csrf_token.clone(),
