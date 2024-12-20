@@ -32,7 +32,7 @@ pub struct TwitchOauth {
     pub client_id: ClientId,
     pub client_secret: ClientSecret,
     /// default: http://localhost:60928
-    redirect_url: RedirectUrl,
+    pub redirect_url: RedirectUrl,
     csrf_state: Option<CsrfToken>,
     #[cfg(feature = "test")]
     pub test_url: Option<String>,
