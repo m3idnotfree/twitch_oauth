@@ -7,16 +7,36 @@ use url::Url;
 use crate::types::GrantType;
 
 #[derive(Debug)]
-pub struct CodeTokenRequest<'a> {
-    pub client_id: &'a ClientId,
-    pub client_secret: &'a ClientSecret,
-    pub code: AuthorizationCode,
-    pub grant_type: GrantType,
-    pub token_url: &'a TokenUrl,
-    pub redirect_url: &'a RedirectUrl,
+pub struct CodeTokenRequest {
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    code: AuthorizationCode,
+    grant_type: GrantType,
+    token_url: TokenUrl,
+    redirect_url: RedirectUrl,
 }
 
-impl APIRequest for CodeTokenRequest<'_> {
+impl CodeTokenRequest {
+    pub fn new(
+        client_id: ClientId,
+        client_secret: ClientSecret,
+        code: AuthorizationCode,
+        grant_type: GrantType,
+        token_url: TokenUrl,
+        redirect_url: RedirectUrl,
+    ) -> Self {
+        Self {
+            client_id,
+            client_secret,
+            code,
+            grant_type,
+            token_url,
+            redirect_url,
+        }
+    }
+}
+
+impl APIRequest for CodeTokenRequest {
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),

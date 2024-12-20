@@ -5,12 +5,21 @@ use asknothingx2_util::{
 use url::Url;
 
 #[derive(Debug)]
-pub struct ValidateRequest<'a> {
-    pub access_token: &'a AccessToken,
-    pub validate_url: &'a ValidateUrl,
+pub struct ValidateRequest {
+    access_token: AccessToken,
+    validate_url: ValidateUrl,
 }
 
-impl APIRequest for ValidateRequest<'_> {
+impl ValidateRequest {
+    pub fn new(access_token: AccessToken, validate_url: ValidateUrl) -> Self {
+        Self {
+            access_token,
+            validate_url,
+        }
+    }
+}
+
+impl APIRequest for ValidateRequest {
     fn headers(&self) -> HeaderMap {
         HeaderBuilder::new()
             .authorization("OAuth", self.access_token.secret())

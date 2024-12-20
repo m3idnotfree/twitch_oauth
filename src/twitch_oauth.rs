@@ -104,14 +104,14 @@ impl TwitchOauth {
     }
 
     pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<OauthResponse<Token>> {
-        let response = api_request(CodeTokenRequest {
-            client_id: &self.client_id,
-            client_secret: &self.client_secret,
+        let response = api_request(CodeTokenRequest::new(
+            self.client_id.clone(),
+            self.client_secret.clone(),
             code,
-            grant_type: GrantType::AuthorizationCode,
-            token_url: &self.get_token_url(),
-            redirect_url: &self.redirect_url,
-        })
+            GrantType::AuthorizationCode,
+            self.get_token_url(),
+            self.redirect_url.clone(),
+        ))
         .await?;
 
         Ok(OauthResponse::<Token>::new(
@@ -139,15 +139,15 @@ impl TwitchOauth {
 
     pub async fn exchange_refresh_token(
         &self,
-        refresh_token: &RefreshToken,
+        refresh_token: RefreshToken,
     ) -> Result<OauthResponse<Token>> {
-        let response = api_request(RefreshRequest {
-            client_id: &self.client_id,
-            client_secret: &self.client_secret,
-            grant_type: GrantType::RefreshToken,
+        let response = api_request(RefreshRequest::new(
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            GrantType::RefreshToken,
             refresh_token,
-            token_url: &self.get_token_url(),
-        })
+            self.get_token_url(),
+        ))
         .await?;
 
         Ok(OauthResponse::<Token>::new(
@@ -159,10 +159,10 @@ impl TwitchOauth {
         &self,
         access_token: &AccessToken,
     ) -> Result<OauthResponse<ValidateToken>> {
-        let response = api_request(ValidateRequest {
-            access_token,
-            validate_url: &self.get_validate_url(),
-        })
+        let response = api_request(ValidateRequest::new(
+            access_token.clone(),
+            self.get_validate_url(),
+        ))
         .await?;
 
         Ok(OauthResponse::<ValidateToken>::new(
@@ -171,23 +171,23 @@ impl TwitchOauth {
         ))
     }
 
-    pub async fn revoke_token(&self, acces_token: &AccessToken) -> Result<()> {
-        api_request(RevokeRequest {
-            client_id: &self.client_id,
-            revoke_url: &self.get_revoke_url(),
-            access_token: acces_token,
-        })
+    pub async fn revoke_token(&self, access_token: AccessToken) -> Result<()> {
+        api_request(RevokeRequest::new(
+            access_token,
+            self.client_id.clone(),
+            self.get_revoke_url(),
+        ))
         .await?;
         Ok(())
     }
 
     pub async fn client_credentials(&self) -> Result<OauthResponse<ClientCredentials>> {
-        let response = api_request(ClientCredentialsRequest {
-            client_id: &self.client_id,
-            client_secret: &self.client_secret,
-            grant_type: GrantType::ClientCredentials,
-            token_url: &self.get_token_url(),
-        })
+        let response = api_request(ClientCredentialsRequest::new(
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            GrantType::ClientCredentials,
+            self.get_token_url(),
+        ))
         .await?;
 
         Ok(OauthResponse::<ClientCredentials>::new(

@@ -5,13 +5,23 @@ use asknothingx2_util::{
 use url::Url;
 
 #[derive(Debug)]
-pub struct RevokeRequest<'a> {
-    pub client_id: &'a ClientId,
-    pub access_token: &'a AccessToken,
-    pub revoke_url: &'a RevocationUrl,
+pub struct RevokeRequest {
+    access_token: AccessToken,
+    client_id: ClientId,
+    revoke_url: RevocationUrl,
 }
 
-impl APIRequest for RevokeRequest<'_> {
+impl RevokeRequest {
+    pub fn new(access_token: AccessToken, client_id: ClientId, revoke_url: RevocationUrl) -> Self {
+        Self {
+            access_token,
+            client_id,
+            revoke_url,
+        }
+    }
+}
+
+impl APIRequest for RevokeRequest {
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),

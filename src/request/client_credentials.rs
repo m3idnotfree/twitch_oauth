@@ -7,14 +7,30 @@ use url::Url;
 use crate::types::GrantType;
 
 #[derive(Debug)]
-pub struct ClientCredentialsRequest<'a> {
-    pub client_id: &'a ClientId,
-    pub client_secret: &'a ClientSecret,
-    pub grant_type: GrantType,
-    pub token_url: &'a TokenUrl,
+pub struct ClientCredentialsRequest {
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    grant_type: GrantType,
+    token_url: TokenUrl,
 }
 
-impl APIRequest for ClientCredentialsRequest<'_> {
+impl ClientCredentialsRequest {
+    pub fn new(
+        client_id: ClientId,
+        client_secret: ClientSecret,
+        grant_type: GrantType,
+        token_url: TokenUrl,
+    ) -> Self {
+        Self {
+            client_id,
+            client_secret,
+            grant_type,
+            token_url,
+        }
+    }
+}
+
+impl APIRequest for ClientCredentialsRequest {
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
