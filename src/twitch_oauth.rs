@@ -33,7 +33,6 @@ pub struct TwitchOauth {
     pub client_secret: ClientSecret,
     /// default: http://localhost:60928
     pub redirect_url: RedirectUrl,
-    csrf_state: Option<CsrfToken>,
     #[cfg(feature = "test")]
     pub test_url: Option<String>,
 }
@@ -44,7 +43,6 @@ impl TwitchOauth {
             client_id: ClientId::new(client_id.into()),
             client_secret: ClientSecret::new(client_secret.into()),
             redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
-            csrf_state: None,
             #[cfg(feature = "test")]
             test_url: None,
         }
@@ -86,24 +84,24 @@ impl TwitchOauth {
         ValidateUrl::new(format!("{BASE_URL}/{VALIDATE}")).unwrap()
     }
 
-    pub fn authorize_url(&mut self) -> AuthrozationRequest {
+    pub fn authorize_url(&mut self) -> (AuthrozationRequest, CsrfToken) {
         let csrf_token = CsrfToken::new_random();
-        self.csrf_state = Some(csrf_token.clone());
 
-        AuthrozationRequest::new(
+        let auth_request = AuthrozationRequest::new(
             self.get_auth_url(),
             self.client_id.clone(),
             self.redirect_url.clone(),
             ResponseType::Code,
-            csrf_token,
-        )
+            csrf_token.clone(),
+        );
+
+        (auth_request, csrf_token)
     }
 
-    fn csrf_cmp(&self, state: CsrfToken) -> bool {
-        self.csrf_state.as_ref().unwrap().secret() == state.secret()
-    }
-
-    pub async fn exchange_code(&self, code: AuthorizationCode) -> Result<OauthResponse<Token>> {
+    pub async fn exchange_code_for_token(
+        &self,
+        code: AuthorizationCode,
+    ) -> Result<OauthResponse<Token>> {
         let response = api_request(CodeTokenRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -120,19 +118,23 @@ impl TwitchOauth {
         ))
     }
 
-    pub async fn exchange_code_with_statuscode(
+    pub async fn exchange_code(
         &mut self,
         code_state: CodeState,
+        csrf_token: CsrfToken,
     ) -> Result<OauthResponse<Token>> {
-        if !self.csrf_cmp(code_state.csrf_token.unwrap()) {
-            self.csrf_state = None;
-            Err(Error::CsrfTokenPartialEqError)
-        } else {
-            self.csrf_state = None;
-            match code_state.state {
-                ServerStatus::Timeout => Err(Error::TimeoutError("".to_string())),
-                ServerStatus::Shutdown => Err(Error::GraceFulShutdown("".to_string())),
-                ServerStatus::Recive => self.exchange_code(code_state.code.unwrap()).await,
+        match code_state.state {
+            ServerStatus::Timeout => Err(Error::TimeoutError("".to_string())),
+            ServerStatus::Shutdown => Err(Error::GraceFulShutdown),
+            ServerStatus::Recive => {
+                let received_csrf = code_state.csrf_token.ok_or(Error::ResponseCsrfTokenError)?;
+
+                if received_csrf.secret() != csrf_token.secret() {
+                    return Err(Error::CsrfTokenPartialEqError);
+                }
+
+                let code = code_state.code.ok_or(Error::MissingAuthorizationCode)?;
+                self.exchange_code_for_token(code).await
             }
         }
     }
