@@ -1,3 +1,4 @@
+use asknothingx2_util::oauth::{ClientId, ClientSecret};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -12,9 +13,9 @@ pub struct Users {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     /// client_id
-    pub ID: String,
+    pub ID: ClientId,
     /// client_secret
-    pub Secret: String,
+    pub Secret: ClientSecret,
     pub Name: String,
     pub IsExtension: bool,
 }
