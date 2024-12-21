@@ -42,6 +42,7 @@ impl ScopesMut<'_> {
         self.scopes.insert(Scopes::UserReadEmail);
         self
     }
+
     pub fn block(&mut self) -> &mut Self {
         self.scopes.insert(Scopes::UserManageBlockedUsers);
         self
@@ -61,16 +62,36 @@ impl ScopesMut<'_> {
         self.scopes.insert(Scopes::ChannelManageBroadcast);
         self
     }
+
     pub fn get_channel_editors(&mut self) -> &mut Self {
         self.scopes.insert(Scopes::ChannelReadEditors);
         self
     }
+
     pub fn get_followed_channels(&mut self) -> &mut Self {
         self.scopes.insert(Scopes::UserReadFollows);
         self
     }
+
     pub fn get_channel_followers(&mut self) -> &mut Self {
         self.scopes.insert(Scopes::ModeratorReadFollowers);
+        self
+    }
+
+    pub fn send_message(&mut self) -> &mut Self {
+        self.scopes.insert(Scopes::UserWriteChat);
+        self
+    }
+
+    pub fn send_message_use_app_access_token(&mut self) -> &mut Self {
+        self.scopes
+            .extend([Scopes::UserWriteChat, Scopes::UserBot, Scopes::ChannelBot]);
+        self
+    }
+
+    /// moderator:read:chatters
+    pub fn get_chatters(&mut self) -> &mut Self {
+        self.scopes.insert(Scopes::ModeratorReadChatters);
         self
     }
 
