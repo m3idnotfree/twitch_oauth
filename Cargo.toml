@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
@@ -18,8 +18,8 @@ oneshot-server = ["tokio"]
 http-serde = "2.1.1"
 reqwest = { version = "0.12.9", features = ["rustls-tls", "json"] }
 serde = { version = "1.0.216", features = ["derive"] }
-serde_json = "1.0.133"
-thiserror = "2.0.8"
+serde_json = "1.0.134"
+thiserror = "2.0.9"
 url = "2.5.4"
 tokio = { version = "1.42.0", optional = true, features = [
   "signal",
