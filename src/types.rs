@@ -17,6 +17,19 @@ pub struct Token {
     pub scope: Vec<Scopes>,
 }
 
+impl Token {
+    pub fn is_scope_empty(&self) -> bool {
+        if self.scope.is_empty() {
+            return true;
+        }
+        if self.scope.len() > 1 {
+            return false;
+        }
+
+        *self.scope.first().unwrap() == Scopes::EmptyString
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateToken {
     pub client_id: String,

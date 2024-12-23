@@ -159,6 +159,7 @@ pub enum Scopes {
     ChatEdit,
     /// View chat messages sent in a chatroom using an IRC connection.
     ChatRead,
+    EmptyString,
 }
 
 impl Scopes {
@@ -243,6 +244,7 @@ impl Scopes {
 
             Self::ChatEdit => "chat:edit",
             Self::ChatRead => "chat:read",
+            Self::EmptyString => "",
         }
     }
 }
@@ -329,6 +331,7 @@ impl Display for Scopes {
 
             Self::ChatEdit => write!(f, "chat:edit"),
             Self::ChatRead => write!(f, "chat:read"),
+            Self::EmptyString => write!(f, ""),
         }
     }
 }
@@ -417,6 +420,7 @@ impl From<Scopes> for String {
 
             Scopes::ChatEdit => "chat:edit".to_string(),
             Scopes::ChatRead => "chat:read".to_string(),
+            Scopes::EmptyString => "".to_string(),
         }
     }
 }
@@ -600,7 +604,8 @@ impl<'de> Deserialize<'de> for Scopes {
             "whispers:read" => Ok(Self::WhispersRead),
             "chat:edit" => Ok(Self::ChatEdit),
             "chat:read" => Ok(Self::ChatRead),
-            _ => Err(D::Error::custom(format!("unknown scope: {}", s))),
+            "" => Ok(Self::EmptyString),
+            _ => Err(D::Error::custom(format!("unknown scope: '{}'", s))),
         }
     }
 }
