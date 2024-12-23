@@ -1,6 +1,7 @@
 mod scopes_mut;
 pub(crate) use scopes_mut::new;
 pub use scopes_mut::ScopesMut;
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
 use std::fmt::Display;
 
@@ -505,3 +506,101 @@ impl From<Scopes> for String {
 //         }
 //     }
 // }
+
+impl Serialize for Scopes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Scopes {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match s.as_str() {
+            "analytics:read:extensions" => Ok(Self::AnalyticsReadExtensions),
+            "analytics:read:games" => Ok(Self::AnalyticsReadGames),
+            "bits:read" => Ok(Self::BitsRead),
+            "channel:bot" => Ok(Self::ChannelBot),
+            "channel:manage:ads" => Ok(Self::ChannelManageAds),
+            "channel:read:ads" => Ok(Self::ChannelReadAds),
+            "channel:manage:broadcast" => Ok(Self::ChannelManageBroadcast),
+            "channel:read:charity" => Ok(Self::ChannelReadCharity),
+            "channel:edit:commercial" => Ok(Self::ChannelEditCommercial),
+            "channel:read:editors" => Ok(Self::ChannelReadEditors),
+            "channel:manage:extensions" => Ok(Self::ChannelManageExtensions),
+            "channel:read:goals" => Ok(Self::ChannelReadGoals),
+            "channel:read:guest_star" => Ok(Self::ChannelReadGuestStar),
+            "channel:manage:guest_star" => Ok(Self::ChannelManageGuestStar),
+            "channel:read:hype_train" => Ok(Self::ChannelReadHypeTrain),
+            "channel:manage:moderators" => Ok(Self::ChannelManageModerators),
+            "channel:read:polls" => Ok(Self::ChannelReadPolls),
+            "channel:manage:polls" => Ok(Self::ChannelManagePolls),
+            "channel:read:predictions" => Ok(Self::ChannelReadPredictions),
+            "channel:manage:predictions" => Ok(Self::ChannelManagePredictions),
+            "channel:manage:raids" => Ok(Self::ChannelManageRaids),
+            "channel:read:redemptions" => Ok(Self::ChannelReadRedemptions),
+            "channel:manage:redemptions" => Ok(Self::ChannelManageRedemptions),
+            "channel:manage:schedule" => Ok(Self::ChannelManageSchedule),
+            "channel:read:stream_key" => Ok(Self::ChannelReadStreamKey),
+            "channel:read:subscriptions" => Ok(Self::ChannelReadSubscriptions),
+            "channel:manage:videos" => Ok(Self::ChannelManageVideos),
+            "channel:read:vips" => Ok(Self::ChannelReadVips),
+            "channel:manage:vips" => Ok(Self::ChannelManageVips),
+            "clips:edit" => Ok(Self::ClipsEdit),
+            "moderation:read" => Ok(Self::ModerationRead),
+            "moderator:manage:announcements" => Ok(Self::ModeratorManageAnnouncements),
+            "moderator:manage:automod" => Ok(Self::ModeratorManageAutomod),
+            "moderator:read:automod_settings" => Ok(Self::ModeratorReadAutomodSettings),
+            "moderator:manage:automod_settings" => Ok(Self::ModeratorManageAutomodSettings),
+            "moderator:read:banned_users" => Ok(Self::ModeratorReadBannedUsers),
+            "moderator:manage:banned_users" => Ok(Self::ModeratorManageBannedUsers),
+            "moderator:read:blocked_terms" => Ok(Self::ModeratorReadBlockedTerms),
+            "moderator:read:chat_messages" => Ok(Self::ModeratorReadChatMessages),
+            "moderator:manage:blocked_terms" => Ok(Self::ModeratorManageBlockedTerms),
+            "moderator:manage:chat_messages" => Ok(Self::ModeratorManageChatMessages),
+            "moderator:read:chat_settings" => Ok(Self::ModeratorReadChatSettings),
+            "moderator:manage:chat_settings" => Ok(Self::ModeratorManageChatSettings),
+            "moderator:read:chatters" => Ok(Self::ModeratorReadChatters),
+            "moderator:read:followers" => Ok(Self::ModeratorReadFollowers),
+            "moderator:read:guest_star" => Ok(Self::ModeratorReadGuestStar),
+            "moderator:manage:guest_star" => Ok(Self::ModeratorManageGuestStar),
+            "moderator:read:moderators" => Ok(Self::ModeratorReadModerators),
+            "moderator:read:shield_mode" => Ok(Self::ModeratorReadShieldMode),
+            "moderator:manage:shield_mode" => Ok(Self::ModeratorManageShieldMode),
+            "moderator:read:shoutouts" => Ok(Self::ModeratorReadShoutouts),
+            "moderator:manage:shoutouts" => Ok(Self::ModeratorManageShoutouts),
+            "moderator:read:suspicious_users" => Ok(Self::ModeratorReadSuspiciousUsers),
+            "moderator:read:unban_requests" => Ok(Self::ModeratorReadUnbanRequests),
+            "moderator:manage:unban_requests" => Ok(Self::ModeratorManageUnbanRequests),
+            "moderator:read:vips" => Ok(Self::ModeratorReadVips),
+            "moderator:read:warnings" => Ok(Self::ModeratorReadWarnings),
+            "moderator:manage:warnings" => Ok(Self::ModeratorManageWarnings),
+            "user:bot" => Ok(Self::UserBot),
+            "user:edit" => Ok(Self::UserEdit),
+            "user:edit:broadcast" => Ok(Self::UserEditBroadcast),
+            "user:read:blocked_users" => Ok(Self::UserReadBlockedUsers),
+            "user:manage:blocked_users" => Ok(Self::UserManageBlockedUsers),
+            "user:read:broadcast" => Ok(Self::UserReadBroadcast),
+            "user:read:chat" => Ok(Self::UserReadChat),
+            "user:manage:chat_color" => Ok(Self::UserManageChatColor),
+            "user:read:email" => Ok(Self::UserReadEmail),
+            "user:read:emotes" => Ok(Self::UserReadEmotes),
+            "user:read:follows" => Ok(Self::UserReadFollows),
+            "user:read:moderated_channels" => Ok(Self::UserReadModeratedChannels),
+            "user:read:subscriptions" => Ok(Self::UserReadSubscriptions),
+            "user:read:whispers" => Ok(Self::UserReadWhispers),
+            "user:manage:whispers" => Ok(Self::UserManageWhispers),
+            "user:write:chat" => Ok(Self::UserWriteChat),
+            "whispers:read" => Ok(Self::WhispersRead),
+            "chat:edit" => Ok(Self::ChatEdit),
+            "chat:read" => Ok(Self::ChatRead),
+            _ => Err(D::Error::custom(format!("unknown scope: {}", s))),
+        }
+    }
+}

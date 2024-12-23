@@ -6,7 +6,7 @@ use asknothingx2_util::{
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::Error;
+use crate::{scopes::Scopes, Error};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -14,14 +14,14 @@ pub struct Token {
     pub expires_in: u64,
     pub token_type: String,
     pub refresh_token: RefreshToken,
-    pub scope: Vec<String>,
+    pub scope: Vec<Scopes>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateToken {
     pub client_id: String,
     pub login: String,
-    pub scopes: Vec<String>,
+    pub scopes: Vec<Scopes>,
     pub user_id: String,
     pub expires_in: u64,
 }
