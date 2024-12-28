@@ -10,20 +10,22 @@ keywords = ["twitch", "oauth"]
 
 [features]
 default = ["oauth"]
+oauth = ["types", "url", "serde_json", "thiserror", "http-serde", "reqwest"]
+types = []
 test = []
-oauth = ["types", "error"]
-types = ["error"]
-error = ["types"]
+oneshot-server = ["tokio", "url", "types", "reqwest"]
 full = ["oauth", "test", "oneshot-server"]
-oneshot-server = ["tokio", "types", "error"]
 
 [dependencies]
-http-serde = "2.1.1"
-reqwest = { version = "0.12.11", features = ["rustls-tls", "json"] }
+http-serde = { version = "2.1.1", optional = true }
+reqwest = { version = "0.12.11", optional = true, features = [
+  "rustls-tls",
+  "json",
+] }
 serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.134"
-thiserror = "2.0.9"
-url = "2.5.4"
+serde_json = { version = "1.0.134", optional = true }
+thiserror = { version = "2.0.9", optional = true }
+url = { version = "2.5.4", optional = true }
 tokio = { version = "1.42.0", optional = true, features = [
   "signal",
   "time",

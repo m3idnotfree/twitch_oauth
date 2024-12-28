@@ -1,12 +1,9 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::fmt::Debug;
 
-use asknothingx2_util::{
-    api::StatusCode,
-    oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken},
-};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
+use serde::{Deserialize, Serialize};
 
-use crate::{scopes::Scopes, Error};
+use crate::scopes::Scopes;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -61,15 +58,6 @@ impl ResponseType {
     }
 }
 
-// impl std::fmt::Display for ResponseType {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             Self::Token => write!(f, "token"),
-//             Self::Code => write!(f, "code"),
-//         }
-//     }
-// }
-
 #[derive(Debug)]
 pub enum GrantType {
     ClientCredentials,
@@ -100,66 +88,6 @@ impl GrantType {
             #[cfg(feature = "test")]
             Self::UserToken => "user_token",
         }
-    }
-}
-
-pub struct OauthResponse<RT>
-where
-    RT: DeserializeOwned,
-{
-    pub status_code: StatusCode,
-    pub body: String,
-    _phantom: PhantomData<RT>,
-}
-
-impl<RT> Debug for OauthResponse<RT>
-where
-    RT: DeserializeOwned,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("OauthResponse")
-            .field("status_code", &self.status_code)
-            .field("body", &self.body)
-            .finish()
-    }
-}
-
-impl<RT> OauthResponse<RT>
-where
-    RT: DeserializeOwned,
-{
-    pub fn new(status_code: StatusCode, body: String) -> Self {
-        OauthResponse {
-            status_code,
-            body,
-            _phantom: PhantomData,
-        }
-    }
-    pub fn json(self) -> crate::Result<RT> {
-        match self.status_code {
-            StatusCode::OK => {
-                let token: RT = serde_json::from_str(&self.body).unwrap();
-                Ok(token)
-            }
-            _ => {
-                let token: ErrorResponse = serde_json::from_str(&self.body).unwrap();
-                Err(Error::ResponseError(token))
-            }
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(with = "http_serde::status_code")]
-    pub status: StatusCode,
-    pub message: String,
-    pub error: Option<String>,
-}
-
-impl std::fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self)
     }
 }
 
