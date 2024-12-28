@@ -91,14 +91,18 @@
 //!     Ok(())
 //! }
 //!```
-mod error;
-pub use error::Error;
 
+#[cfg(feature = "oauth")]
 mod twitch_oauth;
+#[cfg(feature = "oauth")]
 pub use twitch_oauth::TwitchOauth;
 
+#[cfg(feature = "oauth")]
 pub mod request;
+
+#[cfg(feature = "types")]
 pub mod scopes;
+#[cfg(feature = "types")]
 pub mod types;
 
 #[cfg(feature = "oneshot-server")]
@@ -109,4 +113,9 @@ pub use oauth_oneshot_server::oauth_oneshot_server;
 #[cfg(feature = "test")]
 pub mod test_help;
 
+#[cfg(feature = "error")]
+mod error;
+#[cfg(feature = "error")]
+pub use error::Error;
+#[cfg(feature = "error")]
 pub type Result<R> = std::result::Result<R, crate::Error>;

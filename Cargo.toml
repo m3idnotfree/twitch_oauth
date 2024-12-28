@@ -9,15 +9,18 @@ license = "MIT"
 keywords = ["twitch", "oauth"]
 
 [features]
-default = []
+default = ["oauth"]
 test = []
-full = ["test", "oneshot-server"]
-oneshot-server = ["tokio"]
+oauth = ["types", "error"]
+types = ["error"]
+error = ["types"]
+full = ["oauth", "test", "oneshot-server"]
+oneshot-server = ["tokio", "types", "error"]
 
 [dependencies]
 http-serde = "2.1.1"
-reqwest = { version = "0.12.9", features = ["rustls-tls", "json"] }
-serde = { version = "1.0.216", features = ["derive"] }
+reqwest = { version = "0.12.11", features = ["rustls-tls", "json"] }
+serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"
 thiserror = "2.0.9"
 url = "2.5.4"
