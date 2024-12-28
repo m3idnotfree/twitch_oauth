@@ -7,7 +7,6 @@ use asknothingx2_util::{
 };
 
 use crate::{
-    error::Error,
     request::{
         AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
         RevokeRequest, ValidateRequest,
@@ -16,7 +15,7 @@ use crate::{
         ClientCredentials, CodeState, GrantType, OauthResponse, ResponseType, ServerStatus, Token,
         ValidateToken,
     },
-    Result,
+    Error, Result,
 };
 
 const PORT: u16 = 60928;
