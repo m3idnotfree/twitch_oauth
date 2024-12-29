@@ -8,21 +8,14 @@ use asknothingx2_util::{
     },
 };
 use reqwest::StatusCode;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{
-    error::ErrorResponse,
     types::{
         ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
     },
-    Error, Result,
-};
-
-mod request;
-
-pub use request::{
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
-    ValidateRequest,
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest, Result,
+    RevokeRequest, ValidateRequest,
 };
 
 const PORT: u16 = 60928;
@@ -40,7 +33,7 @@ pub struct TwitchOauth {
     /// default: http://localhost:60928
     pub redirect_url: RedirectUrl,
     #[cfg(feature = "test")]
-    pub test_url: Option<String>,
+    pub test_url: crate::test_url::TestUrlHold,
 }
 
 impl TwitchOauth {
@@ -50,7 +43,7 @@ impl TwitchOauth {
             client_secret: ClientSecret::new(client_secret.into()),
             redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
             #[cfg(feature = "test")]
-            test_url: None,
+            test_url: crate::test_url::TestUrlHold::default(),
         }
     }
 
@@ -71,7 +64,7 @@ impl TwitchOauth {
 
     pub fn get_auth_url(&self) -> AuthUrl {
         #[cfg(feature = "test")]
-        if let Some(url) = &self.test_url {
+        if let Some(url) = &self.test_url.get_test_url() {
             return AuthUrl::new(url.to_string()).unwrap();
         }
 
@@ -107,7 +100,7 @@ impl TwitchOauth {
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
-    ) -> Result<OauthResponse<Token>> {
+    ) -> Result<TokenResponse<Token>> {
         let response = api_request(CodeTokenRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -118,7 +111,7 @@ impl TwitchOauth {
         ))
         .await?;
 
-        Ok(OauthResponse::<Token>::new(
+        Ok(TokenResponse::<Token>::new(
             response.status(),
             response.text().await?,
         ))
@@ -128,7 +121,7 @@ impl TwitchOauth {
         &mut self,
         code_state: CodeState,
         csrf_token: CsrfToken,
-    ) -> Result<OauthResponse<Token>> {
+    ) -> Result<TokenResponse<Token>> {
         match code_state.state {
             ServerStatus::Timeout => Err(Error::TimeoutError("".to_string())),
             ServerStatus::Shutdown => Err(Error::GraceFulShutdown),
@@ -148,7 +141,7 @@ impl TwitchOauth {
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> Result<OauthResponse<Token>> {
+    ) -> Result<TokenResponse<Token>> {
         let response = api_request(RefreshRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -158,7 +151,7 @@ impl TwitchOauth {
         ))
         .await?;
 
-        Ok(OauthResponse::<Token>::new(
+        Ok(TokenResponse::<Token>::new(
             response.status(),
             response.text().await?,
         ))
@@ -166,14 +159,14 @@ impl TwitchOauth {
     pub async fn validate_token(
         &self,
         access_token: AccessToken,
-    ) -> Result<OauthResponse<ValidateToken>> {
+    ) -> Result<TokenResponse<ValidateToken>> {
         let response = api_request(ValidateRequest::new(
             access_token.clone(),
             self.get_validate_url(),
         ))
         .await?;
 
-        Ok(OauthResponse::<ValidateToken>::new(
+        Ok(TokenResponse::<ValidateToken>::new(
             response.status(),
             response.text().await?,
         ))
@@ -189,7 +182,7 @@ impl TwitchOauth {
         Ok(())
     }
 
-    pub async fn client_credentials(&self) -> Result<OauthResponse<ClientCredentials>> {
+    pub async fn client_credentials(&self) -> Result<TokenResponse<ClientCredentials>> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -198,25 +191,25 @@ impl TwitchOauth {
         ))
         .await?;
 
-        Ok(OauthResponse::<ClientCredentials>::new(
+        Ok(TokenResponse::<ClientCredentials>::new(
             response.status(),
             response.text().await?,
         ))
     }
 }
 
-pub struct OauthResponse<RT>
+pub struct TokenResponse<T>
 where
-    RT: DeserializeOwned,
+    T: DeserializeOwned,
 {
-    pub status_code: StatusCode,
-    pub body: String,
-    _phantom: PhantomData<RT>,
+    status_code: StatusCode,
+    body: String,
+    _phantom: PhantomData<T>,
 }
 
-impl<RT> fmt::Debug for OauthResponse<RT>
+impl<T> fmt::Debug for TokenResponse<T>
 where
-    RT: DeserializeOwned,
+    T: DeserializeOwned,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("OauthResponse")
@@ -226,27 +219,73 @@ where
     }
 }
 
-impl<RT> OauthResponse<RT>
+impl<T> TokenResponse<T>
 where
-    RT: DeserializeOwned,
+    T: DeserializeOwned,
 {
     pub fn new(status_code: StatusCode, body: String) -> Self {
-        OauthResponse {
+        TokenResponse {
             status_code,
             body,
             _phantom: PhantomData,
         }
     }
-    pub fn json(self) -> crate::Result<RT> {
+
+    pub fn status(&self) -> StatusCode {
+        self.status_code
+    }
+
+    pub fn raw_body(&self) -> &str {
+        &self.body
+    }
+
+    pub fn parse_token(self) -> crate::Result<T> {
         match self.status_code {
-            StatusCode::OK => {
-                let token: RT = serde_json::from_str(&self.body).unwrap();
-                Ok(token)
-            }
+            StatusCode::OK => serde_json::from_str(&self.body)
+                .map_err(|e| Error::DeserializationError(e.to_string())),
             _ => {
-                let token: ErrorResponse = serde_json::from_str(&self.body).unwrap();
-                Err(Error::ResponseError(token))
+                let error: TokenError = serde_json::from_str(&self.body)
+                    .map_err(|e| Error::DeserializationError(e.to_string()))?;
+                Err(Error::TokenError(error))
             }
         }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenError {
+    #[serde(with = "http_serde::status_code")]
+    status: StatusCode,
+    message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+impl TokenError {
+    pub fn status(&self) -> StatusCode {
+        self.status
+    }
+
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    pub fn error_details(&self) -> Option<&str> {
+        self.error.as_deref()
+    }
+}
+
+impl fmt::Display for TokenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Token error ({}): {}{}",
+            self.status,
+            self.message,
+            self.error
+                .as_ref()
+                .map(|e| format!(" - {}", e))
+                .unwrap_or_default()
+        )
     }
 }

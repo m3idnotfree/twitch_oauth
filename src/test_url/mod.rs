@@ -8,18 +8,33 @@ mod user_access_token;
 pub use user_access_token::TestAccessToken;
 
 pub trait TwitchTest {
-    fn with_url<T: Into<String>>(&mut self, url: T);
-    fn get_mock_user_access_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken;
-    fn get_mock_app_access_token(&self) -> TestAccessToken;
+    fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self;
+    fn user_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken;
+    fn app_token(&self) -> TestAccessToken;
+}
+
+#[derive(Debug, Default)]
+pub struct TestUrlHold(Option<String>);
+
+impl TestUrlHold {
+    pub fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+        self.0 = Some(url.into());
+        self
+    }
+
+    pub fn get_test_url(&self) -> Option<url::Url> {
+        self.0.as_ref().map(|url| url::Url::parse(url).unwrap())
+    }
 }
 
 impl TwitchTest for TwitchOauth {
-    fn with_url<T: Into<String>>(&mut self, url: T) {
-        self.test_url = Some(url.into());
+    fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+        self.test_url.with_url(url.into());
+        self
     }
 
     /// Getting a user access token
-    fn get_mock_user_access_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken {
+    fn user_token<T: Into<String>>(&self, user_id: T) -> TestAccessToken {
         TestAccessToken::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -31,7 +46,7 @@ impl TwitchTest for TwitchOauth {
     }
 
     /// Getting an app access token
-    fn get_mock_app_access_token(&self) -> TestAccessToken {
+    fn app_token(&self) -> TestAccessToken {
         TestAccessToken::new(
             self.client_id.clone(),
             self.client_secret.clone(),
