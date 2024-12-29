@@ -1,5 +1,5 @@
 use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
-use twitch_oauth_token::{request::AuthrozationRequest, scopes::Scopes, types::ResponseType};
+use twitch_oauth_token::{request::AuthrozationRequest, ResponseType, Scopes};
 
 #[test]
 fn request() {

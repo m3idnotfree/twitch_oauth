@@ -1,9 +1,14 @@
-use std::fmt::Debug;
+use std::{collections::HashSet, fmt::Debug};
 
 use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
 use serde::{Deserialize, Serialize};
 
-use crate::scopes::Scopes;
+mod scopes;
+pub use scopes::{Scopes, ScopesMut};
+
+pub fn scopes_mut(scopes: &mut HashSet<Scopes>) -> ScopesMut<'_> {
+    scopes::new(scopes)
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Token {

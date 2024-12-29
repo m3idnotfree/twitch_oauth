@@ -2,6 +2,7 @@ use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Display;
 
 mod scopes_mut;
+// pub use scopes_mut::{new, ScopesMut};
 pub(crate) use scopes_mut::new;
 pub use scopes_mut::ScopesMut;
 

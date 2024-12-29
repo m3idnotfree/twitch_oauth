@@ -2,7 +2,7 @@ use asknothingx2_util::{
     api::{APIRequest, Method},
     oauth::{ClientId, ClientSecret, TokenUrl},
 };
-use twitch_oauth_token::{request::ClientCredentialsRequest, types::GrantType};
+use twitch_oauth_token::{request::ClientCredentialsRequest, GrantType};
 use url::Url;
 
 #[test]

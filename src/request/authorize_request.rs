@@ -3,10 +3,7 @@ use std::collections::HashSet;
 use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
 use url::Url;
 
-use crate::{
-    scopes::{self, Scopes, ScopesMut},
-    types::ResponseType,
-};
+use crate::types::{scopes_mut, ResponseType, Scopes, ScopesMut};
 
 pub struct AuthrozationRequest {
     auth_url: AuthUrl,
@@ -36,7 +33,7 @@ impl AuthrozationRequest {
     }
 
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
-        scopes::new(&mut self.scopes)
+        scopes_mut(&mut self.scopes)
     }
 
     pub fn url(self) -> Url {

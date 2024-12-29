@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
+    api::{form_urlencoded_serialize, APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
 use url::Url;
@@ -42,7 +42,7 @@ impl APIRequest for RefreshRequest {
             ("refresh_token", self.refresh_token.secret()),
         ];
 
-        Some(Self::form_urlencoded_serializere_pairs(params))
+        Some(form_urlencoded_serialize(params))
     }
 
     fn method(&self) -> Method {

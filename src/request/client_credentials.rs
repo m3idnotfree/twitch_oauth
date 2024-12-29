@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
+    api::{form_urlencoded_serialize, APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{ClientId, ClientSecret, TokenUrl},
 };
 use url::Url;
@@ -38,7 +38,7 @@ impl APIRequest for ClientCredentialsRequest {
             ("grant_type", self.grant_type.as_str()),
         ];
 
-        Some(Self::form_urlencoded_serializere_pairs(params))
+        Some(form_urlencoded_serialize(params))
     }
 
     fn headers(&self) -> HeaderMap {

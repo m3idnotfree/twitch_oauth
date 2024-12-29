@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
+    api::{form_urlencoded_serialize, APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
 use url::Url;
@@ -28,7 +28,7 @@ impl APIRequest for RevokeRequest {
             ("token", self.access_token.secret()),
         ];
 
-        Some(Self::form_urlencoded_serializere_pairs(params))
+        Some(form_urlencoded_serialize(params))
     }
 
     fn headers(&self) -> HeaderMap {

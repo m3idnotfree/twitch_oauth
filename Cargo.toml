@@ -33,7 +33,7 @@ tokio = { version = "1.42.0", optional = true, features = [
   "net",
   "macros",
 ] }
-asknothingx2-util = { version = "0.0.11", features = ["api", "oauth"] }
+asknothingx2-util = { version = "0.0.12", features = ["api", "oauth"] }
 
 [dev-dependencies]
 tokio = { version = "1.42.0", features = ["full"] }

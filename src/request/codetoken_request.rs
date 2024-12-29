@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{APIRequest, HeaderBuilder, HeaderMap, Method},
+    api::{form_urlencoded_serialize, APIRequest, HeaderBuilder, HeaderMap, Method},
     oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
 };
 use url::Url;
@@ -46,7 +46,7 @@ impl APIRequest for CodeTokenRequest {
             ("redirect_uri", self.redirect_url.as_str()),
         ];
 
-        Some(Self::form_urlencoded_serializere_pairs(params))
+        Some(form_urlencoded_serialize(params))
     }
     fn headers(&self) -> HeaderMap {
         HeaderBuilder::new()

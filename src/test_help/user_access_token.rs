@@ -6,10 +6,7 @@ use asknothingx2_util::{
 };
 use url::Url;
 
-use crate::{
-    scopes::{self, Scopes, ScopesMut},
-    types::GrantType,
-};
+use crate::types::{scopes_mut, GrantType, Scopes, ScopesMut};
 
 pub struct TestAccessToken {
     client_id: ClientId,
@@ -38,8 +35,9 @@ impl TestAccessToken {
             auth_url,
         }
     }
+
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
-        scopes::new(&mut self.scopes)
+        scopes_mut(&mut self.scopes)
     }
 
     pub fn set_user_id(mut self, user_id: &str) -> Self {
@@ -95,7 +93,7 @@ mod test {
     };
     use url::Url;
 
-    use crate::{scopes::Scopes, types::GrantType};
+    use crate::types::{GrantType, Scopes};
 
     use super::TestAccessToken;
 
