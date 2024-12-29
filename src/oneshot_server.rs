@@ -14,7 +14,7 @@ use crate::{
 };
 
 /// only support localhost
-pub async fn oauth_oneshot_server(url: Url, duration: Duration) -> Result<CodeState> {
+pub async fn oneshot_server(url: Url, duration: Duration) -> Result<CodeState> {
     let host = url.host_str().ok_or(Error::MissingRedirectHost)?;
     if host != "localhost" {
         return Err(Error::InvalidRedirectHost(host.to_string()));

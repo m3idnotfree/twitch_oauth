@@ -1,5 +1,8 @@
 use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
-use twitch_oauth_token::{request::AuthrozationRequest, ResponseType, Scopes};
+use twitch_oauth_token::{
+    types::{ResponseType, Scope},
+    AuthrozationRequest,
+};
 
 #[test]
 fn request() {
@@ -14,13 +17,10 @@ fn request() {
 
     request
         .scopes_mut()
-        .push(Scopes::ChatRead)
-        .extend([
-            Scopes::ChannelManageSchedule,
-            Scopes::ModeratorManageAutomod,
-        ])
-        .push(Scopes::UserBot)
-        .push(Scopes::ChatRead);
+        .push(Scope::ChatRead)
+        .extend([Scope::ChannelManageSchedule, Scope::ModeratorManageAutomod])
+        .push(Scope::UserBot)
+        .push(Scope::ChatRead);
 
     let expected_url = request.url().to_string();
     assert!(expected_url.contains("chat%3Aread"));

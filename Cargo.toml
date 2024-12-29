@@ -10,11 +10,11 @@ keywords = ["twitch", "oauth"]
 
 [features]
 default = ["oauth"]
-oauth = ["types", "url", "serde_json", "thiserror", "http-serde", "reqwest"]
+oauth = ["types", "http-serde", "reqwest", "serde_json", "thiserror", "url"]
 types = []
+oneshot-server = ["types", "http-serde", "reqwest", "url", "thiserror", "tokio"]
 test = []
-oneshot-server = ["tokio", "url", "types", "reqwest"]
-full = ["oauth", "test", "oneshot-server"]
+full = ["oauth", "oneshot-server", "test"]
 
 [dependencies]
 http-serde = { version = "2.1.1", optional = true }

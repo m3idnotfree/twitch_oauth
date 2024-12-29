@@ -3,14 +3,14 @@ use std::collections::HashSet;
 use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
 use url::Url;
 
-use crate::types::{scopes_mut, ResponseType, Scopes, ScopesMut};
+use crate::types::{scopes_mut, ResponseType, Scope, ScopesMut};
 
 pub struct AuthrozationRequest {
     auth_url: AuthUrl,
     client_id: ClientId,
     redirect_url: RedirectUrl,
     response_type: ResponseType,
-    scopes: HashSet<Scopes>,
+    scopes: HashSet<Scope>,
     state: CsrfToken,
 }
 

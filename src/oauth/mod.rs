@@ -12,14 +12,17 @@ use serde::de::DeserializeOwned;
 
 use crate::{
     error::ErrorResponse,
-    request::{
-        AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
-        RevokeRequest, ValidateRequest,
-    },
     types::{
         ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
     },
     Error, Result,
+};
+
+mod request;
+
+pub use request::{
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
+    ValidateRequest,
 };
 
 const PORT: u16 = 60928;

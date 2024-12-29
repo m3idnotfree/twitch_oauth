@@ -1,16 +1,11 @@
 //! ```toml
-//! twitch_oauth_token = { version = "1", features = ["oneshot-server"] }
+//! twitch_oauth_token = { version = "1.0.8", features = ["oauth", "oneshot-server"] }
 //! ```
 //!
 //!```ignore
 //! use std::time::Duration;
 //!
-//! use twitch_oauth_token::{
-//!     oauth_oneshot_server,
-//!     scopes::Scopes,
-//!     types::ServerStatus,
-//!     TwitchOauth
-//! };
+//! use twitch_oauth_token::{oneshot_server, Scope, ServerStatus, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), twitch_oauth_token::Error> {
@@ -56,16 +51,15 @@
 //! ```
 //! # Useing the Twitch CLI Mock Server
 //! ```toml
-//! twitch_oauth_token = { version = "1", features = ["test"] }
+//! twitch_oauth_token = { version = "1", features = ["oauth", "test"] }
 //! asknothingx2-util = { version = "0.0.11", features = ["api"] }
 //! ```
 //!
 //!```ignore
 //! use asknothingx2_util::api::api_request;
 //! use twitch_oauth_token::{
-//!     scopes::Scopes,
 //!     test_help::{get_users_info, TwitchTest},
-//!     types::Token,
+//!     types::{Scope, Token},
 //!     TwitchOauth,
 //! };
 //!
@@ -82,7 +76,7 @@
 //!
 //!     // Getting a user access token
 //!     let mut test_user = client.get_mock_user_access_token("user_id");
-//!     test_user.scopes_mut().push(Scopes::ChannelReadPolls);
+//!     test_user.scopes_mut().push(Scope::ChannelReadPolls);
 //!
 //!     let token = api_request(test_user).await?;
 //!     let token: Token = token.json().await?;
@@ -92,12 +86,15 @@
 //! }
 //!```
 
+#[cfg(feature = "oauth")]
 mod oauth;
 #[cfg(feature = "oauth")]
-pub use oauth::{OauthResponse, TwitchOauth};
-#[cfg(feature = "oauth")]
-pub mod request;
+pub use oauth::{
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, OauthResponse, RefreshRequest,
+    RevokeRequest, TwitchOauth, ValidateRequest,
+};
 
+#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
 mod error;
 #[cfg(any(feature = "oauth", feature = "oneshot-server"))]
 pub use error::Error;
@@ -105,13 +102,17 @@ pub use error::Error;
 pub type Result<R> = std::result::Result<R, crate::Error>;
 
 #[cfg(feature = "oneshot-server")]
-mod oauth_oneshot_server;
+mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
-pub use oauth_oneshot_server::oauth_oneshot_server;
+pub use oneshot_server::oneshot_server;
 
 #[cfg(feature = "test")]
 pub mod test_help;
 
-mod types;
 #[cfg(feature = "types")]
-pub use types::{GrantType, ResponseType, Scopes, ScopesMut};
+pub mod types;
+// #[cfg(feature = "types")]
+// pub use types::{
+//     ClientCredentials, CodeState, GrantType, ResponseType, Scope, ScopesMut, ServerStatus, Token,
+//     ValidateToken,
+// };

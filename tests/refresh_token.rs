@@ -3,7 +3,7 @@ use asknothingx2_util::{
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
 use reqwest::Method;
-use twitch_oauth_token::{request::RefreshRequest, GrantType};
+use twitch_oauth_token::{types::GrantType, RefreshRequest};
 use url::Url;
 
 mod server;

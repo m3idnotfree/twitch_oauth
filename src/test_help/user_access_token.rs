@@ -6,14 +6,14 @@ use asknothingx2_util::{
 };
 use url::Url;
 
-use crate::types::{scopes_mut, GrantType, Scopes, ScopesMut};
+use crate::types::{scopes_mut, GrantType, Scope, ScopesMut};
 
 pub struct TestAccessToken {
     client_id: ClientId,
     client_secret: ClientSecret,
     grant_type: GrantType,
     user_id: String,
-    scopes: HashSet<Scopes>,
+    scopes: HashSet<Scope>,
     auth_url: AuthUrl,
 }
 
@@ -23,7 +23,7 @@ impl TestAccessToken {
         client_secret: ClientSecret,
         grant_type: GrantType,
         user_id: String,
-        scopes: HashSet<Scopes>,
+        scopes: HashSet<Scope>,
         auth_url: AuthUrl,
     ) -> Self {
         Self {
@@ -93,7 +93,7 @@ mod test {
     };
     use url::Url;
 
-    use crate::types::{GrantType, Scopes};
+    use crate::types::{GrantType, Scope};
 
     use super::TestAccessToken;
 
@@ -110,8 +110,8 @@ mod test {
 
         test_client
             .scopes_mut()
-            .push(Scopes::UserBot)
-            .extend([Scopes::ChannelBot, Scopes::UserWriteChat]);
+            .push(Scope::UserBot)
+            .extend([Scope::ChannelBot, Scope::UserWriteChat]);
 
         let mut expected_auth_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
 

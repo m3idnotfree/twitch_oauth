@@ -5,7 +5,7 @@ use asknothingx2_util::{
     oauth::{AccessToken, ValidateUrl},
 };
 use reqwest::Method;
-use twitch_oauth_token::request::ValidateRequest;
+use twitch_oauth_token::ValidateRequest;
 use url::Url;
 
 #[tokio::test]

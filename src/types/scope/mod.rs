@@ -7,7 +7,7 @@ pub(crate) use scopes_mut::new;
 pub use scopes_mut::ScopesMut;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Scopes {
+pub enum Scope {
     /// View analytics data for the Twitch Extensions owned by the authenticated account.
     /// API
     /// Get Extension Analytics
@@ -163,7 +163,7 @@ pub enum Scopes {
     EmptyString,
 }
 
-impl Scopes {
+impl Scope {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::AnalyticsReadExtensions => "analytics:read:extensions",
@@ -250,7 +250,7 @@ impl Scopes {
     }
 }
 
-impl Display for Scopes {
+impl Display for Scope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AnalyticsReadExtensions => write!(f, "analytics:read:extensions"),
@@ -337,96 +337,181 @@ impl Display for Scopes {
     }
 }
 
-impl From<Scopes> for String {
-    fn from(value: Scopes) -> Self {
+impl From<Scope> for String {
+    fn from(value: Scope) -> Self {
         match value {
-            Scopes::AnalyticsReadExtensions => "analytics:read:extensions".to_string(),
-            Scopes::AnalyticsReadGames => "analytics:read:games".to_string(),
-            Scopes::BitsRead => "bits:read".to_string(),
-            Scopes::ChannelBot => "channel:bot".to_string(),
-            Scopes::ChannelManageAds => "channel:manage:ads".to_string(),
-            Scopes::ChannelReadAds => "channel:read:ads".to_string(),
-            Scopes::ChannelManageBroadcast => "channel:manage:broadcast".to_string(),
-            Scopes::ChannelReadCharity => "channel:read:charity".to_string(),
-            Scopes::ChannelEditCommercial => "channel:edit:commercial".to_string(),
-            Scopes::ChannelReadEditors => "channel:read:editors".to_string(),
-            Scopes::ChannelManageExtensions => "channel:manage:extensions".to_string(),
-            Scopes::ChannelReadGoals => "channel:read:goals".to_string(),
-            Scopes::ChannelReadGuestStar => "channel:read:guest_star".to_string(),
-            Scopes::ChannelManageGuestStar => "channel:manage:guest_star".to_string(),
-            Scopes::ChannelReadHypeTrain => "channel:read:hype_train".to_string(),
-            Scopes::ChannelManageModerators => "channel:manage:moderators".to_string(),
-            Scopes::ChannelReadPolls => "channel:read:polls".to_string(),
-            Scopes::ChannelManagePolls => "channel:manage:polls".to_string(),
-            Scopes::ChannelReadPredictions => "channel:read:predictions".to_string(),
-            Scopes::ChannelManagePredictions => "channel:manage:predictions".to_string(),
-            Scopes::ChannelManageRaids => "channel:manage:raids".to_string(),
-            Scopes::ChannelReadRedemptions => "channel:read:redemptions".to_string(),
-            Scopes::ChannelManageRedemptions => "channel:manage:redemptions".to_string(),
-            Scopes::ChannelManageSchedule => "channel:manage:schedule".to_string(),
-            Scopes::ChannelReadStreamKey => "channel:read:stream_key".to_string(),
-            Scopes::ChannelReadSubscriptions => "channel:read:subscriptions".to_string(),
-            Scopes::ChannelManageVideos => "channel:manage:videos".to_string(),
-            Scopes::ChannelReadVips => "channel:read:vips".to_string(),
-            Scopes::ChannelManageVips => "channel:manage:vips".to_string(),
-            Scopes::ClipsEdit => "clips:edit".to_string(),
-            Scopes::ModerationRead => "moderation:read".to_string(),
-            Scopes::ModeratorManageAnnouncements => "moderator:manage:announcements".to_string(),
-            Scopes::ModeratorManageAutomod => "moderator:manage:automod".to_string(),
-            Scopes::ModeratorReadAutomodSettings => "moderator:read:automod_settings".to_string(),
-            Scopes::ModeratorManageAutomodSettings => {
+            Scope::AnalyticsReadExtensions => "analytics:read:extensions".to_string(),
+            Scope::AnalyticsReadGames => "analytics:read:games".to_string(),
+            Scope::BitsRead => "bits:read".to_string(),
+            Scope::ChannelBot => "channel:bot".to_string(),
+            Scope::ChannelManageAds => "channel:manage:ads".to_string(),
+            Scope::ChannelReadAds => "channel:read:ads".to_string(),
+            Scope::ChannelManageBroadcast => "channel:manage:broadcast".to_string(),
+            Scope::ChannelReadCharity => "channel:read:charity".to_string(),
+            Scope::ChannelEditCommercial => "channel:edit:commercial".to_string(),
+            Scope::ChannelReadEditors => "channel:read:editors".to_string(),
+            Scope::ChannelManageExtensions => "channel:manage:extensions".to_string(),
+            Scope::ChannelReadGoals => "channel:read:goals".to_string(),
+            Scope::ChannelReadGuestStar => "channel:read:guest_star".to_string(),
+            Scope::ChannelManageGuestStar => "channel:manage:guest_star".to_string(),
+            Scope::ChannelReadHypeTrain => "channel:read:hype_train".to_string(),
+            Scope::ChannelManageModerators => "channel:manage:moderators".to_string(),
+            Scope::ChannelReadPolls => "channel:read:polls".to_string(),
+            Scope::ChannelManagePolls => "channel:manage:polls".to_string(),
+            Scope::ChannelReadPredictions => "channel:read:predictions".to_string(),
+            Scope::ChannelManagePredictions => "channel:manage:predictions".to_string(),
+            Scope::ChannelManageRaids => "channel:manage:raids".to_string(),
+            Scope::ChannelReadRedemptions => "channel:read:redemptions".to_string(),
+            Scope::ChannelManageRedemptions => "channel:manage:redemptions".to_string(),
+            Scope::ChannelManageSchedule => "channel:manage:schedule".to_string(),
+            Scope::ChannelReadStreamKey => "channel:read:stream_key".to_string(),
+            Scope::ChannelReadSubscriptions => "channel:read:subscriptions".to_string(),
+            Scope::ChannelManageVideos => "channel:manage:videos".to_string(),
+            Scope::ChannelReadVips => "channel:read:vips".to_string(),
+            Scope::ChannelManageVips => "channel:manage:vips".to_string(),
+            Scope::ClipsEdit => "clips:edit".to_string(),
+            Scope::ModerationRead => "moderation:read".to_string(),
+            Scope::ModeratorManageAnnouncements => "moderator:manage:announcements".to_string(),
+            Scope::ModeratorManageAutomod => "moderator:manage:automod".to_string(),
+            Scope::ModeratorReadAutomodSettings => "moderator:read:automod_settings".to_string(),
+            Scope::ModeratorManageAutomodSettings => {
                 "moderator:manage:automod_settings".to_string()
             }
-            Scopes::ModeratorReadBannedUsers => "moderator:read:banned_users".to_string(),
-            Scopes::ModeratorManageBannedUsers => "moderator:manage:banned_users".to_string(),
-            Scopes::ModeratorReadBlockedTerms => "moderator:read:blocked_terms".to_string(),
-            Scopes::ModeratorReadChatMessages => "moderator:read:chat_messages".to_string(),
-            Scopes::ModeratorManageBlockedTerms => "moderator:manage:blocked_terms".to_string(),
-            Scopes::ModeratorManageChatMessages => "moderator:manage:chat_messages".to_string(),
-            Scopes::ModeratorReadChatSettings => "moderator:read:chat_settings".to_string(),
-            Scopes::ModeratorManageChatSettings => "moderator:manage:chat_settings".to_string(),
-            Scopes::ModeratorReadChatters => "moderator:read:chatters".to_string(),
-            Scopes::ModeratorReadFollowers => "moderator:read:followers".to_string(),
-            Scopes::ModeratorReadGuestStar => "moderator:read:guest_star".to_string(),
-            Scopes::ModeratorManageGuestStar => "moderator:manage:guest_star".to_string(),
-            Scopes::ModeratorReadModerators => "moderator:read:moderators	".to_string(),
-            Scopes::ModeratorReadShieldMode => "moderator:read:shield_mode".to_string(),
-            Scopes::ModeratorManageShieldMode => "moderator:manage:shield_mode".to_string(),
-            Scopes::ModeratorReadShoutouts => "moderator:read:shoutouts".to_string(),
-            Scopes::ModeratorManageShoutouts => "moderator:manage:shoutouts".to_string(),
-            Scopes::ModeratorReadSuspiciousUsers => "moderator:read:suspicious_users".to_string(),
-            Scopes::ModeratorReadUnbanRequests => "moderator:read:unban_requests".to_string(),
-            Scopes::ModeratorManageUnbanRequests => "moderator:manage:unban_requests".to_string(),
-            Scopes::ModeratorReadVips => "moderator:read:vips".to_string(),
-            Scopes::ModeratorReadWarnings => "moderator:read:warnings".to_string(),
-            Scopes::ModeratorManageWarnings => "moderator:manage:warnings".to_string(),
-            Scopes::UserBot => "user:bot".to_string(),
-            Scopes::UserEdit => "user:edit".to_string(),
-            Scopes::UserEditBroadcast => "user:edit:broadcast".to_string(),
-            Scopes::UserReadBlockedUsers => "user:read:blocked_users".to_string(),
-            Scopes::UserManageBlockedUsers => "user:manage:blocked_users".to_string(),
-            Scopes::UserReadBroadcast => "user:read:broadcast".to_string(),
-            Scopes::UserReadChat => "user:read:chat".to_string(),
-            Scopes::UserManageChatColor => "user:manage:chat_color".to_string(),
-            Scopes::UserReadEmail => "user:read:email".to_string(),
-            Scopes::UserReadEmotes => "user:read:emotes".to_string(),
-            Scopes::UserReadFollows => "user:read:follows".to_string(),
-            Scopes::UserReadModeratedChannels => "user:read:moderated_channels".to_string(),
-            Scopes::UserReadSubscriptions => "user:read:subscriptions".to_string(),
-            Scopes::UserReadWhispers => "user:read:whispers".to_string(),
-            Scopes::UserManageWhispers => "user:manage:whispers".to_string(),
-            Scopes::UserWriteChat => "user:write:chat".to_string(),
+            Scope::ModeratorReadBannedUsers => "moderator:read:banned_users".to_string(),
+            Scope::ModeratorManageBannedUsers => "moderator:manage:banned_users".to_string(),
+            Scope::ModeratorReadBlockedTerms => "moderator:read:blocked_terms".to_string(),
+            Scope::ModeratorReadChatMessages => "moderator:read:chat_messages".to_string(),
+            Scope::ModeratorManageBlockedTerms => "moderator:manage:blocked_terms".to_string(),
+            Scope::ModeratorManageChatMessages => "moderator:manage:chat_messages".to_string(),
+            Scope::ModeratorReadChatSettings => "moderator:read:chat_settings".to_string(),
+            Scope::ModeratorManageChatSettings => "moderator:manage:chat_settings".to_string(),
+            Scope::ModeratorReadChatters => "moderator:read:chatters".to_string(),
+            Scope::ModeratorReadFollowers => "moderator:read:followers".to_string(),
+            Scope::ModeratorReadGuestStar => "moderator:read:guest_star".to_string(),
+            Scope::ModeratorManageGuestStar => "moderator:manage:guest_star".to_string(),
+            Scope::ModeratorReadModerators => "moderator:read:moderators	".to_string(),
+            Scope::ModeratorReadShieldMode => "moderator:read:shield_mode".to_string(),
+            Scope::ModeratorManageShieldMode => "moderator:manage:shield_mode".to_string(),
+            Scope::ModeratorReadShoutouts => "moderator:read:shoutouts".to_string(),
+            Scope::ModeratorManageShoutouts => "moderator:manage:shoutouts".to_string(),
+            Scope::ModeratorReadSuspiciousUsers => "moderator:read:suspicious_users".to_string(),
+            Scope::ModeratorReadUnbanRequests => "moderator:read:unban_requests".to_string(),
+            Scope::ModeratorManageUnbanRequests => "moderator:manage:unban_requests".to_string(),
+            Scope::ModeratorReadVips => "moderator:read:vips".to_string(),
+            Scope::ModeratorReadWarnings => "moderator:read:warnings".to_string(),
+            Scope::ModeratorManageWarnings => "moderator:manage:warnings".to_string(),
+            Scope::UserBot => "user:bot".to_string(),
+            Scope::UserEdit => "user:edit".to_string(),
+            Scope::UserEditBroadcast => "user:edit:broadcast".to_string(),
+            Scope::UserReadBlockedUsers => "user:read:blocked_users".to_string(),
+            Scope::UserManageBlockedUsers => "user:manage:blocked_users".to_string(),
+            Scope::UserReadBroadcast => "user:read:broadcast".to_string(),
+            Scope::UserReadChat => "user:read:chat".to_string(),
+            Scope::UserManageChatColor => "user:manage:chat_color".to_string(),
+            Scope::UserReadEmail => "user:read:email".to_string(),
+            Scope::UserReadEmotes => "user:read:emotes".to_string(),
+            Scope::UserReadFollows => "user:read:follows".to_string(),
+            Scope::UserReadModeratedChannels => "user:read:moderated_channels".to_string(),
+            Scope::UserReadSubscriptions => "user:read:subscriptions".to_string(),
+            Scope::UserReadWhispers => "user:read:whispers".to_string(),
+            Scope::UserManageWhispers => "user:manage:whispers".to_string(),
+            Scope::UserWriteChat => "user:write:chat".to_string(),
 
-            Scopes::WhispersRead => "whispers:read".to_string(),
+            Scope::WhispersRead => "whispers:read".to_string(),
 
-            Scopes::ChatEdit => "chat:edit".to_string(),
-            Scopes::ChatRead => "chat:read".to_string(),
-            Scopes::EmptyString => "".to_string(),
+            Scope::ChatEdit => "chat:edit".to_string(),
+            Scope::ChatRead => "chat:read".to_string(),
+            Scope::EmptyString => "".to_string(),
         }
     }
 }
 
-// impl Into<String> for Scopes {
+impl From<&str> for Scope {
+    fn from(s: &str) -> Self {
+        match s {
+            "analytics:read:extensions" => Self::AnalyticsReadExtensions,
+            "analytics:read:games" => Self::AnalyticsReadGames,
+            "bits:read" => Self::BitsRead,
+            "channel:bot" => Self::ChannelBot,
+            "channel:manage:ads" => Self::ChannelManageAds,
+            "channel:read:ads" => Self::ChannelReadAds,
+            "channel:manage:broadcast" => Self::ChannelManageBroadcast,
+            "channel:read:charity" => Self::ChannelReadCharity,
+            "channel:edit:commercial" => Self::ChannelEditCommercial,
+            "channel:read:editors" => Self::ChannelReadEditors,
+            "channel:manage:extensions" => Self::ChannelManageExtensions,
+            "channel:read:goals" => Self::ChannelReadGoals,
+            "channel:read:guest_star" => Self::ChannelReadGuestStar,
+            "channel:manage:guest_star" => Self::ChannelManageGuestStar,
+            "channel:read:hype_train" => Self::ChannelReadHypeTrain,
+            "channel:manage:moderators" => Self::ChannelManageModerators,
+            "channel:read:polls" => Self::ChannelReadPolls,
+            "channel:manage:polls" => Self::ChannelManagePolls,
+            "channel:read:predictions" => Self::ChannelReadPredictions,
+            "channel:manage:predictions" => Self::ChannelManagePredictions,
+            "channel:manage:raids" => Self::ChannelManageRaids,
+            "channel:read:redemptions" => Self::ChannelReadRedemptions,
+            "channel:manage:redemptions" => Self::ChannelManageRedemptions,
+            "channel:manage:schedule" => Self::ChannelManageSchedule,
+            "channel:read:stream_key" => Self::ChannelReadStreamKey,
+            "channel:read:subscriptions" => Self::ChannelReadSubscriptions,
+            "channel:manage:videos" => Self::ChannelManageVideos,
+            "channel:read:vips" => Self::ChannelReadVips,
+            "channel:manage:vips" => Self::ChannelManageVips,
+            "clips:edit" => Self::ClipsEdit,
+            "moderation:read" => Self::ModerationRead,
+            "moderator:manage:announcements" => Self::ModeratorManageAnnouncements,
+            "moderator:manage:automod" => Self::ModeratorManageAutomod,
+            "moderator:read:automod_settings" => Self::ModeratorReadAutomodSettings,
+            "moderator:manage:automod_settings" => Self::ModeratorManageAutomodSettings,
+            "moderator:read:banned_users" => Self::ModeratorReadBannedUsers,
+            "moderator:manage:banned_users" => Self::ModeratorManageBannedUsers,
+            "moderator:read:blocked_terms" => Self::ModeratorReadBlockedTerms,
+            "moderator:read:chat_messages" => Self::ModeratorReadChatMessages,
+            "moderator:manage:blocked_terms" => Self::ModeratorManageBlockedTerms,
+            "moderator:manage:chat_messages" => Self::ModeratorManageChatMessages,
+            "moderator:read:chat_settings" => Self::ModeratorReadChatSettings,
+            "moderator:manage:chat_settings" => Self::ModeratorManageChatSettings,
+            "moderator:read:chatters" => Self::ModeratorReadChatters,
+            "moderator:read:followers" => Self::ModeratorReadFollowers,
+            "moderator:read:guest_star" => Self::ModeratorReadGuestStar,
+            "moderator:manage:guest_star" => Self::ModeratorManageGuestStar,
+            "moderator:read:moderators" => Self::ModeratorReadModerators,
+            "moderator:read:shield_mode" => Self::ModeratorReadShieldMode,
+            "moderator:manage:shield_mode" => Self::ModeratorManageShieldMode,
+            "moderator:read:shoutouts" => Self::ModeratorReadShoutouts,
+            "moderator:manage:shoutouts" => Self::ModeratorManageShoutouts,
+            "moderator:read:suspicious_users" => Self::ModeratorReadSuspiciousUsers,
+            "moderator:read:unban_requests" => Self::ModeratorReadUnbanRequests,
+            "moderator:manage:unban_requests" => Self::ModeratorManageUnbanRequests,
+            "moderator:read:vips" => Self::ModeratorReadVips,
+            "moderator:read:warnings" => Self::ModeratorReadWarnings,
+            "moderator:manage:warnings" => Self::ModeratorManageWarnings,
+            "user:bot" => Self::UserBot,
+            "user:edit" => Self::UserEdit,
+            "user:edit:broadcast" => Self::UserEditBroadcast,
+            "user:read:blocked_users" => Self::UserReadBlockedUsers,
+            "user:manage:blocked_users" => Self::UserManageBlockedUsers,
+            "user:read:broadcast" => Self::UserReadBroadcast,
+            "user:read:chat" => Self::UserReadChat,
+            "user:manage:chat_color" => Self::UserManageChatColor,
+            "user:read:email" => Self::UserReadEmail,
+            "user:read:emotes" => Self::UserReadEmotes,
+            "user:read:follows" => Self::UserReadFollows,
+            "user:read:moderated_channels" => Self::UserReadModeratedChannels,
+            "user:read:subscriptions" => Self::UserReadSubscriptions,
+            "user:read:whispers" => Self::UserReadWhispers,
+            "user:manage:whispers" => Self::UserManageWhispers,
+            "user:write:chat" => Self::UserWriteChat,
+            "whispers:read" => Self::WhispersRead,
+            "chat:edit" => Self::ChatEdit,
+            "chat:read" => Self::ChatRead,
+            "" => Self::EmptyString,
+            _ => Self::EmptyString,
+        }
+    }
+}
+// impl Into<String> for Scope {
 //     fn into(self) -> String {
 //         match self {
 //             Self::AnalyticsReadExtensions => "analytics:read:extensions".to_string(),
@@ -508,11 +593,12 @@ impl From<Scopes> for String {
 //
 //             Self::ChatEdit => "chat:edit".to_string(),
 //             Self::ChatRead => "chat:read".to_string(),
+//             Self::EmptyString => "".to_string(),
 //         }
 //     }
 // }
 
-impl Serialize for Scopes {
+impl Serialize for Scope {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -521,7 +607,7 @@ impl Serialize for Scopes {
     }
 }
 
-impl<'de> Deserialize<'de> for Scopes {
+impl<'de> Deserialize<'de> for Scope {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,

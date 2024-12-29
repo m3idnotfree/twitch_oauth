@@ -5,7 +5,7 @@ use asknothingx2_util::{
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
 use reqwest::Method;
-use twitch_oauth_token::request::RevokeRequest;
+use twitch_oauth_token::RevokeRequest;
 use url::Url;
 
 #[tokio::test]

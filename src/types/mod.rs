@@ -3,11 +3,11 @@ use std::{collections::HashSet, fmt::Debug};
 use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
 use serde::{Deserialize, Serialize};
 
-mod scopes;
-pub use scopes::{Scopes, ScopesMut};
+mod scope;
+pub use scope::{Scope, ScopesMut};
 
-pub fn scopes_mut(scopes: &mut HashSet<Scopes>) -> ScopesMut<'_> {
-    scopes::new(scopes)
+pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
+    scope::new(scopes)
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,7 +16,7 @@ pub struct Token {
     pub expires_in: u64,
     pub token_type: String,
     pub refresh_token: RefreshToken,
-    pub scope: Vec<Scopes>,
+    pub scope: Vec<Scope>,
 }
 
 impl Token {
@@ -28,7 +28,7 @@ impl Token {
             return false;
         }
 
-        *self.scope.first().unwrap() == Scopes::EmptyString
+        *self.scope.first().unwrap() == Scope::EmptyString
     }
 }
 
@@ -36,7 +36,7 @@ impl Token {
 pub struct ValidateToken {
     pub client_id: String,
     pub login: String,
-    pub scopes: Vec<Scopes>,
+    pub scopes: Vec<Scope>,
     pub user_id: String,
     pub expires_in: u64,
 }
