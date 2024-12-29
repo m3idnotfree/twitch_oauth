@@ -11,9 +11,7 @@ use reqwest::StatusCode;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{
-    types::{
-        ClientCredentials, CodeState, GrantType, ResponseType, ServerStatus, Token, ValidateToken,
-    },
+    types::{ClientCredentials, GrantType, ResponseType, Token, ValidateToken},
     AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest, Result,
     RevokeRequest, ValidateRequest,
 };
@@ -83,6 +81,7 @@ impl TwitchOauth {
         ValidateUrl::new(format!("{BASE_URL}/{VALIDATE}")).unwrap()
     }
 
+    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
     pub fn authorize_url(&mut self) -> (AuthrozationRequest, CsrfToken) {
         let csrf_token = CsrfToken::new_random();
 
@@ -97,6 +96,7 @@ impl TwitchOauth {
         (auth_request, csrf_token)
     }
 
+    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
@@ -117,15 +117,19 @@ impl TwitchOauth {
         ))
     }
 
+    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
+    #[cfg(feature = "oneshot-server")]
     pub async fn exchange_code(
         &mut self,
-        code_state: CodeState,
+        code_state: crate::oneshot_server::CodeState,
         csrf_token: CsrfToken,
     ) -> Result<TokenResponse<Token>> {
         match code_state.state {
-            ServerStatus::Timeout => Err(Error::TimeoutError("".to_string())),
-            ServerStatus::Shutdown => Err(Error::GraceFulShutdown),
-            ServerStatus::Recive => {
+            crate::oneshot_server::ServerStatus::Timeout => {
+                Err(Error::TimeoutError("".to_string()))
+            }
+            crate::oneshot_server::ServerStatus::Shutdown => Err(Error::GraceFulShutdown),
+            crate::oneshot_server::ServerStatus::Recive => {
                 let received_csrf = code_state.csrf_token.ok_or(Error::ResponseCsrfTokenError)?;
 
                 if received_csrf.secret() != csrf_token.secret() {
@@ -137,7 +141,7 @@ impl TwitchOauth {
             }
         }
     }
-
+    /// https://dev.twitch.tv/docs/authentication/refresh-tokens/
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
@@ -156,6 +160,7 @@ impl TwitchOauth {
             response.text().await?,
         ))
     }
+    /// https://dev.twitch.tv/docs/authentication/validate-tokens/
     pub async fn validate_token(
         &self,
         access_token: AccessToken,
@@ -171,7 +176,7 @@ impl TwitchOauth {
             response.text().await?,
         ))
     }
-
+    /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
     pub async fn revoke_token(&self, access_token: AccessToken) -> Result<()> {
         api_request(RevokeRequest::new(
             access_token,
@@ -182,6 +187,7 @@ impl TwitchOauth {
         Ok(())
     }
 
+    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
     pub async fn client_credentials(&self) -> Result<TokenResponse<ClientCredentials>> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),
@@ -212,7 +218,7 @@ where
     T: DeserializeOwned,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("OauthResponse")
+        f.debug_struct("TokenResponse")
             .field("status_code", &self.status_code)
             .field("body", &self.body)
             .finish()
