@@ -1,47 +1,47 @@
+//! # Usage
 //! ```toml
-//! twitch_oauth_token = { version = "1.0.8", features = ["oauth", "oneshot-server"] }
+//! twitch_oauth_token = { version = "1.1.0", features = ["oneshot-server"] }
 //! ```
-//!
 //!```ignore
 //! use std::time::Duration;
 //!
-//! use twitch_oauth_token::{oneshot_server, Scope, ServerStatus, TwitchOauth};
+//! use twitch_oauth_token::{oneshot_server, types::Scope, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), twitch_oauth_token::Error> {
-//!     let mut oauth = TwitchOauth::new(
-//!         "client_id",
-//!         "client_secret"
-//!     );
+//!   let mut oauth = TwitchOauth::new("client_id", "client_secret");
 //!
-//!     let client_credentials = oauth.client_credentials().await?.json()?;
+//!     let client_credentials = oauth.client_credentials().await?.parse_token()?;
 //!     println!("client credentials: {client_credentials:#?}");
 //!
 //!     let (mut auth_request, csrf_token) = oauth.authorize_url();
-//!     auth_request.scopes_mut().push(Scopes::ChatRead);
+//!     auth_request.scopes_mut().push(Scope::ChatRead);
 //!
 //!     println!("{}", auth_request.url());
 //!     let timeout = 60;
 //!
-//!     let code_state = oauth_oneshot_server(
+//!     let code_state = oneshot_server(
 //!         oauth.redirect_url.url().clone(),
 //!         Duration::from_secs(timeout),
 //!     )
 //!     .await?;
 //!
-//!     let token = oauth.exchange_code(code_state, csrf_token).await?.json()?;
+//!     let token = oauth
+//!         .exchange_code(code_state, csrf_token)
+//!         .await?
+//!         .parse_token()?;
 //!     println!("token: {:#?}", token);
 //!
 //!     let validate_token = oauth
 //!         .validate_token(token.access_token.clone())
 //!         .await?
-//!         .json()?;
+//!         .parse_token()?;
 //!     println!("validate token: {validate_token:#?}");
 //!
 //!     let refresh_token = oauth
 //!         .exchange_refresh_token(token.refresh_token)
 //!         .await?
-//!         .json()?;
+//!         .parse_token()?;
 //!     println!("refresh token: {refresh_token:#?}");
 //!
 //!     oauth.revoke_token(token.access_token).await?;
@@ -49,12 +49,12 @@
 //!     Ok(())
 //! }
 //! ```
+//!
 //! # Useing the Twitch CLI Mock Server
 //! ```toml
 //! twitch_oauth_token = { version = "1", features = ["oauth", "test"] }
-//! asknothingx2-util = { version = "0.0.11", features = ["api"] }
+//! asknothingx2-util = { version = "0.0.12", features = ["api"] }
 //! ```
-//!
 //!```ignore
 //! use asknothingx2_util::api::api_request;
 //! use twitch_oauth_token::{
@@ -68,10 +68,11 @@
 //!     // Does not contain a user_id
 //!     // When first run twitch mock-api generate
 //!     // copy user_id
+//!     https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token
 //!     let users = get_users_info(None).await?;
 //!     let user = users.data.first().unwrap();
 //!
-//!    let mut client = TwitchOauth::new(user.ID.as_str(), user.Secret.as_str());
+//!    let mut client = TwitchOauth::new(user.ID.as_str(), user.Secret.secret().as_str());
 //!    client.with_url("http://localhost:8080/auth/authorize");
 //!
 //!     // Getting a user access token
@@ -84,7 +85,18 @@
 //!
 //!     Ok(())
 //! }
-//!```
+//! ```
+//!
+//! # Only Types
+//! ```toml
+//! twitch_oauth_token = { version = "1.1.0", default-features = false, features = ["types"] }
+//! ```
+//! - Token
+//! - ValidateToken: https://dev.twitch.tv/docs/authentication/validate-tokens
+//! - ClientCredentials: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
+//! - Scope: https://dev.twitch.tv/docs/authentication/scopes
+//! - ResponseType
+//! - GrantType
 
 #[cfg(feature = "oauth")]
 mod oauth;
