@@ -107,7 +107,7 @@ mod oneshot_server;
 pub use oneshot_server::oneshot_server;
 
 #[cfg(feature = "test")]
-pub mod test_help;
+pub mod test_url;
 
 #[cfg(feature = "types")]
 pub mod types;

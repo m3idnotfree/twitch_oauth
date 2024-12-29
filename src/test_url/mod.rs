@@ -3,8 +3,9 @@ use std::collections::HashSet;
 use crate::{types::GrantType, TwitchOauth};
 
 mod get_users_info;
-pub use get_users_info::{get_users_info, User, Users};
 mod user_access_token;
+
+pub use get_users_info::{get_users_info, User, Users};
 pub use user_access_token::TestAccessToken;
 
 pub trait TwitchTest {
@@ -51,7 +52,7 @@ impl TwitchTest for TwitchOauth {
             self.client_id.clone(),
             self.client_secret.clone(),
             GrantType::ClientCredentials,
-            "".into(),
+            "",
             HashSet::new(),
             self.get_auth_url(),
         )

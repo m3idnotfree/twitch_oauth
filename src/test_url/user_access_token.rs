@@ -18,11 +18,11 @@ pub struct TestAccessToken {
 }
 
 impl TestAccessToken {
-    pub fn new(
+    pub fn new<T: Into<String>>(
         client_id: ClientId,
         client_secret: ClientSecret,
         grant_type: GrantType,
-        user_id: String,
+        user_id: T,
         scopes: HashSet<Scope>,
         auth_url: AuthUrl,
     ) -> Self {
@@ -30,7 +30,7 @@ impl TestAccessToken {
             client_id,
             client_secret,
             grant_type,
-            user_id,
+            user_id: user_id.into(),
             scopes,
             auth_url,
         }
@@ -39,16 +39,18 @@ impl TestAccessToken {
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
         scopes_mut(&mut self.scopes)
     }
-
-    pub fn set_user_id(mut self, user_id: &str) -> Self {
-        self.user_id = user_id.to_string();
-        self
-    }
 }
 
 impl APIRequest for TestAccessToken {
     fn url(&self) -> Url {
-        let mut auth_url = self.auth_url.url().clone();
+        let mut url = self.auth_url.url().clone();
+
+        let mut params = vec![
+            ("client_id", self.client_id.as_str()),
+            ("client_secret", self.client_secret.secret()),
+            ("grant_type", self.grant_type.as_str()),
+            ("user_id", self.user_id.as_str()),
+        ];
 
         let scopes = self
             .scopes
@@ -58,26 +60,14 @@ impl APIRequest for TestAccessToken {
             .collect::<Vec<String>>()
             .join(" ");
 
-        let mut params = vec![
-            ("client_id", self.client_id.as_str()),
-            ("client_secret", self.client_secret.secret()),
-            ("grant_type", self.grant_type.as_str()),
-            // ("user_id", self.user_id.as_ref()),
-        ];
-
-        if !self.user_id.is_empty() {
-            params.push(("user_id", self.user_id.as_ref()));
-        }
-
         if !scopes.is_empty() {
             params.push(("scope", &scopes));
         }
 
-        auth_url.query_pairs_mut().extend_pairs(params);
+        url.query_pairs_mut().extend_pairs(params);
 
-        auth_url
+        url
     }
-
     fn method(&self) -> Method {
         Method::POST
     }
