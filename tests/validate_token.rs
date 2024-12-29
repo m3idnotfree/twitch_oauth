@@ -1,5 +1,3 @@
-mod server;
-
 use asknothingx2_util::{
     api::{api_request, APIRequest, HeaderBuilder, StatusCode},
     oauth::{AccessToken, ValidateUrl},
@@ -7,6 +5,8 @@ use asknothingx2_util::{
 use reqwest::Method;
 use twitch_oauth_token::ValidateRequest;
 use url::Url;
+
+mod server;
 
 #[tokio::test]
 async fn with_server() {

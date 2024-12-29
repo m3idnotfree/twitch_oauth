@@ -7,6 +7,7 @@ use twitch_oauth_token::{types::GrantType, RefreshRequest};
 use url::Url;
 
 mod server;
+
 #[tokio::test]
 async fn with_server() {
     let mock_uri = server::refresh().await;
