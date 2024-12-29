@@ -104,6 +104,7 @@ pub use error::Error;
 #[cfg(any(feature = "oauth", feature = "oneshot-server"))]
 pub type Result<R> = std::result::Result<R, crate::Error>;
 
+#[cfg(feature = "oneshot-server")]
 mod oauth_oneshot_server;
 #[cfg(feature = "oneshot-server")]
 pub use oauth_oneshot_server::oauth_oneshot_server;
