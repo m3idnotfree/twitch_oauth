@@ -8,7 +8,19 @@ use tokio::{
 };
 use url::Url;
 
-use crate::types::{CodeState, ServerStatus};
+#[derive(Debug)]
+pub struct CodeState {
+    pub state: ServerStatus,
+    pub code: Option<AuthorizationCode>,
+    pub csrf_token: Option<CsrfToken>,
+}
+
+#[derive(Debug)]
+pub enum ServerStatus {
+    Recive,
+    Shutdown,
+    Timeout,
+}
 
 /// only support localhost
 pub async fn oneshot_server(url: Url, duration: Duration) -> crate::Result<CodeState> {

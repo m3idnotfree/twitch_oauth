@@ -95,17 +95,3 @@ impl GrantType {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct CodeState {
-    pub state: ServerStatus,
-    pub code: Option<AuthorizationCode>,
-    pub csrf_token: Option<CsrfToken>,
-}
-
-#[derive(Debug)]
-pub enum ServerStatus {
-    Recive,
-    Shutdown,
-    Timeout,
-}
