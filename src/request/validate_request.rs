@@ -4,6 +4,7 @@ use asknothingx2_util::{
 };
 use url::Url;
 
+/// https://dev.twitch.tv/docs/authentication/validate-tokens/
 #[derive(Debug)]
 pub struct ValidateRequest {
     access_token: AccessToken,
@@ -20,16 +21,15 @@ impl ValidateRequest {
 }
 
 impl APIRequest for ValidateRequest {
+    fn url(&self) -> Url {
+        self.validate_url.url().clone()
+    }
+    fn method(&self) -> Method {
+        Method::GET
+    }
     fn headers(&self) -> HeaderMap {
         HeaderBuilder::new()
             .authorization("OAuth", self.access_token.secret())
             .build()
-    }
-
-    fn method(&self) -> Method {
-        Method::GET
-    }
-    fn url(&self) -> Url {
-        self.validate_url.url().clone()
     }
 }

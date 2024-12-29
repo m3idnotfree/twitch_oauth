@@ -1,7 +1,4 @@
-use std::fmt;
-
-use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
+use crate::oauth::TokenError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -17,8 +14,12 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
     #[error("Unsupported HTTP method: {0}")]
     MethodError(String),
-    #[error("OAuth server returned error: {0}")]
-    ResponseError(ErrorResponse),
+    #[error("OAuth token error - status {}: {}{}",
+        .0.status(),
+        .0.message(),
+        .0.error_details().map_or_else(String::new,|e| format!(" ({})", e))
+    )]
+    TokenError(TokenError),
     #[error("CSRF token validation failed")]
     CsrfTokenPartialEqError,
     #[error("OAuth response missing required CSRF token")]
@@ -35,18 +36,6 @@ pub enum Error {
     GraceFulShutdown,
     #[error("OAuth response missing required authorization code")]
     MissingAuthorizationCode,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(with = "http_serde::status_code")]
-    pub status: StatusCode,
-    pub message: String,
-    pub error: Option<String>,
-}
-
-impl fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self)
-    }
+    #[error("Failed to deserialize response: {0}")]
+    DeserializationError(String),
 }

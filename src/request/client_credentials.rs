@@ -6,6 +6,7 @@ use url::Url;
 
 use crate::types::GrantType;
 
+/// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
 #[derive(Debug)]
 pub struct ClientCredentialsRequest {
     client_id: ClientId,
@@ -31,6 +32,18 @@ impl ClientCredentialsRequest {
 }
 
 impl APIRequest for ClientCredentialsRequest {
+    fn url(&self) -> Url {
+        self.token_url.url().clone()
+    }
+    fn method(&self) -> Method {
+        Method::POST
+    }
+    fn headers(&self) -> HeaderMap {
+        HeaderBuilder::new()
+            .accept_json()
+            .content_type_formencoded()
+            .build()
+    }
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
@@ -39,19 +52,5 @@ impl APIRequest for ClientCredentialsRequest {
         ];
 
         Some(form_urlencoded_serialize(params))
-    }
-
-    fn headers(&self) -> HeaderMap {
-        HeaderBuilder::new()
-            .accept_json()
-            .content_type_formencoded()
-            .build()
-    }
-
-    fn method(&self) -> Method {
-        Method::POST
-    }
-    fn url(&self) -> Url {
-        self.token_url.url().clone()
     }
 }

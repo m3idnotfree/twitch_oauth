@@ -4,6 +4,7 @@ use asknothingx2_util::{
 };
 use url::Url;
 
+/// https://dev.twitch.tv/docs/authentication/revoke-tokens/
 #[derive(Debug)]
 pub struct RevokeRequest {
     access_token: AccessToken,
@@ -22,6 +23,18 @@ impl RevokeRequest {
 }
 
 impl APIRequest for RevokeRequest {
+    fn url(&self) -> Url {
+        self.revoke_url.url().clone()
+    }
+    fn method(&self) -> Method {
+        Method::POST
+    }
+    fn headers(&self) -> HeaderMap {
+        HeaderBuilder::new()
+            .accept_json()
+            .content_type_formencoded()
+            .build()
+    }
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
             ("client_id", self.client_id.as_str()),
@@ -29,20 +42,5 @@ impl APIRequest for RevokeRequest {
         ];
 
         Some(form_urlencoded_serialize(params))
-    }
-
-    fn headers(&self) -> HeaderMap {
-        HeaderBuilder::new()
-            .accept_json()
-            .content_type_formencoded()
-            .build()
-    }
-
-    fn method(&self) -> Method {
-        Method::POST
-    }
-
-    fn url(&self) -> Url {
-        self.revoke_url.url().clone()
     }
 }

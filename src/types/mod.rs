@@ -1,6 +1,6 @@
-use std::{collections::HashSet, fmt::Debug};
+use std::{collections::HashSet, fmt};
 
-use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, RefreshToken};
+use asknothingx2_util::oauth::{AccessToken, RefreshToken};
 use serde::{Deserialize, Serialize};
 
 mod scope;
@@ -33,6 +33,7 @@ impl Token {
     }
 }
 
+/// https://dev.twitch.tv/docs/authentication/validate-tokens/
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateToken {
     pub client_id: String,
@@ -42,6 +43,7 @@ pub struct ValidateToken {
     pub expires_in: u64,
 }
 
+/// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientCredentials {
     pub access_token: AccessToken,
@@ -73,7 +75,7 @@ pub enum GrantType {
     UserToken,
 }
 
-impl std::fmt::Display for GrantType {
+impl fmt::Display for GrantType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ClientCredentials => write!(f, "client_credentials"),

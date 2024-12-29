@@ -89,9 +89,13 @@
 #[cfg(feature = "oauth")]
 mod oauth;
 #[cfg(feature = "oauth")]
-pub use oauth::{
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, OauthResponse, RefreshRequest,
-    RevokeRequest, TwitchOauth, ValidateRequest,
+pub use oauth::{TokenResponse, TwitchOauth};
+#[cfg(feature = "oauth")]
+mod request;
+#[cfg(feature = "oauth")]
+pub use request::{
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
+    ValidateRequest,
 };
 
 #[cfg(any(feature = "oauth", feature = "oneshot-server"))]
