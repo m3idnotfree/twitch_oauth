@@ -104,7 +104,7 @@ pub type Result<R> = std::result::Result<R, crate::Error>;
 #[cfg(feature = "oneshot-server")]
 mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
-pub use oneshot_server::oneshot_server;
+pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
 
 #[cfg(feature = "test")]
 pub mod test_url;
