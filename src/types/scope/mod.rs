@@ -2,9 +2,8 @@ use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Display;
 
 mod scopes_mut;
-// pub use scopes_mut::{new, ScopesMut};
 pub(crate) use scopes_mut::new;
-pub use scopes_mut::ScopesMut;
+pub use scopes_mut::{APIScopes, IRCScopes, ScopesMut};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scope {
@@ -83,83 +82,584 @@ pub enum Scope {
     /// Charity Campaign Progress
     /// Charity Campaign Stop
     ChannelReadCharity,
+    /// Run commercials on a channel.
+    ///
+    /// API
+    /// Start Commercial
     ChannelEditCommercial,
+    /// View a list of users with the editor role for a channel.
+    ///
+    /// API
+    /// Get Channel Editors
     ChannelReadEditors,
+    /// Manage a channel’s Extension configuration, including activating Extensions.
+    ///
+    /// API
+    /// Get User Active Extensions
+    /// Update User Extensions
     ChannelManageExtensions,
+    /// View Creator Goals for a channel.
+    ///
+    /// API
+    /// Get Creator Goals
+    ///
+    /// EventSub
+    /// Goal Begin
+    /// Goal Progress
+    /// Goal End
     ChannelReadGoals,
+    /// Read Guest Star details for your channel.
+    ///
+    /// API
+    /// Get Channel Guest Star Settings
+    /// Get Guest Star Session
+    /// Get Guest Star Invites
+    ///
+    /// EventSub
+    /// Channel Guest Star Session Begin
+    /// Channel Guest Star Session End
+    /// Channel Guest Star Guest Update
+    /// Channel Guest Star Settings Update
     ChannelReadGuestStar,
+    /// Manage Guest Star for your channel.
+    ///
+    /// API
+    /// Update Channel Guest Star Settings
+    /// Create Guest Star Session
+    /// End Guest Star Session
+    /// Send Guest Star Invite
+    /// Delete Guest Star Invite
+    /// Assign Guest Star Slot
+    /// Update Guest Star Slot
+    /// Delete Guest Star Slot
+    /// Update Guest Star Slot Settings
+    ///
+    /// EventSub
+    /// Channel Guest Star Session Begin
+    /// Channel Guest Star Session End
+    /// Channel Guest Star Guest Update
+    /// Channel Guest Star Settings Update
     ChannelManageGuestStar,
+    /// View Hype Train information for a channel.
+    ///
+    /// API
+    /// Get Hype Train Events
+    ///
+    /// EventSub
+    /// Hype Train Begin
+    /// Hype Train Progress
+    /// Hype Train End
     ChannelReadHypeTrain,
+    /// Add or remove the moderator role from users in your channel.
+    ///
+    /// API
+    /// Add Channel Moderator
+    /// Remove Channel Moderator
+    /// Get Moderators
     ChannelManageModerators,
+    /// View a channel’s polls.
+    ///
+    /// API
+    /// Get Polls
+    ///
+    /// EventSub
+    /// Channel Poll Begin
+    /// Channel Poll Progress
+    /// Channel Poll End
     ChannelReadPolls,
+    /// Manage a channel’s polls.
+    ///
+    /// API
+    /// Get Polls
+    /// Create Poll
+    /// End Poll
+    ///
+    /// EventSub
+    /// Channel Poll Begin
+    /// Channel Poll Progress
+    /// Channel Poll End
     ChannelManagePolls,
+    /// View a channel’s Channel Points Predictions.
+    ///
+    /// API
+    /// Get Channel Points Predictions
+    ///
+    /// EventSub
+    /// Channel Prediction Begin
+    /// Channel Prediction Progress
+    /// Channel Prediction Lock
+    /// Channel Prediction End
     ChannelReadPredictions,
+    /// Manage of channel’s Channel Points Predictions
+    ///
+    /// API
+    /// Get Channel Points Predictions
+    /// Create Channel Points Prediction
+    /// End Channel Points Prediction
+    ///
+    /// EventSub
+    /// Channel Prediction Begin
+    /// Channel Prediction Progress
+    /// Channel Prediction Lock
+    /// Channel Prediction End
     ChannelManagePredictions,
+    /// Manage a channel raiding another channel.
+    ///
+    /// API
+    /// Start a raid
+    /// Cancel a raid
     ChannelManageRaids,
+    /// View Channel Points custom rewards and their redemptions on a channel.
+    ///
+    /// API
+    /// Get Custom Reward
+    /// Get Custom Reward Redemption
+    ///
+    /// EventSub
+    /// Channel Points Automatic Reward Redemption
+    /// Channel Points Custom Reward Add
+    /// Channel Points Custom Reward Update
+    /// Channel Points Custom Reward Remove
+    /// Channel Points Custom Reward Redemption Add
+    /// Channel Points Custom Reward Redemption Update
     ChannelReadRedemptions,
+    /// Manage Channel Points custom rewards and their redemptions on a channel.
+    ///
+    /// API
+    /// Get Custom Reward
+    /// Get Custom Reward Redemption
+    /// Create Custom Rewards
+    /// Delete Custom Reward
+    /// Update Custom Reward
+    /// Update Redemption Status
+    ///
+    /// EventSub
+    /// Channel Points Automatic Reward Redemption
+    /// Channel Points Custom Reward Add
+    /// Channel Points Custom Reward Update
+    /// Channel Points Custom Reward Remove
+    /// Channel Points Custom Reward Redemption Add
+    /// Channel Points Custom Reward Redemption Update
     ChannelManageRedemptions,
+    /// Manage a channel’s stream schedule.
+    ///
+    /// API
+    /// Update Channel Stream Schedule
+    /// Create Channel Stream Schedule Segment
+    /// Update Channel Stream Schedule Segment
+    /// Delete Channel Stream Schedule Segment
     ChannelManageSchedule,
+    /// View an authorized user’s stream key.
+    ///
+    /// API
+    /// Get Stream Key
     ChannelReadStreamKey,
+    /// View a list of all subscribers to a channel and check if a user is subscribed to a channel.
+    ///
+    /// API
+    /// Get Broadcaster Subscriptions
+    ///
+    /// EventSub
+    /// Channel Subscribe
+    /// Channel Subscription End
+    /// Channel Subscription Gift
+    /// Channel Subscription Message
     ChannelReadSubscriptions,
+    /// Manage a channel’s videos, including deleting videos.
+    ///
+    /// API
+    /// Delete Videos
     ChannelManageVideos,
+    /// Read the list of VIPs in your channel.
+    ///
+    /// API
+    /// Get VIPs
+    ///
+    /// EventSub
+    /// Channel VIP Add
+    /// Channel VIP Remove
     ChannelReadVips,
+    /// Add or remove the VIP role from users in your channel.
+    ///
+    /// API
+    /// Get VIPs
+    /// Add Channel VIP
+    /// Remove Channel VIP
+    ///
+    /// EventSub
+    /// Channel VIP Add
+    /// Channel VIP Remove
     ChannelManageVips,
+    /// Manage Clips for a channel.
+    ///
+    /// API
+    /// Create Clip
     ClipsEdit,
-    //
+    /// View a channel’s moderation data including Moderators, Bans, Timeouts, and Automod settings.
+    ///
+    /// API
+    /// Check AutoMod Status
+    /// Get Banned Users
+    /// Get Moderators
+    ///
+    /// EventSub
+    /// Channel Moderator Add
+    /// Channel Moderator Remove
     ModerationRead,
+    /// Send announcements in channels where you have the moderator role.
+    ///
+    /// API
+    /// Send Chat Announcement
     ModeratorManageAnnouncements,
+    /// Manage messages held for review by AutoMod in channels where you are a moderator.
+    ///
+    /// API
+    /// Manage Held AutoMod Messages
+    ///
+    /// EventSub
+    /// AutoMod Message Hold
+    /// AutoMod Message Update
+    /// AutoMod Terms Update
     ModeratorManageAutomod,
+    /// View a broadcaster’s AutoMod settings.
+    ///
+    /// API
+    /// Get AutoMod Settings
+    ///
+    /// EventSub
+    /// AutoMod Settings Update
     ModeratorReadAutomodSettings,
+    /// Manage a broadcaster’s AutoMod settings.
+    ///
+    /// API
+    /// Update AutoMod Settings
     ModeratorManageAutomodSettings,
+    /// Read the list of bans or unbans in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Moderate
+    /// Channel Moderate v2
     ModeratorReadBannedUsers,
+    /// Ban and unban users.
+    ///
+    /// API
+    /// Get Banned Users
+    /// Ban User
+    /// Unban User
+    ///
+    /// EventSub
+    /// Channel Moderate
+    /// Channel Moderate v2
     ModeratorManageBannedUsers,
+    /// View a broadcaster’s list of blocked terms.
+    ///
+    /// API
+    /// Get Blocked Terms
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorReadBlockedTerms,
+    /// Read deleted chat messages in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorReadChatMessages,
+    /// Manage a broadcaster’s list of blocked terms.
+    ///
+    /// API
+    /// Get Blocked Terms
+    /// Add Blocked Term
+    /// Remove Blocked Term
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorManageBlockedTerms,
+    /// Delete chat messages in channels where you have the moderator role
+    ///
+    /// API
+    /// Delete Chat Messages
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorManageChatMessages,
+    /// View a broadcaster’s chat room settings.
+    ///
+    /// API
+    /// Get Chat Settings
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorReadChatSettings,
+    /// Manage a broadcaster’s chat room settings.
+    ///
+    /// API
+    /// Update Chat Settings
+    ///
+    /// EventSub
+    /// Channel Moderate
     ModeratorManageChatSettings,
+    /// View the chatters in a broadcaster’s chat room.
+    ///
+    /// API
+    /// Get Chatters
     ModeratorReadChatters,
+    /// Read the followers of a broadcaster.
+    ///
+    /// API
+    /// Get Channel Followers
+    ///
+    /// EventSub
+    /// Channel Follow
     ModeratorReadFollowers,
+    /// Read Guest Star details for channels where you are a Guest Star moderator.
+    ///
+    /// API
+    /// Get Channel Guest Star Settings
+    /// Get Guest Star Session
+    /// Get Guest Star Invites
+    ///
+    /// EventSub
+    /// Channel Guest Star Session Begin
+    /// Channel Guest Star Session End
+    /// Channel Guest Star Guest Update
+    /// Channel Guest Star Settings Update
     ModeratorReadGuestStar,
+    /// Manage Guest Star for channels where you are a Guest Star moderator.
+    ///
+    /// API
+    /// Send Guest Star Invite
+    /// Delete Guest Star Invite
+    /// Assign Guest Star Slot
+    /// Update Guest Star Slot
+    /// Delete Guest Star Slot
+    /// Update Guest Star Slot Settings
+    ///
+    /// EventSub
+    /// Channel Guest Star Session Begin
+    /// Channel Guest Star Session End
+    /// Channel Guest Star Guest Update
+    /// Channel Guest Star Settings Update
     ModeratorManageGuestStar,
+    /// Read the list of moderators in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Moderate
+    /// Channel Moderate v2
     ModeratorReadModerators,
+    /// View a broadcaster’s Shield Mode status.
+    ///
+    /// API
+    /// Get Shield Mode Status
+    ///
+    /// EventSub
+    /// Shield Mode Begin
+    /// Shield Mode End
     ModeratorReadShieldMode,
+    /// Manage a broadcaster’s Shield Mode status.
+    ///
+    /// API
+    /// Update Shield Mode Status
+    ///
+    /// EventSub
+    /// Shield Mode Begin
+    /// Shield Mode End
     ModeratorManageShieldMode,
+    /// View a broadcaster’s shoutouts.
+    ///
+    /// EventSub
+    /// Shoutout Create
+    /// Shoutout Received
     ModeratorReadShoutouts,
+    /// Manage a broadcaster’s shoutouts.
+    ///
+    /// API
+    /// Send a Shoutout
+    ///
+    /// EventSub
+    /// Shoutout Create
+    /// Shoutout Received
     ModeratorManageShoutouts,
+    /// Read chat messages from suspicious users and see users flagged as suspicious in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Suspicious User Message
+    /// Channel Suspicious User Update
     ModeratorReadSuspiciousUsers,
+    /// View a broadcaster’s unban requests.
+    ///
+    /// API
+    /// Get Unban Requests
+    ///
+    /// EventSub
+    /// Channel Unban Request Create
+    /// Channel Unban Request Resolve
+    /// Channel Moderate
     ModeratorReadUnbanRequests,
+    /// Manage a broadcaster’s unban requests.
+    ///
+    /// API
+    /// Resolve Unban Requests
+    ///
+    /// EventSub
+    /// Channel Unban Request Create
+    /// Channel Unban Request Resolve
+    /// Channel Moderate
     ModeratorManageUnbanRequests,
+    /// Read the list of VIPs in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Moderate
+    /// Channel Moderate v2
     ModeratorReadVips,
+    /// Read warnings in channels where you have the moderator role.
+    ///
+    /// EventSub
+    /// Channel Moderate v2
+    /// Channel Warning Acknowledge
+    /// Channel Warning Send
     ModeratorReadWarnings,
+    /// Warn users in channels where you have the moderator role.
+    ///
+    /// API
+    /// Warn Chat User
+    ///
+    /// EventSub
+    /// Channel Moderate v2
+    /// Channel Warning Acknowledge
+    /// Channel Warning Send
     ModeratorManageWarnings,
-    //
+    /// Join a specified chat channel as your user and appear as a bot,
+    /// and perform chat-related actions as your user.
+    ///
+    /// API
+    /// Send Chat Message
+    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    ///
+    /// EventSub
+    /// Channel Chat Clear
+    /// Channel Chat Clear User Messages
+    /// Channel Chat Message
+    /// Channel Chat Message Delete
+    /// Channel Chat Notification
+    /// Channel Chat Settings Update
+    /// Channel Chat User Message Hold
+    /// Channel Chat User Message Update
     UserBot,
+    /// Manage a user object.
+    ///
+    /// API
+    /// Update User
     UserEdit,
+    /// View and edit a user’s broadcasting configuration, including Extension configurations.
+    ///
+    /// API
+    /// Get User Extensions
+    /// Get User Active Extensions
+    /// Update User Extensions
     UserEditBroadcast,
+    /// View the block list of a user.
+    ///
+    /// API
+    /// Get User Block List
+    /// https://dev.twitch.tv/docs/api/reference/#get-user-block-list
     UserReadBlockedUsers,
+    /// Manage the block list of a user.
+    ///
+    /// API
+    /// Block User
+    /// https://dev.twitch.tv/docs/api/reference/#block-user
+    /// Unblock User
+    /// https://dev.twitch.tv/docs/api/reference/#unblock-user
     UserManageBlockedUsers,
+    /// View a user’s broadcasting configuration, including Extension configurations.
+    ///
+    /// API
+    /// Get Stream Markers
+    /// Get User Extensions
+    /// Get User Active Extensions
     UserReadBroadcast,
+    /// Receive chatroom messages and informational notifications relating to a channel’s chatroom.
+    ///
+    /// EventSub
+    /// Channel Chat Clear
+    /// Channel Chat Clear User Messages
+    /// Channel Chat Message
+    /// Channel Chat Message Delete
+    /// Channel Chat Notification
+    /// Channel Chat Settings Update
+    /// Channel Chat User Message Hold
+    /// Channel Chat User Message Update
     UserReadChat,
+    /// Update the color used for the user’s name in chat.
+    ///
+    /// API
+    /// Update User Chat Color
     UserManageChatColor,
+    /// View a user’s email address.
+    ///
+    /// API
+    /// Get Users (optional)
+    /// Update User (optional)
+    ///
+    /// EventSub
+    /// User Update (optional)
     UserReadEmail,
+    /// View emotes available to a user
+    ///
+    /// API
+    /// Get User Emotes
+    /// https://dev.twitch.tv/docs/api/reference/#get-user-emotes
     UserReadEmotes,
+    /// View the list of channels a user follows.
+    ///
+    /// API
+    /// Get Followed Channels
+    /// Get Followed Streams
     UserReadFollows,
+    /// Read the list of channels you have moderator privileges in.
+    ///
+    /// API
+    /// Get Moderated Channels
     UserReadModeratedChannels,
+    /// View if an authorized user is subscribed to specific channels.
+    ///
+    /// API
+    /// Check User Subscription
     UserReadSubscriptions,
+    /// Receive whispers sent to your user.
+    ///
+    /// EventSub
+    /// Whisper Received
     UserReadWhispers,
+    /// Receive whispers sent to your user, and send whispers on your user’s behalf.
+    ///
+    /// API
+    /// Send Whisper
+    ///
+    /// EventSub
+    /// Whisper Received
     UserManageWhispers,
+    /// Send chat messages to a chatroom.
+    ///
+    /// API
+    /// Send Chat Message
+    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
     UserWriteChat,
 
+    /// Send chat messages to a chatroom using an IRC connection.
+    ///
+    /// https://dev.twitch.tv/docs/chat/irc
+    ChatEdit,
+    /// View chat messages sent in a chatroom using an IRC connection.
+    ///
+    /// https://dev.twitch.tv/docs/chat/irc
+    ChatRead,
     /// The following table lists the scopes used only by PubSub.
     /// There may be additional scopes needed for some PubSub topics, but those are not listed here.
     /// Receive whisper messages for your user using PubSub.
+    ///
+    /// https://dev.twitch.tv/docs/pubsub
     WhispersRead,
-    /// Send chat messages to a chatroom using an IRC connection.
-    ChatEdit,
-    /// View chat messages sent in a chatroom using an IRC connection.
-    ChatRead,
     EmptyString,
 }
 
@@ -511,92 +1011,6 @@ impl From<&str> for Scope {
         }
     }
 }
-// impl Into<String> for Scope {
-//     fn into(self) -> String {
-//         match self {
-//             Self::AnalyticsReadExtensions => "analytics:read:extensions".to_string(),
-//             Self::AnalyticsReadGames => "analytics:read:games".to_string(),
-//             Self::BitsRead => "bits:read".to_string(),
-//             Self::ChannelBot => "channel:bot".to_string(),
-//             Self::ChannelManageAds => "channel:manage:ads".to_string(),
-//             Self::ChannelReadAds => "channel:read:ads".to_string(),
-//             Self::ChannelManageBroadcast => "channel:manage:broadcast".to_string(),
-//             Self::ChannelReadCharity => "channel:read:charity".to_string(),
-//             Self::ChannelEditCommercial => "channel:edit:commercial".to_string(),
-//             Self::ChannelReadEditors => "channel:read:editors".to_string(),
-//             Self::ChannelManageExtensions => "channel:manage:extensions".to_string(),
-//             Self::ChannelReadGoals => "channel:read:goals".to_string(),
-//             Self::ChannelReadGuestStar => "channel:read:guest_star".to_string(),
-//             Self::ChannelManageGuestStar => "channel:manage:guest_star".to_string(),
-//             Self::ChannelReadHypeTrain => "channel:read:hype_train".to_string(),
-//             Self::ChannelManageModerators => "channel:manage:moderators".to_string(),
-//             Self::ChannelReadPolls => "channel:read:polls".to_string(),
-//             Self::ChannelManagePolls => "channel:manage:polls".to_string(),
-//             Self::ChannelReadPredictions => "channel:read:predictions".to_string(),
-//             Self::ChannelManagePredictions => "channel:manage:predictions".to_string(),
-//             Self::ChannelManageRaids => "channel:manage:raids".to_string(),
-//             Self::ChannelReadRedemptions => "channel:read:redemptions".to_string(),
-//             Self::ChannelManageRedemptions => "channel:manage:redemptions".to_string(),
-//             Self::ChannelManageSchedule => "channel:manage:schedule".to_string(),
-//             Self::ChannelReadStreamKey => "channel:read:stream_key".to_string(),
-//             Self::ChannelReadSubscriptions => "channel:read:subscriptions".to_string(),
-//             Self::ChannelManageVideos => "channel:manage:videos".to_string(),
-//             Self::ChannelReadVips => "channel:read:vips".to_string(),
-//             Self::ChannelManageVips => "channel:manage:vips".to_string(),
-//             Self::ClipsEdit => "clips:edit".to_string(),
-//             Self::ModerationRead => "moderation:read".to_string(),
-//             Self::ModeratorManageAnnouncements => "moderator:manage:announcements".to_string(),
-//             Self::ModeratorManageAutomod => "moderator:manage:automod".to_string(),
-//             Self::ModeratorReadAutomodSettings => "moderator:read:automod_settings".to_string(),
-//             Self::ModeratorManageAutomodSettings => "moderator:manage:automod_settings".to_string(),
-//             Self::ModeratorReadBannedUsers => "moderator:read:banned_users".to_string(),
-//             Self::ModeratorManageBannedUsers => "moderator:manage:banned_users".to_string(),
-//             Self::ModeratorReadBlockedTerms => "moderator:read:blocked_terms".to_string(),
-//             Self::ModeratorReadChatMessages => "moderator:read:chat_messages".to_string(),
-//             Self::ModeratorManageBlockedTerms => "moderator:manage:blocked_terms".to_string(),
-//             Self::ModeratorManageChatMessages => "moderator:manage:chat_messages".to_string(),
-//             Self::ModeratorReadChatSettings => "moderator:read:chat_settings".to_string(),
-//             Self::ModeratorManageChatSettings => "moderator:manage:chat_settings".to_string(),
-//             Self::ModeratorReadChatters => "moderator:read:chatters".to_string(),
-//             Self::ModeratorReadFollowers => "moderator:read:followers".to_string(),
-//             Self::ModeratorReadGuestStar => "moderator:read:guest_star".to_string(),
-//             Self::ModeratorManageGuestStar => "moderator:manage:guest_star".to_string(),
-//             Self::ModeratorReadModerators => "moderator:read:moderators	".to_string(),
-//             Self::ModeratorReadShieldMode => "moderator:read:shield_mode".to_string(),
-//             Self::ModeratorManageShieldMode => "moderator:manage:shield_mode".to_string(),
-//             Self::ModeratorReadShoutouts => "moderator:read:shoutouts".to_string(),
-//             Self::ModeratorManageShoutouts => "moderator:manage:shoutouts".to_string(),
-//             Self::ModeratorReadSuspiciousUsers => "moderator:read:suspicious_users".to_string(),
-//             Self::ModeratorReadUnbanRequests => "moderator:read:unban_requests".to_string(),
-//             Self::ModeratorManageUnbanRequests => "moderator:manage:unban_requests".to_string(),
-//             Self::ModeratorReadVips => "moderator:read:vips".to_string(),
-//             Self::ModeratorReadWarnings => "moderator:read:warnings".to_string(),
-//             Self::ModeratorManageWarnings => "moderator:manage:warnings".to_string(),
-//             Self::UserBot => "user:bot".to_string(),
-//             Self::UserEdit => "user:edit".to_string(),
-//             Self::UserEditBroadcast => "user:edit:broadcast".to_string(),
-//             Self::UserReadBlockedUsers => "user:read:blocked_users".to_string(),
-//             Self::UserManageBlockedUsers => "user:manage:blocked_users".to_string(),
-//             Self::UserReadBroadcast => "user:read:broadcast".to_string(),
-//             Self::UserReadChat => "user:read:chat".to_string(),
-//             Self::UserManageChatColor => "user:manage:chat_color".to_string(),
-//             Self::UserReadEmail => "user:read:email".to_string(),
-//             Self::UserReadEmotes => "user:read:emotes".to_string(),
-//             Self::UserReadFollows => "user:read:follows".to_string(),
-//             Self::UserReadModeratedChannels => "user:read:moderated_channels".to_string(),
-//             Self::UserReadSubscriptions => "user:read:subscriptions".to_string(),
-//             Self::UserReadWhispers => "user:read:whispers".to_string(),
-//             Self::UserManageWhispers => "user:manage:whispers".to_string(),
-//             Self::UserWriteChat => "user:write:chat".to_string(),
-//
-//             Self::WhispersRead => "whispers:read".to_string(),
-//
-//             Self::ChatEdit => "chat:edit".to_string(),
-//             Self::ChatRead => "chat:read".to_string(),
-//             Self::EmptyString => "".to_string(),
-//         }
-//     }
-// }
 
 impl Serialize for Scope {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

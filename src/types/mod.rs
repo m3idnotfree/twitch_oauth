@@ -4,7 +4,8 @@ use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, CsrfToken, Refres
 use serde::{Deserialize, Serialize};
 
 mod scope;
-pub use scope::{Scope, ScopesMut};
+
+pub use scope::{APIScopes, IRCScopes, Scope, ScopesMut};
 
 pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scope::new(scopes)

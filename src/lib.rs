@@ -111,8 +111,3 @@ pub mod test_help;
 
 #[cfg(feature = "types")]
 pub mod types;
-// #[cfg(feature = "types")]
-// pub use types::{
-//     ClientCredentials, CodeState, GrantType, ResponseType, Scope, ScopesMut, ServerStatus, Token,
-//     ValidateToken,
-// };

@@ -2,6 +2,157 @@ use std::collections::HashSet;
 
 use super::Scope;
 
+/// Trait for API-specific scope combinations
+pub trait APIScopes {
+    // Ads
+    // Analytics
+    // Bits
+    // Channels
+    // Channel Points
+    // Charity
+    // chat
+    /// moderator:read:chatters
+    /// https://dev.twitch.tv/docs/api/reference/#get-chatters
+    fn with_chatters(&mut self) -> &mut Self;
+    /// user:read:emotes
+    /// https://dev.twitch.tv/docs/api/reference/#get-user-emotes
+    fn with_user_emotes_read(&mut self) -> &mut Self;
+    /// user:write:chat
+    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    fn with_chat_write(&mut self) -> &mut Self;
+    /// user:write:chat user:bot channel:bot
+    fn with_chat_write_as_app(&mut self) -> &mut Self;
+    // Clips
+    // Conduits
+    // CCLs
+    // Entitlements
+    // Extensions
+    // EventSub
+    // Games
+    // Goals
+    // Guest Star
+    // Hype Train
+    // Moderation
+    // Polls
+    /// channel:read:polls or channel:manage:polls
+    /// https://dev.twitch.tv/docs/api/reference/#get-polls
+    fn with_polls_read(&mut self) -> &mut Self;
+    /// channel:manage:polls
+    /// https://dev.twitch.tv/docs/api/reference/#create-poll
+    /// https://dev.twitch.tv/docs/api/reference/#end-poll
+    fn with_polls_manage(&mut self) -> &mut Self;
+    // Predictions
+    /// channel:read:predictions or channel:manage:predictions
+    /// https://dev.twitch.tv/docs/api/reference/#get-predictions
+    fn with_preictions_read(&mut self) -> &mut Self;
+    /// channel:manage:predictions
+    /// https://dev.twitch.tv/docs/api/reference/#create-prediction
+    /// https://dev.twitch.tv/docs/api/reference/#end-prediction
+    fn with_preictions_manage(&mut self) -> &mut Self;
+    // Raid
+    /// channel:manage:raids
+    fn with_raid_manage(&mut self) -> &mut Self;
+    // Schedule
+    // Search
+    // Streams
+    // Subscriptions
+    // Teams
+    // Users
+    /// user:read:email
+    /// https://dev.twitch.tv/docs/api/reference/#get-users
+    fn with_users_read(&mut self) -> &mut Self;
+    /// user:read:blocked_users
+    /// https://dev.twitch.tv/docs/api/reference/#get-user-block-list
+    fn with_block_list_read(&mut self) -> &mut Self;
+    /// user:manage:blocked_users
+    /// https://dev.twitch.tv/docs/api/reference/#block-user
+    /// https://dev.twitch.tv/docs/api/reference/#unblock-user
+    fn with_block_list_manage(&mut self) -> &mut Self;
+    // Videos
+    // Whispers
+}
+
+// pub trait EventSubScopes {
+//     fn chat_events(&mut self) -> &mut Self;
+//     fn channel_events(&mut self) -> &mut Self;
+//     fn moderation_events(&mut self) -> &mut Self;
+// }
+
+pub trait IRCScopes {
+    /// Add all IRC scopes (chat:edit, chat:read)
+    fn with_irc_all(&mut self) -> &mut Self;
+    /// Add IRC chat edit scope
+    fn with_irc_edit(&mut self) -> &mut Self;
+    /// Add IRC chat read scope
+    fn with_irc_read(&mut self) -> &mut Self;
+}
+
+impl APIScopes for ScopesMut<'_> {
+    fn with_chatters(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadChatters);
+        self
+    }
+    fn with_user_emotes_read(&mut self) -> &mut Self {
+        self.push(Scope::UserReadEmotes);
+        self
+    }
+    fn with_chat_write(&mut self) -> &mut Self {
+        self.push(Scope::UserWriteChat);
+        self
+    }
+    fn with_chat_write_as_app(&mut self) -> &mut Self {
+        self.extend([Scope::UserWriteChat, Scope::UserBot, Scope::ChannelBot]);
+        self
+    }
+    fn with_polls_read(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadPolls);
+        self
+    }
+    fn with_polls_manage(&mut self) -> &mut Self {
+        self.push(Scope::ChannelManagePolls);
+        self
+    }
+    fn with_preictions_read(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadPredictions);
+        self
+    }
+    fn with_preictions_manage(&mut self) -> &mut Self {
+        self.push(Scope::ChannelManagePredictions);
+        self
+    }
+    fn with_raid_manage(&mut self) -> &mut Self {
+        self.push(Scope::ChannelManageRaids);
+        self
+    }
+    fn with_users_read(&mut self) -> &mut Self {
+        self.push(Scope::UserReadEmail);
+        self
+    }
+    fn with_block_list_read(&mut self) -> &mut Self {
+        self.push(Scope::UserReadBlockedUsers);
+        self
+    }
+    fn with_block_list_manage(&mut self) -> &mut Self {
+        self.push(Scope::UserManageBlockedUsers);
+        self
+    }
+}
+
+impl IRCScopes for ScopesMut<'_> {
+    fn with_irc_all(&mut self) -> &mut Self {
+        self.extend([Scope::ChatEdit, Scope::ChatRead]);
+        self
+    }
+    fn with_irc_edit(&mut self) -> &mut Self {
+        self.push(Scope::ChatEdit);
+        self
+    }
+    fn with_irc_read(&mut self) -> &mut Self {
+        self.push(Scope::ChatRead);
+        self
+    }
+}
+
 /// inspired PathSegmentsMut
 /// https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42
 #[derive(Debug)]
@@ -26,93 +177,4 @@ impl ScopesMut<'_> {
         self.scopes.extend(scopes);
         self
     }
-
-    /// chat:ediet, chat:read
-    pub fn irc_scopes(&mut self) -> &mut Self {
-        self.extend([Scope::ChatEdit, Scope::ChatRead]);
-        self
-    }
-
-    /// get user: user:read:email
-    /// update user: user:edit
-    /// get user block list: user:read:blocked_users
-    /// block, unblock user: user:manage:blocked_users
-    /// get user extends: user:read:broadcast, user:edit:broadcast
-    pub fn get_users(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::UserReadEmail);
-        self
-    }
-
-    pub fn block(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::UserManageBlockedUsers);
-        self
-    }
-
-    /// eventsub: channel:read:subscriptions
-    pub fn read_eventsub(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::ChannelReadSubscriptions);
-        self
-    }
-
-    /// modify channel info: channel:manage:broadcast
-    /// get channel edit: channel:read:editors
-    /// get followed channels: user:read:follows
-    /// get channel followers: moderator:read:followers
-    pub fn modify_channel_info(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::ChannelManageBroadcast);
-        self
-    }
-
-    pub fn get_channel_editors(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::ChannelReadEditors);
-        self
-    }
-
-    pub fn get_followed_channels(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::UserReadFollows);
-        self
-    }
-
-    pub fn get_channel_followers(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::ModeratorReadFollowers);
-        self
-    }
-
-    pub fn send_message(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::UserWriteChat);
-        self
-    }
-
-    pub fn send_message_use_app_access_token(&mut self) -> &mut Self {
-        self.scopes
-            .extend([Scope::UserWriteChat, Scope::UserBot, Scope::ChannelBot]);
-        self
-    }
-
-    /// moderator:read:chatters
-    pub fn get_chatters(&mut self) -> &mut Self {
-        self.scopes.insert(Scope::ModeratorReadChatters);
-        self
-    }
-
-    // get chatters: moderator:read:chatters
-    // get user emotes: user:read:emotes
-    // update chat settings: moderator:manage:chat_settings
-    // send chat announcement: moderator:manage:announcements
-    // send shoutout: moderator:manage:shoutouts
-    // send chat message: user:write:chat, user:bot, channel:bot
-    // update user chat color: user:manage:chat_color
 }
-
-// #[cfg(test)]
-// mod test {
-//     use std::collections::HashSet;
-//
-//     #[test]
-//     fn scopes_mut() {
-//         let mut scopes = HashSet::new();
-//
-//         scopes::new(&mut scopes).irc_scopes();
-//         assert_eq!(2, scopes.len());
-//     }
-// }
