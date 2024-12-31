@@ -9,14 +9,13 @@ use asknothingx2_util::{
 };
 use reqwest::StatusCode;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use url::Url;
 
 use crate::{
     types::{ClientCredentials, GrantType, ResponseType, Token, ValidateToken},
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest, Result,
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
     RevokeRequest, ValidateRequest,
 };
-
-const PORT: u16 = 60928;
 
 const BASE_URL: &str = "https://id.twitch.tv/oauth2";
 const AUTH: &str = "authorize";
@@ -26,38 +25,39 @@ const VALIDATE: &str = "validate";
 
 #[derive(Debug)]
 pub struct TwitchOauth {
-    pub client_id: ClientId,
-    pub client_secret: ClientSecret,
-    /// default: http://localhost:60928
-    pub redirect_url: RedirectUrl,
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    redirect_uri: Option<RedirectUrl>,
     #[cfg(feature = "test")]
-    pub test_url: crate::test_url::TestUrlHold,
+    test_url: crate::test_url::TestUrlHold,
 }
 
 impl TwitchOauth {
-    pub fn new<T: Into<String>>(client_id: T, client_secret: T) -> Self {
-        Self {
+    pub fn new<T: Into<String>>(
+        client_id: T,
+        client_secret: T,
+        redirect_uri: Option<T>,
+    ) -> crate::Result<Self> {
+        Ok(Self {
             client_id: ClientId::new(client_id.into()),
             client_secret: ClientSecret::new(client_secret.into()),
-            redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
+            //redirect_url: RedirectUrl::new(format!("http://localhost:{}", PORT)).unwrap(),
+            redirect_uri: match redirect_uri {
+                Some(uri) => Some(RedirectUrl::new(uri.into())?),
+                None => None,
+            },
             #[cfg(feature = "test")]
             test_url: crate::test_url::TestUrlHold::default(),
-        }
+        })
     }
 
-    pub fn set_client_id<T: Into<String>>(mut self, client_id: T) -> Self {
-        self.client_id = ClientId::new(client_id.into());
-        self
-    }
-
-    pub fn set_client_secret<T: Into<String>>(mut self, client_secret: T) -> Self {
-        self.client_secret = ClientSecret::new(client_secret.into());
-        self
-    }
-
-    pub fn set_redirect_uri<T: Into<String>>(mut self, redir_url: T) -> Result<Self> {
-        self.redirect_url = RedirectUrl::new(redir_url.into())?;
+    pub fn set_redirect_uri<T: Into<String>>(mut self, redir_url: T) -> crate::Result<Self> {
+        self.redirect_uri = Some(RedirectUrl::new(redir_url.into())?);
         Ok(self)
+    }
+
+    pub fn get_redirect_uri(&self) -> Option<Url> {
+        self.redirect_uri.clone().map(|x| x.url().clone())
     }
 
     pub fn get_auth_url(&self) -> AuthUrl {
@@ -81,33 +81,39 @@ impl TwitchOauth {
         ValidateUrl::new(format!("{BASE_URL}/{VALIDATE}")).unwrap()
     }
 
+    fn validate_redirect_uri(&self) -> crate::Result<RedirectUrl> {
+        self.redirect_uri
+            .clone()
+            .ok_or(crate::Error::MissingRedirectUri)
+    }
+
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
-    pub fn authorize_url(&mut self) -> (AuthrozationRequest, CsrfToken) {
+    pub fn authorize_url(&mut self) -> crate::Result<(AuthrozationRequest, CsrfToken)> {
         let csrf_token = CsrfToken::new_random();
 
         let auth_request = AuthrozationRequest::new(
             self.get_auth_url(),
             self.client_id.clone(),
-            self.redirect_url.clone(),
+            self.validate_redirect_uri()?,
             ResponseType::Code,
             csrf_token.clone(),
         );
 
-        (auth_request, csrf_token)
+        Ok((auth_request, csrf_token))
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
-    ) -> Result<TokenResponse<Token>> {
+    ) -> crate::Result<TokenResponse<Token>> {
         let response = api_request(CodeTokenRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
             code,
             GrantType::AuthorizationCode,
             self.get_token_url(),
-            self.redirect_url.clone(),
+            self.validate_redirect_uri()?,
         ))
         .await?;
 
@@ -123,7 +129,7 @@ impl TwitchOauth {
         &mut self,
         code_state: crate::oneshot_server::CodeState,
         csrf_token: CsrfToken,
-    ) -> Result<TokenResponse<Token>> {
+    ) -> crate::Result<TokenResponse<Token>> {
         match code_state.state {
             crate::oneshot_server::ServerStatus::Timeout => {
                 Err(Error::TimeoutError("".to_string()))
@@ -145,7 +151,7 @@ impl TwitchOauth {
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> Result<TokenResponse<Token>> {
+    ) -> crate::Result<TokenResponse<Token>> {
         let response = api_request(RefreshRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -164,7 +170,7 @@ impl TwitchOauth {
     pub async fn validate_token(
         &self,
         access_token: AccessToken,
-    ) -> Result<TokenResponse<ValidateToken>> {
+    ) -> crate::Result<TokenResponse<ValidateToken>> {
         let response = api_request(ValidateRequest::new(
             access_token.clone(),
             self.get_validate_url(),
@@ -177,7 +183,7 @@ impl TwitchOauth {
         ))
     }
     /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
-    pub async fn revoke_token(&self, access_token: AccessToken) -> Result<()> {
+    pub async fn revoke_token(&self, access_token: AccessToken) -> crate::Result<()> {
         api_request(RevokeRequest::new(
             access_token,
             self.client_id.clone(),
@@ -188,7 +194,7 @@ impl TwitchOauth {
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
-    pub async fn client_credentials(&self) -> Result<TokenResponse<ClientCredentials>> {
+    pub async fn client_credentials(&self) -> crate::Result<TokenResponse<ClientCredentials>> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -201,6 +207,37 @@ impl TwitchOauth {
             response.status(),
             response.text().await?,
         ))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+        self.test_url.with_url(url.into());
+        self
+    }
+
+    /// Getting a user access token
+    #[cfg(feature = "test")]
+    pub fn user_token<T: Into<String>>(&self, user_id: T) -> crate::test_url::TestAccessToken {
+        crate::test_url::TestAccessToken::new(
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            GrantType::UserToken,
+            user_id.into(),
+            std::collections::HashSet::new(),
+            self.get_auth_url(),
+        )
+    }
+    /// Getting an app access token
+    #[cfg(feature = "test")]
+    pub fn app_token(&self) -> crate::test_url::TestAccessToken {
+        crate::test_url::TestAccessToken::new(
+            self.client_id.clone(),
+            self.client_secret.clone(),
+            GrantType::ClientCredentials,
+            "",
+            std::collections::HashSet::new(),
+            self.get_auth_url(),
+        )
     }
 }
 

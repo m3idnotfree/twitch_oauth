@@ -7,7 +7,9 @@ pub enum Error {
     #[error("Failed to parse URL: {0}")]
     UrlParseError(#[from] url::ParseError),
     #[error("Invalid OAuth redirect URI: {0}")]
-    RedirectUrlError(String),
+    RedirectUriError(String),
+    #[error("Missing redirect URI")]
+    MissingRedirectUri,
     #[error("Missing required URL query parameter: {0}")]
     UrlQueryFindError(String),
     #[error("HTTP request failed: {0}")]
