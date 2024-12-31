@@ -2,8 +2,9 @@ use asknothingx2_util::oauth::{ClientId, ClientSecret};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+/// https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Users {
+pub struct UsersResponse {
     pub cursor: String,
     pub total: u64,
     pub data: Vec<User>,
@@ -20,7 +21,7 @@ pub struct User {
     pub IsExtension: bool,
 }
 
-pub async fn get_users_info(port: Option<u16>) -> Result<Users, reqwest::Error> {
+pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, reqwest::Error> {
     let mut base_url = Url::parse("http://localhost:8080").unwrap();
     if let Some(port) = port {
         base_url.set_port(Some(port)).unwrap();

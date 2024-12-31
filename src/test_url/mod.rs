@@ -5,7 +5,7 @@ use crate::{types::GrantType, TwitchOauth};
 mod get_users_info;
 mod user_access_token;
 
-pub use get_users_info::{get_users_info, User, Users};
+pub use get_users_info::{get_users_info, User, UsersResponse};
 pub use user_access_token::TestAccessToken;
 
 pub trait TwitchTest {
