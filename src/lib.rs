@@ -76,8 +76,12 @@
 //!     let users_info = get_users_info(None).await?;
 //!     let user = users_info.data.first().unwrap();
 //!
-//!     let mut test_oauth = TwitchOauth::new(user.ID.as_str(), user.Secret.secret().as_str(), None)?;
-//!     test_oauth.with_url("http://localhost:8080/auth/authorize");
+//!     let test_oauth = TwitchOauth::new(
+//!         user.ID.as_str(),
+//!         user.Secret.secret().as_str(),
+//!         None
+//!     )?
+//!     .with_url("http://localhost:8080/auth/authorize");
 //!
 //!     // Getting a user access token
 //!     let mut test_user = test_oauth.user_token("user_id");

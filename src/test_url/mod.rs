@@ -8,12 +8,12 @@ pub use user_access_token::TestAccessToken;
 pub struct TestUrlHold(Option<String>);
 
 impl TestUrlHold {
-    pub fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
+    pub fn with_url<T: Into<String>>(mut self, url: T) -> Self {
         self.0 = Some(url.into());
         self
     }
 
-    pub fn get_test_url(&self) -> Option<url::Url> {
-        self.0.as_ref().map(|url| url::Url::parse(url).unwrap())
+    pub fn get_test_url(&self) -> Option<String> {
+        self.0.clone()
     }
 }

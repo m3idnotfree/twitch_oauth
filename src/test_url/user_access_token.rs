@@ -12,17 +12,17 @@ pub struct TestAccessToken {
     client_id: ClientId,
     client_secret: ClientSecret,
     grant_type: GrantType,
-    user_id: String,
+    user_id: Option<String>,
     scopes: HashSet<Scope>,
     auth_url: AuthUrl,
 }
 
 impl TestAccessToken {
-    pub fn new<T: Into<String>>(
+    pub fn new(
         client_id: ClientId,
         client_secret: ClientSecret,
         grant_type: GrantType,
-        user_id: T,
+        user_id: Option<String>,
         scopes: HashSet<Scope>,
         auth_url: AuthUrl,
     ) -> Self {
@@ -30,7 +30,7 @@ impl TestAccessToken {
             client_id,
             client_secret,
             grant_type,
-            user_id: user_id.into(),
+            user_id,
             scopes,
             auth_url,
         }
@@ -49,8 +49,13 @@ impl APIRequest for TestAccessToken {
             ("client_id", self.client_id.as_str()),
             ("client_secret", self.client_secret.secret()),
             ("grant_type", self.grant_type.as_str()),
-            ("user_id", self.user_id.as_str()),
         ];
+
+        let user_id = self.user_id.clone().unwrap_or_default();
+
+        if !user_id.is_empty() {
+            params.push(("user_id", &user_id));
+        }
 
         let scopes = self
             .scopes
@@ -93,7 +98,7 @@ mod test {
             client_id: ClientId::new("ef74yew8ew".to_string()),
             client_secret: ClientSecret::new("fl790fiits".to_string()),
             grant_type: GrantType::UserToken,
-            user_id: "8086138".to_string(),
+            user_id: Some("8086138".to_string()),
             scopes: HashSet::new(),
             auth_url: AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
         };

@@ -61,11 +61,6 @@ impl TwitchOauth {
     }
 
     pub fn get_auth_url(&self) -> AuthUrl {
-        #[cfg(feature = "test")]
-        if let Some(url) = &self.test_url.get_test_url() {
-            return AuthUrl::new(url.to_string()).unwrap();
-        }
-
         AuthUrl::new(format!("{BASE_URL}/{AUTH}")).unwrap()
     }
 
@@ -210,8 +205,21 @@ impl TwitchOauth {
     }
 
     #[cfg(feature = "test")]
-    pub fn with_url<T: Into<String>>(&mut self, url: T) -> &mut Self {
-        self.test_url.with_url(url.into());
+    fn test_auth_url(&self) -> AuthUrl {
+        if let Some(url) = &self.test_url.get_test_url() {
+            return AuthUrl::new(url.to_string()).unwrap();
+        }
+
+        AuthUrl::new(format!("{BASE_URL}/{AUTH}")).unwrap()
+    }
+
+    #[cfg(feature = "test")]
+    pub fn with_url(mut self, port: Option<u16>) -> Self {
+        let mut base_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
+        if let Some(port) = port {
+            base_url.set_port(Some(port)).unwrap();
+        }
+        self.test_url = self.test_url.with_url(base_url.to_string());
         self
     }
 
@@ -222,9 +230,9 @@ impl TwitchOauth {
             self.client_id.clone(),
             self.client_secret.clone(),
             GrantType::UserToken,
-            user_id.into(),
+            Some(user_id.into()),
             std::collections::HashSet::new(),
-            self.get_auth_url(),
+            self.test_auth_url(),
         )
     }
     /// Getting an app access token
@@ -234,9 +242,9 @@ impl TwitchOauth {
             self.client_id.clone(),
             self.client_secret.clone(),
             GrantType::ClientCredentials,
-            "",
+            None,
             std::collections::HashSet::new(),
-            self.get_auth_url(),
+            self.test_auth_url(),
         )
     }
 }
