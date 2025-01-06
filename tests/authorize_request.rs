@@ -45,6 +45,7 @@ fn request_not_include_scopes() {
     assert!(!expected_url.contains("scope"));
     assert!(!expected_url.contains("force_verify"));
 }
+
 #[test]
 fn request_force_verify() {
     let csrf_token = CsrfToken::new_random();

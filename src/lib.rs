@@ -11,7 +11,12 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), twitch_oauth_token::Error> {
-//!     let mut oauth = TwitchOauth::new("client_id", "client_secret", Some("redirect_uri"))?;
+//!     let mut oauth = TwitchOauth::new(
+//!         "client_id".to_string(),
+//!         "client_secret".to_string(),
+//!         Some("redirect_uri".to_string())
+//!     )
+//!     .expect("Failed to parse redirect URL in TwitchOauth initialization");
 //!  
 //!     let client_credentials = oauth.client_credentials().await?.parse_token()?;
 //!     println!("client credentials: {client_credentials:#?}");
@@ -57,7 +62,7 @@
 //! # Useing the Twitch CLI Mock Server
 //! ```toml
 //! twitch_oauth_token = { version = "1", features = ["oauth", "test"] }
-//! asknothingx2-util = { version = "0.0.12", features = ["api"] }
+//! asknothingx2-util = { version = "0.0.13", features = ["api"] }
 //! ```
 //!```ignore
 //! use asknothingx2_util::api::api_request;
@@ -68,36 +73,43 @@
 //! };
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), twitch_oauth_token::Error> {
+//! async fn main() {
 //!     // Does not contain a user_id
 //!     // When first run twitch mock-api generate
 //!     // copy user_id
 //!     // https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token
-//!     let users_info = get_users_info(None).await?;
-//!     let user = users_info.data.first().unwrap();
+//!     let users_info = get_users_info(None).await.expect("Failed to connect to Twitch mock server");
+//!     let user = users_info.data.first().expect("Mock server returned empty user data");
 //!
-//!     let test_oauth = TwitchOauth::new(
-//!         user.ID.as_str(),
-//!         user.Secret.secret().as_str(),
+//!     let test_oauth = TwitchOauth::from_credentials(
+//!         user.ID.clone(),
+//!         user.Secret.clone(),
 //!         None
-//!     )?
-//!     .with_url("http://localhost:8080/auth/authorize");
+//!     )
+//!     .expect("Failed to initialize TwitchOAuth with mock credentials")
+//!     .with_url(Some("port"));
 //!
 //!     // Getting a user access token
-//!     let mut test_user = test_oauth.user_token("user_id");
+//!     let mut test_user = test_oauth.user_token("user_id".to_string());
 //!     test_user.scopes_mut().push(Scope::ChannelReadPolls);
 //!
-//!     let user_token = api_request(test_user).await?;
-//!     let user_token: Token = user_token.json().await?;
-//!     println!("{:#?}", token);
+//!     let user_token = api_request(test_user).await.expect("Failed to request user access token from mock server");
+//!     let user_token: Token = user_token
+//!         .json()
+//!         .await
+//!         .expect("Failed to deserialize user access token response");
+//!     assert_eq!(vec![Scope::ChannelReadPolls], user_token.scope);
 //!
 //!     // Getting an app access token
-//!     let app_token = test_oauth.app_token();
-//!     let app_token = api_request(app_token).await?;
-//!     let app_token: Token = app_token.json().await?;
-//!     println!("{:#?}", app_token);
+//!     let mut app_token = test_oauth.app_token();
+//!     app_token.scopes_mut().clear();
 //!
-//!     Ok(())
+//!     let app_token = api_request(app_token).await.expect("Failed to request app access token from mock server");
+//!     let app_token: Token = app_token
+//!         .json()
+//!         .await
+//!         .expect("Failed to deserialize app access token response");
+//!     assert!(app_token.scope.is_empty());
 //! }
 //! ```
 //!

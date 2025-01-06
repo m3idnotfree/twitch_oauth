@@ -165,6 +165,11 @@ pub fn new(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
 }
 
 impl ScopesMut<'_> {
+    pub fn clear(&mut self) -> &mut Self {
+        self.scopes.clear();
+        self
+    }
+
     pub fn push(&mut self, s: Scope) -> &mut Self {
         self.scopes.insert(s);
         self

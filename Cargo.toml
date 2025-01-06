@@ -17,15 +17,17 @@ test = []
 full = ["oauth", "oneshot-server", "test"]
 
 [dependencies]
+asknothingx2-util = { version = "0.0.13", features = ["api", "oauth"] }
+serde = { version = "1.0.217", features = ["derive"] }
+
 http-serde = { version = "2.1.1", optional = true }
 reqwest = { version = "0.12.12", optional = true, features = ["rustls-tls", "json"] }
-serde = { version = "1.0.217", features = ["derive"] }
 serde_json = { version = "1.0.134", optional = true }
 thiserror = { version = "2.0.9", optional = true }
-url = { version = "2.5.4", optional = true }
 tokio = { version = "1.42.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
-asknothingx2-util = { version = "0.0.12", features = ["api", "oauth"] }
+url = { version = "2.5.4", optional = true }
 
 [dev-dependencies]
+dotenv = "0.15.0"
 tokio = { version = "1.42.0", features = ["full"] }
 wiremock = "0.6.2"
