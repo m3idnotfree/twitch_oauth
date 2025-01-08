@@ -10,4 +10,4 @@ pub use client_credentials::ClientCredentialsRequest;
 pub use codetoken_request::CodeTokenRequest;
 pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
-pub use validate_request::ValidateRequest;
+pub use validate_request::{validate_token, ValidateRequest};

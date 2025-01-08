@@ -6,7 +6,7 @@
 //!```ignore
 //! use std::time::Duration;
 //!
-//! use twitch_oauth_token::{oneshot_server, types::Scope, TwitchOauth};
+//! use twitch_oauth_token::{oneshot_server, types::Scope, TwitchOauth, validate_token};
 //! use url::Url;
 //!
 //! #[tokio::main]
@@ -41,8 +41,7 @@
 //!         .parse_token()?;
 //!     println!("token: {:#?}", token);
 //!  
-//!     let validate_token = oauth
-//!         .validate_token(token.access_token.clone())
+//!     let validate_token = validate_token(token.access_token.clone())
 //!         .await?
 //!         .parse_token()?;
 //!     println!("validate token: {validate_token:#?}");
@@ -132,8 +131,8 @@ pub use oauth::{TokenResponse, TwitchOauth};
 mod request;
 #[cfg(feature = "oauth")]
 pub use request::{
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest,
-    ValidateRequest,
+    validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
+    RefreshRequest, RevokeRequest, ValidateRequest,
 };
 
 #[cfg(any(feature = "oauth", feature = "oneshot-server"))]

@@ -4,7 +4,7 @@ use asknothingx2_util::{
     api::api_request,
     oauth::{
         AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
-        RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
+        RefreshToken, RevocationUrl, TokenUrl,
     },
 };
 use reqwest::StatusCode;
@@ -12,16 +12,15 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use url::Url;
 
 use crate::{
-    types::{ClientCredentials, GrantType, ResponseType, Token, ValidateToken},
+    types::{ClientCredentials, GrantType, ResponseType, Token},
     AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
-    RevokeRequest, ValidateRequest,
+    RevokeRequest,
 };
 
 const BASE_URL: &str = "https://id.twitch.tv/oauth2";
 const AUTH: &str = "authorize";
 const TOKEN: &str = "token";
 const REVOKE: &str = "revoke";
-const VALIDATE: &str = "validate";
 
 #[derive(Debug)]
 pub struct TwitchOauth {
@@ -92,10 +91,6 @@ impl TwitchOauth {
 
     fn get_revoke_url(&self) -> RevocationUrl {
         RevocationUrl::new(format!("{BASE_URL}/{REVOKE}")).unwrap()
-    }
-
-    fn get_validate_url(&self) -> ValidateUrl {
-        ValidateUrl::new(format!("{BASE_URL}/{VALIDATE}")).unwrap()
     }
 
     fn validate_redirect_uri(&self) -> crate::Result<RedirectUrl> {
@@ -183,22 +178,7 @@ impl TwitchOauth {
             response.text().await?,
         ))
     }
-    /// https://dev.twitch.tv/docs/authentication/validate-tokens/
-    pub async fn validate_token(
-        &self,
-        access_token: AccessToken,
-    ) -> crate::Result<TokenResponse<ValidateToken>> {
-        let response = api_request(ValidateRequest::new(
-            access_token.clone(),
-            self.get_validate_url(),
-        ))
-        .await?;
 
-        Ok(TokenResponse::<ValidateToken>::new(
-            response.status(),
-            response.text().await?,
-        ))
-    }
     /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
     pub async fn revoke_token(&self, access_token: AccessToken) -> crate::Result<()> {
         api_request(RevokeRequest::new(
