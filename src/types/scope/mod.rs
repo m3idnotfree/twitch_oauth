@@ -3,7 +3,14 @@ use std::fmt::Display;
 
 mod scopes_mut;
 pub(crate) use scopes_mut::new;
-pub use scopes_mut::{APIScopes, IRCScopes, ScopesMut};
+pub use scopes_mut::{
+    AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
+    CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
+    ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
+    ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, ScopesMut,
+    SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes, UsersScopes,
+    VideosScopes, WhispersScopes,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scope {

@@ -5,7 +5,14 @@ use serde::{Deserialize, Serialize};
 
 mod scope;
 
-pub use scope::{APIScopes, IRCScopes, Scope, ScopesMut};
+pub use scope::{
+    AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
+    CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
+    ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
+    ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, Scope,
+    ScopesMut, SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes,
+    UsersScopes, VideosScopes, WhispersScopes,
+};
 
 pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scope::new(scopes)
