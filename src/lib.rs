@@ -61,14 +61,12 @@
 //! # Useing the Twitch CLI Mock Server
 //! ```toml
 //! twitch_oauth_token = { version = "1", features = ["oauth", "test"] }
-//! asknothingx2-util = { version = "0.0.13", features = ["api"] }
 //! ```
 //!```ignore
-//! use asknothingx2_util::api::api_request;
 //! use twitch_oauth_token::{
 //!     test_url::get_users_info,
-//!     types::{Scope, Token},
-//!     TwitchOauth,
+//!     types::{PollsScopes, Scope},
+//!     TwitchOauth
 //! };
 //!
 //! #[tokio::main]
@@ -85,17 +83,19 @@
 //!         user.Secret.clone(),
 //!         None
 //!     )
-//!     .expect("Failed to initialize TwitchOAuth with mock credentials")
+//!     .expect("Failed to parse redirect URL in TwitchOauth initialization")
 //!     .with_url(Some("port"));
 //!
 //!     // Getting a user access token
 //!     let mut test_user = test_oauth.user_token("user_id".to_string());
-//!     test_user.scopes_mut().push(Scope::ChannelReadPolls);
+//!     test_user.scopes_mut().with_polls_read();
 //!
-//!     let user_token = api_request(test_user).await.expect("Failed to request user access token from mock server");
-//!     let user_token: Token = user_token
-//!         .json()
+//!     let user_token = test_user
+//!         .request_access_token()
 //!         .await
+//!         .expect("Failed to request user access token from mock server");
+//!     let user_token: Token = user_token
+//!         .parse_token()
 //!         .expect("Failed to deserialize user access token response");
 //!     assert_eq!(vec![Scope::ChannelReadPolls], user_token.scope);
 //!
@@ -103,10 +103,12 @@
 //!     let mut app_token = test_oauth.app_token();
 //!     app_token.scopes_mut().clear();
 //!
-//!     let app_token = api_request(app_token).await.expect("Failed to request app access token from mock server");
-//!     let app_token: Token = app_token
-//!         .json()
+//!     let app_token = app_token
+//!         .request_access_token()
 //!         .await
+//!         .expect("Failed to request app access token from mock server");
+//!     let app_token: Token = app_token
+//!         .parse_token()
 //!         .expect("Failed to deserialize app access token response");
 //!     assert!(app_token.scope.is_empty());
 //! }

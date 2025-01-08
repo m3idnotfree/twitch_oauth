@@ -1,12 +1,15 @@
 use std::collections::HashSet;
 
 use asknothingx2_util::{
-    api::{APIRequest, Method},
+    api::{api_request, APIRequest, Method},
     oauth::{AuthUrl, ClientId, ClientSecret},
 };
 use url::Url;
 
-use crate::types::{scopes_mut, GrantType, Scope, ScopesMut};
+use crate::{
+    types::{scopes_mut, GrantType, Scope, ScopesMut, Token},
+    TokenResponse,
+};
 
 pub struct TestAccessToken {
     client_id: ClientId,
@@ -38,6 +41,15 @@ impl TestAccessToken {
 
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
         scopes_mut(&mut self.scopes)
+    }
+
+    pub async fn request_access_token(self) -> crate::Result<TokenResponse<Token>> {
+        let response = api_request(self).await?;
+
+        Ok(TokenResponse::new(
+            response.status(),
+            response.text().await?,
+        ))
     }
 }
 
