@@ -8,6 +8,8 @@ use tokio::{
 };
 use url::Url;
 
+use crate::{Error, OAuthError, ServerError, ValidationError};
+
 #[derive(Debug)]
 pub struct CodeState {
     pub state: ServerStatus,
@@ -23,9 +25,11 @@ pub enum ServerStatus {
 }
 
 /// only support localhost
-pub async fn oneshot_server(url: Url, duration: Duration) -> crate::Result<CodeState> {
+pub async fn oneshot_server(url: Url, duration: Duration) -> Result<CodeState, Error> {
     validate_host(&url)?;
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", url.port().unwrap())).await?;
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", url.port().unwrap()))
+        .await
+        .map_err(|x| ServerError::BindAddressError(x.to_string()))?;
 
     // when this signal completes, start shutdown
     let mut signal = std::pin::pin!(shutdown_signal());
@@ -40,20 +44,20 @@ pub async fn oneshot_server(url: Url, duration: Duration) -> crate::Result<CodeS
     }
 }
 
-fn validate_host(url: &Url) -> crate::Result<()> {
-    let host = url.host_str().ok_or(crate::Error::MissingRedirectHost)?;
+fn validate_host(url: &Url) -> Result<(), ValidationError> {
+    let host = url.host_str().ok_or(ValidationError::MissingHost)?;
     if host != "localhost" {
-        return Err(crate::Error::InvalidRedirectHost(host.to_string()));
+        return Err(ValidationError::InvalidHost(host.to_string()));
     }
     Ok(())
 }
 
 async fn handle_connection_result(
     rev: Result<Result<(TcpStream, SocketAddr), io::Error>, tokio::time::error::Elapsed>,
-) -> crate::Result<CodeState> {
+) -> Result<CodeState, Error> {
     match rev {
         Ok(res) => {
-            let (stream, _addr) = res?;
+            let (stream, _addr) = res.map_err(ServerError::Io)?;
             let (code, csrf_token) = code_state_parse(stream).await?;
             Ok(CodeState {
                 state: ServerStatus::Recive,
@@ -80,31 +84,32 @@ async fn shutdown_signal() {
         .expect("failed to install CTRL+C signal handler");
 }
 
-async fn code_state_parse(mut stream: TcpStream) -> crate::Result<(String, String)> {
+//async fn code_state_parse(mut stream: TcpStream) -> crate::Result<(String, String)> {
+async fn code_state_parse(mut stream: TcpStream) -> Result<(String, String), Error> {
     let mut reader = BufReader::new(&mut stream);
 
     let mut request_line = String::new();
-    reader.read_line(&mut request_line).await?;
+    reader
+        .read_line(&mut request_line)
+        .await
+        .map_err(ServerError::Io)?;
 
     // "GET /?code=...&scope=...&state=.... HTTP/1.1\r\n"
     let redirect_url = request_line.split_whitespace().nth(1).unwrap();
-    let url = Url::parse(&("http://localhost".to_string() + redirect_url))?;
+    let url = Url::parse(&("http://localhost".to_string() + redirect_url))
+        .map_err(ValidationError::UrlParse)?;
 
     let code = url
         .query_pairs()
         .find(|(key, _)| key == "code")
         .map(|(_, code)| code.into_owned())
-        .ok_or(crate::Error::UrlQueryFindError(
-            "url query 'state' not find".to_string(),
-        ))?;
+        .ok_or(OAuthError::MissingQueryParam("code".to_string()))?;
 
     let state = url
         .query_pairs()
         .find(|(key, _)| key == "state")
         .map(|(_, state)| state.into_owned())
-        .ok_or(crate::Error::UrlQueryFindError(
-            "url query 'state' not find".to_string(),
-        ))?;
+        .ok_or(OAuthError::MissingQueryParam("state".to_string()))?;
 
     Ok((code, state))
 }

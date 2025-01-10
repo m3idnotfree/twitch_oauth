@@ -1,8 +1,7 @@
 use asknothingx2_util::{
-    api::{api_request, APIRequest, StatusCode},
+    api::{api_request, APIRequest, Method, StatusCode},
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
-use reqwest::Method;
 use twitch_oauth_token::{types::GrantType, RefreshRequest};
 use url::Url;
 

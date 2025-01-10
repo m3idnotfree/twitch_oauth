@@ -1,7 +1,8 @@
 //! # Usage
 //! ```toml
 //! twitch_oauth_token = { version = "1", features = ["oneshot-server"] }
-//! url = { version = "2" }
+//! url = "2"
+//! anyhow = "1"
 //! ```
 //!```ignore
 //! use std::time::Duration;
@@ -10,7 +11,7 @@
 //! use url::Url;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), twitch_oauth_token::Error> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let mut oauth = TwitchOauth::new(
 //!         "client_id".to_string(),
 //!         "client_secret".to_string(),
@@ -18,7 +19,7 @@
 //!     )
 //!     .expect("Failed to parse redirect URL in TwitchOauth initialization");
 //!  
-//!     let client_credentials = oauth.client_credentials().await?.parse_token()?;
+//!     let client_credentials = oauth.client_credentials().await?.into_json()?;
 //!     println!("client credentials: {client_credentials:#?}");
 //!  
 //!     let (mut auth_request, csrf_token) = oauth.authorize_url()?;
@@ -38,18 +39,18 @@
 //!     let token = oauth
 //!         .exchange_code(code_state, csrf_token)
 //!         .await?
-//!         .parse_token()?;
+//!         .into_json()?;
 //!     println!("token: {:#?}", token);
 //!  
 //!     let validate_token = validate_token(token.access_token.clone())
 //!         .await?
-//!         .parse_token()?;
+//!         .into_json()?;
 //!     println!("validate token: {validate_token:#?}");
 //!  
 //!     let refresh_token = oauth
 //!         .exchange_refresh_token(token.refresh_token)
 //!         .await?
-//!         .parse_token()?;
+//!         .into_json()?;
 //!     println!("refresh token: {refresh_token:#?}");
 //!  
 //!     oauth.revoke_token(token.access_token).await?;
@@ -65,7 +66,7 @@
 //!```ignore
 //! use twitch_oauth_token::{
 //!     test_url::get_users_info,
-//!     types::{PollsScopes, Scope},
+//!     types::{PollsScopes, Scope, Token},
 //!     TwitchOauth
 //! };
 //!
@@ -95,7 +96,7 @@
 //!         .await
 //!         .expect("Failed to request user access token from mock server");
 //!     let user_token: Token = user_token
-//!         .parse_token()
+//!         .into_json()
 //!         .expect("Failed to deserialize user access token response");
 //!     assert_eq!(vec![Scope::ChannelReadPolls], user_token.scope);
 //!
@@ -108,7 +109,7 @@
 //!         .await
 //!         .expect("Failed to request app access token from mock server");
 //!     let app_token: Token = app_token
-//!         .parse_token()
+//!         .into_json()
 //!         .expect("Failed to deserialize app access token response");
 //!     assert!(app_token.scope.is_empty());
 //! }
@@ -128,26 +129,25 @@
 #[cfg(feature = "oauth")]
 mod oauth;
 #[cfg(feature = "oauth")]
-pub use oauth::{TokenResponse, TwitchOauth};
-#[cfg(feature = "oauth")]
 mod request;
+
+#[cfg(feature = "oauth")]
+pub use oauth::TwitchOauth;
 #[cfg(feature = "oauth")]
 pub use request::{
     validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
     RefreshRequest, RevokeRequest, ValidateRequest,
 };
 
-#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
-mod error;
-#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
-pub use error::Error;
-#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
-pub type Result<R> = std::result::Result<R, crate::Error>;
-
 #[cfg(feature = "oneshot-server")]
 mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
 pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
+
+#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
+mod error;
+#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
+pub use error::{Error, HttpError, OAuthError, ServerError, ValidationError};
 
 #[cfg(feature = "test")]
 pub mod test_url;

@@ -33,9 +33,6 @@ async fn main() {
         .request_access_token()
         .await
         .expect("Failed to request user access token from mock server");
-    let user_token = user_token
-        .parse_token()
-        .expect("Failed to deserialize user access token response");
     assert_eq!(vec![Scope::ChannelReadPolls], user_token.scope);
 
     // Getting an app access token
@@ -45,9 +42,6 @@ async fn main() {
     let app_token = app_token
         .request_access_token()
         .await
-        .expect("Failed to request app access token from mock server");
-    let app_token = app_token
-        .parse_token()
         .expect("Failed to deserialize app access token response");
     assert!(app_token.scope.is_empty());
 }

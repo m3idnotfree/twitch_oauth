@@ -10,24 +10,23 @@ keywords = ["twitch", "oauth"]
 
 [features]
 default = ["oauth"]
-oauth = ["types", "http-serde", "reqwest", "serde_json", "thiserror", "url"]
-oneshot-server = ["types", "http-serde", "reqwest", "url", "thiserror", "tokio"]
+oauth = ["types", "http-serde", "serde_json", "thiserror", "url"]
+oneshot-server = ["types", "http-serde", "url", "thiserror", "tokio"]
 types = []
 test = []
 full = ["oauth", "oneshot-server", "test"]
 
 [dependencies]
-asknothingx2-util = { version = "0.0.15", features = ["api", "oauth"] }
+asknothingx2-util = { version = "0.0.22", features = ["api", "oauth"] }
 serde = { version = "1.0.217", features = ["derive"] }
 
 http-serde = { version = "2.1.1", optional = true }
-reqwest = { version = "0.12.12", optional = true, features = ["rustls-tls", "json"] }
 serde_json = { version = "1.0.135", optional = true }
-thiserror = { version = "2.0.9", optional = true }
-tokio = { version = "1.42.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
+thiserror = { version = "2.0.10", optional = true }
+tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
 url = { version = "2.5.4", optional = true }
 
 [dev-dependencies]
 dotenv = "0.15.0"
-tokio = { version = "1.42.0", features = ["full"] }
+tokio = { version = "1.43.0", features = ["full"] }
 wiremock = "0.6.2"

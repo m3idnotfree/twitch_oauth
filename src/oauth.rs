@@ -1,20 +1,16 @@
-use std::{fmt, marker::PhantomData};
-
 use asknothingx2_util::{
-    api::api_request,
+    api::{api_request, APIResponse},
     oauth::{
         AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl,
         RefreshToken, RevocationUrl, TokenUrl,
     },
 };
-use reqwest::StatusCode;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use url::Url;
 
 use crate::{
     types::{ClientCredentials, GrantType, ResponseType, Token},
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
-    RevokeRequest,
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, HttpError, OAuthError,
+    RefreshRequest, RevokeRequest,
 };
 
 const BASE_URL: &str = "https://id.twitch.tv/oauth2";
@@ -38,12 +34,14 @@ impl TwitchOauth {
         client_id: String,
         client_secret: String,
         redirect_uri: Option<String>,
-    ) -> crate::Result<Self> {
+    ) -> Result<Self, OAuthError> {
         Ok(Self {
             client_id: ClientId::new(client_id),
             client_secret: ClientSecret::new(client_secret),
             redirect_uri: match redirect_uri {
-                Some(uri) => Some(RedirectUrl::new(uri)?),
+                Some(uri) => Some(
+                    RedirectUrl::new(uri).map_err(|x| OAuthError::RedirectUri(x.to_string()))?,
+                ),
                 None => None,
             },
             #[cfg(feature = "test")]
@@ -57,12 +55,14 @@ impl TwitchOauth {
         client_id: ClientId,
         client_secret: ClientSecret,
         redirect_uri: Option<String>,
-    ) -> crate::Result<Self> {
+    ) -> Result<Self, OAuthError> {
         Ok(Self {
             client_id,
             client_secret,
             redirect_uri: match redirect_uri {
-                Some(uri) => Some(RedirectUrl::new(uri)?),
+                Some(uri) => Some(
+                    RedirectUrl::new(uri).map_err(|x| OAuthError::RedirectUri(x.to_string()))?,
+                ),
                 None => None,
             },
             #[cfg(feature = "test")]
@@ -72,8 +72,9 @@ impl TwitchOauth {
         })
     }
 
-    pub fn set_redirect_uri(mut self, redir_url: String) -> crate::Result<Self> {
-        self.redirect_uri = Some(RedirectUrl::new(redir_url)?);
+    pub fn set_redirect_uri(mut self, redir_url: String) -> Result<Self, OAuthError> {
+        self.redirect_uri =
+            Some(RedirectUrl::new(redir_url).map_err(|x| OAuthError::RedirectUri(x.to_string()))?);
         Ok(self)
     }
 
@@ -93,14 +94,14 @@ impl TwitchOauth {
         RevocationUrl::new(format!("{BASE_URL}/{REVOKE}")).unwrap()
     }
 
-    fn validate_redirect_uri(&self) -> crate::Result<RedirectUrl> {
+    fn validate_redirect_uri(&self) -> Result<RedirectUrl, OAuthError> {
         self.redirect_uri
             .clone()
-            .ok_or(crate::Error::MissingRedirectUri)
+            .ok_or(OAuthError::MissingRedirectUri)
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
-    pub fn authorize_url(&mut self) -> crate::Result<(AuthrozationRequest, CsrfToken)> {
+    pub fn authorize_url(&mut self) -> Result<(AuthrozationRequest, CsrfToken), OAuthError> {
         let csrf_token = CsrfToken::new_random();
 
         let auth_request = AuthrozationRequest::new(
@@ -118,7 +119,7 @@ impl TwitchOauth {
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
-    ) -> crate::Result<TokenResponse<Token>> {
+    ) -> Result<APIResponse<Token>, Error> {
         let response = api_request(CodeTokenRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -127,12 +128,12 @@ impl TwitchOauth {
             self.get_token_url(),
             self.validate_redirect_uri()?,
         ))
-        .await?;
+        .await
+        .map_err(HttpError::RequestError)?;
 
-        Ok(TokenResponse::<Token>::new(
-            response.status(),
-            response.text().await?,
-        ))
+        Ok(APIResponse::from_response(response)
+            .await
+            .map_err(HttpError::RequestError)?)
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
@@ -141,20 +142,22 @@ impl TwitchOauth {
         &mut self,
         code_state: crate::oneshot_server::CodeState,
         csrf_token: CsrfToken,
-    ) -> crate::Result<TokenResponse<Token>> {
+    ) -> Result<APIResponse<Token>, Error> {
+        use crate::ServerError;
+
         match code_state.state {
             crate::oneshot_server::ServerStatus::Timeout => {
-                Err(Error::TimeoutError("".to_string()))
+                Err(ServerError::Timeout("OAuth code exchange timed out".to_string()).into())
             }
-            crate::oneshot_server::ServerStatus::Shutdown => Err(Error::GraceFulShutdown),
+            crate::oneshot_server::ServerStatus::Shutdown => Err(ServerError::Shutdown.into()),
             crate::oneshot_server::ServerStatus::Recive => {
-                let received_csrf = code_state.csrf_token.ok_or(Error::ResponseCsrfTokenError)?;
+                let received_csrf = code_state.csrf_token.ok_or(OAuthError::MissingCsrfToken)?;
 
                 if received_csrf.secret() != csrf_token.secret() {
-                    return Err(Error::CsrfTokenPartialEqError);
+                    return Err(OAuthError::CsrfTokenMismatch.into());
                 }
 
-                let code = code_state.code.ok_or(Error::MissingAuthorizationCode)?;
+                let code = code_state.code.ok_or(OAuthError::MissingAuthCode)?;
                 self.exchange_code_for_token(code).await
             }
         }
@@ -163,7 +166,7 @@ impl TwitchOauth {
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> crate::Result<TokenResponse<Token>> {
+    ) -> Result<APIResponse<Token>, HttpError> {
         let response = api_request(RefreshRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -173,14 +176,11 @@ impl TwitchOauth {
         ))
         .await?;
 
-        Ok(TokenResponse::<Token>::new(
-            response.status(),
-            response.text().await?,
-        ))
+        Ok(APIResponse::from_response(response).await?)
     }
 
     /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
-    pub async fn revoke_token(&self, access_token: AccessToken) -> crate::Result<()> {
+    pub async fn revoke_token(&self, access_token: AccessToken) -> Result<(), HttpError> {
         api_request(RevokeRequest::new(
             access_token,
             self.client_id.clone(),
@@ -191,7 +191,7 @@ impl TwitchOauth {
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
-    pub async fn client_credentials(&self) -> crate::Result<TokenResponse<ClientCredentials>> {
+    pub async fn client_credentials(&self) -> Result<APIResponse<ClientCredentials>, HttpError> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -200,10 +200,7 @@ impl TwitchOauth {
         ))
         .await?;
 
-        Ok(TokenResponse::<ClientCredentials>::new(
-            response.status(),
-            response.text().await?,
-        ))
+        Ok(APIResponse::from_response(response).await?)
     }
 
     #[cfg(feature = "test")]
@@ -261,98 +258,6 @@ impl TwitchOauth {
                 AuthUrl::new(format!("{BASE_URL}/{AUTH}")).unwrap()
             }
         }
-    }
-}
-
-pub struct TokenResponse<T>
-where
-    T: DeserializeOwned,
-{
-    status_code: StatusCode,
-    body: String,
-    _phantom: PhantomData<T>,
-}
-
-impl<T> fmt::Debug for TokenResponse<T>
-where
-    T: DeserializeOwned,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("TokenResponse")
-            .field("status_code", &self.status_code)
-            .field("body", &self.body)
-            .finish()
-    }
-}
-
-impl<T> TokenResponse<T>
-where
-    T: DeserializeOwned,
-{
-    pub fn new(status_code: StatusCode, body: String) -> Self {
-        TokenResponse {
-            status_code,
-            body,
-            _phantom: PhantomData,
-        }
-    }
-
-    pub fn status(&self) -> StatusCode {
-        self.status_code
-    }
-
-    pub fn raw_body(&self) -> &str {
-        &self.body
-    }
-
-    pub fn parse_token(self) -> crate::Result<T> {
-        match self.status_code {
-            StatusCode::OK => serde_json::from_str(&self.body)
-                .map_err(|e| Error::DeserializationError(e.to_string())),
-            _ => {
-                let error: TokenError = serde_json::from_str(&self.body)
-                    .map_err(|e| Error::DeserializationError(e.to_string()))?;
-                Err(Error::TokenError(error))
-            }
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenError {
-    #[serde(with = "http_serde::status_code")]
-    status: StatusCode,
-    message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
-}
-
-impl TokenError {
-    pub fn status(&self) -> StatusCode {
-        self.status
-    }
-
-    pub fn message(&self) -> &str {
-        &self.message
-    }
-
-    pub fn error_details(&self) -> Option<&str> {
-        self.error.as_deref()
-    }
-}
-
-impl fmt::Display for TokenError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Token error ({}): {}{}",
-            self.status,
-            self.message,
-            self.error
-                .as_ref()
-                .map(|e| format!(" - {}", e))
-                .unwrap_or_default()
-        )
     }
 }
 
