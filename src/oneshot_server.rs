@@ -84,7 +84,6 @@ async fn shutdown_signal() {
         .expect("failed to install CTRL+C signal handler");
 }
 
-//async fn code_state_parse(mut stream: TcpStream) -> crate::Result<(String, String)> {
 async fn code_state_parse(mut stream: TcpStream) -> Result<(String, String), Error> {
     let mut reader = BufReader::new(&mut stream);
 

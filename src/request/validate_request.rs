@@ -4,12 +4,10 @@ use asknothingx2_util::{
 };
 use url::Url;
 
-use crate::{types::ValidateToken, HttpError};
+use crate::HttpError;
 
 /// https://dev.twitch.tv/docs/authentication/validate-tokens/
-pub async fn validate_token(
-    access_token: AccessToken,
-) -> Result<APIResponse<ValidateToken>, HttpError> {
+pub async fn validate_token(access_token: AccessToken) -> Result<APIResponse, HttpError> {
     let response = api_request(ValidateRequest::new(
         access_token.clone(),
         ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap(),

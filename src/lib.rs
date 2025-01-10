@@ -7,7 +7,11 @@
 //!```ignore
 //! use std::time::Duration;
 //!
-//! use twitch_oauth_token::{oneshot_server, types::Scope, TwitchOauth, validate_token};
+//! use twitch_oauth_token::{
+//!     oneshot_server,
+//!     types::{ClientCredentials, Token, UsersScopes, ValidateToken},
+//!     TwitchOauth, TokenError, validate_token
+//! };
 //! use url::Url;
 //!
 //! #[tokio::main]
@@ -17,13 +21,13 @@
 //!         "client_secret".to_string(),
 //!         Some("redirect_uri".to_string())
 //!     )
-//!     .expect("Failed to parse redirect URL in TwitchOauth initialization");
+//!     .expect("Failed to parse redirect URI in TwitchOauth initialization");
 //!  
-//!     let client_credentials = oauth.client_credentials().await?.into_json()?;
+//!     let client_credentials: ClientCredentials = oauth.client_credentials().await?.into_json()?;
 //!     println!("client credentials: {client_credentials:#?}");
 //!  
 //!     let (mut auth_request, csrf_token) = oauth.authorize_url()?;
-//!     auth_request.scopes_mut().push(Scope::ChatRead);
+//!     auth_request.scopes_mut().with_user_api();
 //!  
 //!     println!("{}", auth_request.url());
 //!     let timeout = 60;
@@ -36,24 +40,28 @@
 //!     )
 //!     .await?;
 //!  
-//!     let token = oauth
+//!     let token: Token = oauth
 //!         .exchange_code(code_state, csrf_token)
 //!         .await?
 //!         .into_json()?;
 //!     println!("token: {:#?}", token);
 //!  
-//!     let validate_token = validate_token(token.access_token.clone())
+//!     let validate_token: ValidateToken = validate_token(token.access_token.clone())
 //!         .await?
 //!         .into_json()?;
 //!     println!("validate token: {validate_token:#?}");
 //!  
-//!     let refresh_token = oauth
+//!     let refresh_token: Token = oauth
 //!         .exchange_refresh_token(token.refresh_token)
 //!         .await?
 //!         .into_json()?;
 //!     println!("refresh token: {refresh_token:#?}");
 //!  
-//!     oauth.revoke_token(token.access_token).await?;
+//!     let revoke_token = oauth.revoke_token(token.access_token).await?;
+//!     if !revoke_token.is_success() {
+//!         let token_err: TokenError = revoke_token.into_json().unwrap();
+//!         println!("refresh token error: {token_err:#?}");
+//!    }
 //!  
 //!     Ok(())
 //! }
@@ -66,7 +74,7 @@
 //!```ignore
 //! use twitch_oauth_token::{
 //!     test_url::get_users_info,
-//!     types::{PollsScopes, Scope, Token},
+//!     types::{PollsScopes, Token},
 //!     TwitchOauth
 //! };
 //!
@@ -132,7 +140,7 @@ mod oauth;
 mod request;
 
 #[cfg(feature = "oauth")]
-pub use oauth::TwitchOauth;
+pub use oauth::{TokenError, TwitchOauth};
 #[cfg(feature = "oauth")]
 pub use request::{
     validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,

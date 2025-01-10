@@ -5,10 +5,12 @@ use asknothingx2_util::{
         RefreshToken, RevocationUrl, TokenUrl,
     },
 };
+use http_serde::http::StatusCode;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
-    types::{ClientCredentials, GrantType, ResponseType, Token},
+    types::{GrantType, ResponseType},
     AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, HttpError, OAuthError,
     RefreshRequest, RevokeRequest,
 };
@@ -119,7 +121,7 @@ impl TwitchOauth {
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
-    ) -> Result<APIResponse<Token>, Error> {
+    ) -> Result<APIResponse, Error> {
         let response = api_request(CodeTokenRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -142,7 +144,7 @@ impl TwitchOauth {
         &mut self,
         code_state: crate::oneshot_server::CodeState,
         csrf_token: CsrfToken,
-    ) -> Result<APIResponse<Token>, Error> {
+    ) -> Result<APIResponse, Error> {
         use crate::ServerError;
 
         match code_state.state {
@@ -166,7 +168,7 @@ impl TwitchOauth {
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> Result<APIResponse<Token>, HttpError> {
+    ) -> Result<APIResponse, HttpError> {
         let response = api_request(RefreshRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -180,18 +182,18 @@ impl TwitchOauth {
     }
 
     /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
-    pub async fn revoke_token(&self, access_token: AccessToken) -> Result<(), HttpError> {
-        api_request(RevokeRequest::new(
+    pub async fn revoke_token(&self, access_token: AccessToken) -> Result<APIResponse, HttpError> {
+        let response = api_request(RevokeRequest::new(
             access_token,
             self.client_id.clone(),
             self.get_revoke_url(),
         ))
         .await?;
-        Ok(())
+        Ok(APIResponse::from_response(response).await?)
     }
 
     /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
-    pub async fn client_credentials(&self) -> Result<APIResponse<ClientCredentials>, HttpError> {
+    pub async fn client_credentials(&self) -> Result<APIResponse, HttpError> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),
             self.client_secret.clone(),
@@ -265,4 +267,13 @@ impl TwitchOauth {
 enum TestOauthType {
     User,
     App,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenError {
+    #[serde(with = "http_serde::status_code")]
+    pub status: StatusCode,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }
