@@ -28,9 +28,10 @@ fn request() {
         ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap(),
     );
 
-    let expected_headers = HeaderBuilder::new()
-        .authorization("OAuth", "ue85uei4ui")
-        .build();
+    let mut expected_headers = HeaderBuilder::new();
+    expected_headers.authorization("OAuth", "ue85uei4ui");
+
+    let expected_headers = expected_headers.build();
 
     assert_eq!(Method::GET, request.method());
     assert_eq!(

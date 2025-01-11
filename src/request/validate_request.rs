@@ -41,8 +41,9 @@ impl APIRequest for ValidateRequest {
         Method::GET
     }
     fn headers(&self) -> HeaderMap {
-        HeaderBuilder::new()
-            .authorization("OAuth", self.access_token.secret())
-            .build()
+        let mut headers = HeaderBuilder::new();
+        headers.authorization("OAuth", self.access_token.secret());
+
+        headers.build()
     }
 }

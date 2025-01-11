@@ -42,10 +42,10 @@ impl APIRequest for RefreshRequest {
         Method::POST
     }
     fn headers(&self) -> HeaderMap {
-        HeaderBuilder::new()
-            .accept_json()
-            .content_type_formencoded()
-            .build()
+        let mut headers = HeaderBuilder::new();
+        headers.accept_json().content_type_formencoded();
+
+        headers.build()
     }
     fn urlencoded(&self) -> Option<Vec<u8>> {
         let params = vec![
