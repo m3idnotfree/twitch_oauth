@@ -7,7 +7,7 @@ use asknothingx2_util::{
 use url::Url;
 
 use crate::{
-    types::{scopes_mut, GrantType, Scope, ScopesMut, Token},
+    types::{scopes_mut, GrantType, Scope, ScopesMut},
     HttpError,
 };
 
@@ -43,10 +43,10 @@ impl TestAccessToken {
         scopes_mut(&mut self.scopes)
     }
 
-    pub async fn request_access_token(self) -> Result<Token, HttpError> {
+    pub async fn request_access_token(self) -> Result<APIResponse, HttpError> {
         let response = api_request(self).await?;
 
-        Ok(APIResponse::from_response(response).await?.into_json()?)
+        Ok(APIResponse::from_response(response).await?)
     }
 }
 
