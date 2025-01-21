@@ -102,7 +102,7 @@ impl TwitchOauth {
             .ok_or(OAuthError::MissingRedirectUri)
     }
 
-    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
+    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub fn authorize_url(&mut self) -> Result<(AuthrozationRequest, CsrfToken), OAuthError> {
         let csrf_token = CsrfToken::new_random();
 
@@ -117,7 +117,7 @@ impl TwitchOauth {
         Ok((auth_request, csrf_token))
     }
 
-    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
+    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub async fn exchange_code_for_token(
         &self,
         code: AuthorizationCode,
@@ -138,7 +138,7 @@ impl TwitchOauth {
             .map_err(HttpError::RequestError)?)
     }
 
-    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
+    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     #[cfg(feature = "oneshot-server")]
     pub async fn exchange_code(
         &mut self,
@@ -164,7 +164,7 @@ impl TwitchOauth {
             }
         }
     }
-    /// https://dev.twitch.tv/docs/authentication/refresh-tokens/
+    /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
     pub async fn exchange_refresh_token(
         &self,
         refresh_token: RefreshToken,
@@ -181,7 +181,7 @@ impl TwitchOauth {
         Ok(APIResponse::from_response(response).await?)
     }
 
-    /// https://dev.twitch.tv/docs/authentication/revoke-tokens/
+    /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_token(&self, access_token: AccessToken) -> Result<APIResponse, HttpError> {
         let response = api_request(RevokeRequest::new(
             access_token,
@@ -192,7 +192,7 @@ impl TwitchOauth {
         Ok(APIResponse::from_response(response).await?)
     }
 
-    /// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
+    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn client_credentials(&self) -> Result<APIResponse, HttpError> {
         let response = api_request(ClientCredentialsRequest::new(
             self.client_id.clone(),

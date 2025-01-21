@@ -4,49 +4,49 @@ use super::Scope;
 
 pub trait AdsScopes {
     fn with_ads_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#start-commercial
+    /// <https://dev.twitch.tv/docs/api/reference/#start-commercial>
     fn with_stard_commercial(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-ad-schedule
+    /// <https://dev.twitch.tv/docs/api/reference/#get-ad-schedule>
     fn with_ad_schedule_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#snooze-next-ad
+    /// <https://dev.twitch.tv/docs/api/reference/#snooze-next-ad>
     fn with_snooze_next_ad(&mut self) -> &mut Self;
 }
 
 pub trait AnalyticsScopes {
     fn with_analytics_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-extension-analytics
+    /// <https://dev.twitch.tv/docs/api/reference/#get-extension-analytics>
     fn with_extension_analytics_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-game-analytics
+    /// <https://dev.twitch.tv/docs/api/reference/#get-game-analytics>
     fn with_game_analytics_read(&mut self) -> &mut Self;
 }
 
 pub trait BitsScopes {
     fn with_bits_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard
+    /// <https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard>
     fn with_bits_leaderboard_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-cheermotes
+    /// <https://dev.twitch.tv/docs/api/reference/#get-cheermotes>
     fn with_cheermotes_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-extension-transactions
+    /// <https://dev.twitch.tv/docs/api/reference/#get-extension-transactions>
     fn with_extension_transactions_read(&mut self) -> &mut Self;
 }
 
 pub trait ChannelScopes {
     fn with_channel_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-information
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-information>
     fn with_channel_info_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#modify-channel-information
+    /// <https://dev.twitch.tv/docs/api/reference/#modify-channel-information>
     fn with_channel_info_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-editors
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-editors>
     fn with_channel_editors_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-followed-channels
+    /// <https://dev.twitch.tv/docs/api/reference/#get-followed-channels>
     fn with_followed_channels_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-followers
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-followers>
     fn with_channel_followers_read(&mut self) -> &mut Self;
 }
 
 pub trait ChannelPointsScopes {
     fn with_channel_points_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-custom-rewards
+    /// <https://dev.twitch.tv/docs/api/reference/#create-custom-rewards>
     fn with_custom_rewards_create(&mut self) -> &mut Self;
     fn with_custom_reward_delete(&mut self) -> &mut Self;
     fn with_custom_reward_read(&mut self) -> &mut Self;
@@ -65,7 +65,7 @@ pub trait ChatScopes {
     // Chat
     fn with_chat_api(&mut self) -> &mut Self;
     /// moderator:read:chatters
-    /// https://dev.twitch.tv/docs/api/reference/#get-chatters
+    /// <https://dev.twitch.tv/docs/api/reference/#get-chatters>
     fn with_chatters(&mut self) -> &mut Self;
     fn with_channel_emotes(&mut self) -> &mut Self;
     fn with_global_emotes(&mut self) -> &mut Self;
@@ -74,13 +74,13 @@ pub trait ChatScopes {
     fn with_chat_setting_read(&mut self) -> &mut Self;
     fn with_shard_chat_session_read(&mut self) -> &mut Self;
     /// user:read:emotes
-    /// https://dev.twitch.tv/docs/api/reference/#get-user-emotes
+    /// <https://dev.twitch.tv/docs/api/reference/#get-user-emotes>
     fn with_user_emotes_read(&mut self) -> &mut Self;
     fn with_chat_setting_manage(&mut self) -> &mut Self;
     fn with_chat_announcement_write(&mut self) -> &mut Self;
     fn with_shoutout_write(&mut self) -> &mut Self;
     /// user:write:chat
-    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
     fn with_chat_write(&mut self) -> &mut Self;
     /// user:write:chat user:bot channel:bot
     fn with_chat_write_as_app(&mut self) -> &mut Self;
@@ -132,203 +132,203 @@ pub trait ExtensionsScopes {
 
 pub trait EventSubScopes {
     fn with_eventsub_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription
+    /// <https://dev.twitch.tv/docs/api/reference/#create-eventsub-subscription>
     fn with_eventsub_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-eventsub-subscription
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-eventsub-subscription>
     fn with_eventsub_delete(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-eventsub-subscriptions
+    /// <https://dev.twitch.tv/docs/api/reference/#get-eventsub-subscriptions>
     fn with_eventsub_read(&mut self) -> &mut Self;
 }
 
 pub trait GamesScopes {
     fn with_games_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-top-games
+    /// <https://dev.twitch.tv/docs/api/reference/#get-top-games>
     fn with_top_games_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-games
+    /// <https://dev.twitch.tv/docs/api/reference/#get-games>
     fn with_games_read(&mut self) -> &mut Self;
 }
 
 pub trait GoalsScopes {
     fn with_golas_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-creator-goals
+    /// <https://dev.twitch.tv/docs/api/reference/#get-creator-goals>
     fn with_creator_goals_read(&mut self) -> &mut Self;
 }
 
 pub trait GuestStarScopes {
     fn with_guest_star_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-guest-star-settings
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-guest-star-settings>
     fn with_channel_guest_star_setings_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-channel-guest-star-settings
+    /// <https://dev.twitch.tv/docs/api/reference/#update-channel-guest-star-settings>
     fn with_channel_guest_star_setings_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-guest-star-session
+    /// <https://dev.twitch.tv/docs/api/reference/#get-guest-star-session>
     fn with_guest_star_session_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-guest-star-session
+    /// <https://dev.twitch.tv/docs/api/reference/#create-guest-star-session>
     fn with_guest_star_session_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#end-guest-star-session
+    /// <https://dev.twitch.tv/docs/api/reference/#end-guest-star-session>
     fn with_guest_star_session_end(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-guest-star-invites
+    /// <https://dev.twitch.tv/docs/api/reference/#get-guest-star-invites>
     fn with_guest_star_invites_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#send-guest-star-invite
+    /// <https://dev.twitch.tv/docs/api/reference/#send-guest-star-invite>
     fn with_guest_star_invites_write(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-guest-star-invite
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-guest-star-invite>
     fn with_guest_star_invites_delete(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#assign-guest-star-slot
+    /// <https://dev.twitch.tv/docs/api/reference/#assign-guest-star-slot>
     fn with_gust_star_slot_assign(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot
+    /// <https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot>
     fn with_gust_star_slot_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-guest-star-slot
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-guest-star-slot>
     fn with_gust_star_slot_delete(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot-settings
+    /// <https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot-settings>
     fn with_gust_star_slot_settings_manage(&mut self) -> &mut Self;
 }
 
 pub trait HypeTrainScopes {
     fn with_hype_train_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-hype-train-events
+    /// <https://dev.twitch.tv/docs/api/reference/#get-hype-train-events>
     fn with_hype_train_events_read(&mut self) -> &mut Self;
 }
 
 pub trait ModerationScopes {
     fn with_moderation_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#check-automod-status
+    /// <https://dev.twitch.tv/docs/api/reference/#check-automod-status>
     fn with_automod_status_check(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#manage-held-automod-messages
+    /// <https://dev.twitch.tv/docs/api/reference/#manage-held-automod-messages>
     fn with_held_automod_messages_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-automod-settings
+    /// <https://dev.twitch.tv/docs/api/reference/#get-automod-settings>
     fn with_automod_settings_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-automod-settings
+    /// <https://dev.twitch.tv/docs/api/reference/#update-automod-settings>
     fn with_automod_settings_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-banned-users
+    /// <https://dev.twitch.tv/docs/api/reference/#get-banned-users>
     fn with_banned_users_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#ban-user
+    /// <https://dev.twitch.tv/docs/api/reference/#ban-user>
     fn with_ban_user(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#unban-user
+    /// <https://dev.twitch.tv/docs/api/reference/#unban-user>
     fn with_unban_user(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-unban-requests
+    /// <https://dev.twitch.tv/docs/api/reference/#get-unban-requests>
     fn with_unban_requests_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#resolve-unban-requests
+    /// <https://dev.twitch.tv/docs/api/reference/#resolve-unban-requests>
     fn with_unban_requests_resolve(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-blocked-terms
+    /// <https://dev.twitch.tv/docs/api/reference/#get-blocked-terms>
     fn with_blocked_terms_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#add-blocked-term
+    /// <https://dev.twitch.tv/docs/api/reference/#add-blocked-term>
     fn with_blocked_terms_add(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#remove-blocked-term
+    /// <https://dev.twitch.tv/docs/api/reference/#remove-blocked-term>
     fn with_blocked_terms_remove(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-chat-messages
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-chat-messages>
     fn with_chat_messages_delete(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-moderated-channels
+    /// <https://dev.twitch.tv/docs/api/reference/#get-moderated-channels>
     fn with_moderated_channels_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-moderators
+    /// <https://dev.twitch.tv/docs/api/reference/#get-moderators>
     fn with_moderators_read_as_user(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-moderators
+    /// <https://dev.twitch.tv/docs/api/reference/#get-moderators>
     fn with_moderators_read_as_app(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#add-channel-moderator
+    /// <https://dev.twitch.tv/docs/api/reference/#add-channel-moderator>
     fn with_chanel_moderator_add(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#remove-channel-moderator
+    /// <https://dev.twitch.tv/docs/api/reference/#remove-channel-moderator>
     fn with_channel_moderator_remove(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-vips
+    /// <https://dev.twitch.tv/docs/api/reference/#get-vips>
     fn with_vips_read_as_user(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-vips
+    /// <https://dev.twitch.tv/docs/api/reference/#get-vips>
     fn with_vips_read_as_app(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#add-channel-vip
+    /// <https://dev.twitch.tv/docs/api/reference/#add-channel-vip>
     fn with_channel_vip_add(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#remove-channel-vip
+    /// <https://dev.twitch.tv/docs/api/reference/#remove-channel-vip>
     fn with_channel_vip_remove(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-shield-mode-status
+    /// <https://dev.twitch.tv/docs/api/reference/#update-shield-mode-status>
     fn with_shield_mode_status_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-shield-mode-status
+    /// <https://dev.twitch.tv/docs/api/reference/#get-shield-mode-status>
     fn with_shield_mode_status_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#warn-chat-user
+    /// <https://dev.twitch.tv/docs/api/reference/#warn-chat-user>
     fn with_chat_user_warn(&mut self) -> &mut Self;
 }
 
 pub trait PollsScopes {
     fn with_polls_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-polls
+    /// <https://dev.twitch.tv/docs/api/reference/#get-polls>
     fn with_polls_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-poll
+    /// <https://dev.twitch.tv/docs/api/reference/#create-poll>
     fn with_polls_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#end-poll
+    /// <https://dev.twitch.tv/docs/api/reference/#end-poll>
     fn with_polls_end(&mut self) -> &mut Self;
 }
 
 pub trait PredictionsScopes {
     fn with_predictions_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-predictions
+    /// <https://dev.twitch.tv/docs/api/reference/#get-predictions>
     fn with_predictions_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-prediction
+    /// <https://dev.twitch.tv/docs/api/reference/#create-prediction>
     fn with_predictions_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#end-prediction
+    /// <https://dev.twitch.tv/docs/api/reference/#end-prediction>
     fn with_predictions_end(&mut self) -> &mut Self;
 }
 
 pub trait RaidsScopes {
     fn with_raids_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#start-a-raid
+    /// <https://dev.twitch.tv/docs/api/reference/#start-a-raid>
     fn with_raid_start(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#cancel-a-raid
+    /// <https://dev.twitch.tv/docs/api/reference/#cancel-a-raid>
     fn with_raid_cancel(&mut self) -> &mut Self;
 }
 
 pub trait ScheduleScopes {
     fn with_schedule_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-stream-schedule
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-stream-schedule>
     fn with_channel_stream_schedule_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-icalendar
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-icalendar>
     fn with_channel_icalendar_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule
+    /// <https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule>
     fn with_channel_stream_schedule_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-channel-stream-schedule-segment
+    /// <https://dev.twitch.tv/docs/api/reference/#create-channel-stream-schedule-segment>
     fn with_channel_stream_schedule_segment_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule-segment
+    /// <https://dev.twitch.tv/docs/api/reference/#update-channel-stream-schedule-segment>
     fn with_channel_stream_schedule_segment_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-channel-stream-schedule-segment
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-channel-stream-schedule-segment>
     fn with_channel_stream_schedule_segment_delete(&mut self) -> &mut Self;
 }
 
 pub trait SearchScopes {
     fn with_search_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#search-categories
+    /// <https://dev.twitch.tv/docs/api/reference/#search-categories>
     fn with_categories_search(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#search-channels
+    /// <https://dev.twitch.tv/docs/api/reference/#search-channels>
     fn with_channels_search(&mut self) -> &mut Self;
 }
 
 pub trait StreamsScopes {
     fn with_streams_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-stream-key
+    /// <https://dev.twitch.tv/docs/api/reference/#get-stream-key>
     fn with_stream_key_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-streams
+    /// <https://dev.twitch.tv/docs/api/reference/#get-streams>
     fn with_streams_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-followed-streams
+    /// <https://dev.twitch.tv/docs/api/reference/#get-followed-streams>
     fn with_followed_streams_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#create-stream-marker
+    /// <https://dev.twitch.tv/docs/api/reference/#create-stream-marker>
     fn with_stream_marker_create(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-stream-markers
+    /// <https://dev.twitch.tv/docs/api/reference/#get-stream-markers>
     fn with_stream_markers_read(&mut self) -> &mut Self;
 }
 
 pub trait SubscriptionsScopes {
     fn with_subscriptions_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-all-stream-tags
+    /// <https://dev.twitch.tv/docs/api/reference/#get-all-stream-tags>
     fn with_broadcaster_subscriptions_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#check-user-subscription
+    /// <https://dev.twitch.tv/docs/api/reference/#check-user-subscription>
     fn with_user_subscription_check(&mut self) -> &mut Self;
 }
 
 pub trait TagsScopes {
     fn with_tags_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-all-stream-tags
+    /// <https://dev.twitch.tv/docs/api/reference/#get-all-stream-tags>
     fn with_all_stream_tags_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-stream-tags
+    /// <https://dev.twitch.tv/docs/api/reference/#get-stream-tags>
     fn with_stream_tags_read(&mut self) -> &mut Self;
 }
 
 pub trait TeamsScopes {
     fn with_teams_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-channel-teams
+    /// <https://dev.twitch.tv/docs/api/reference/#get-channel-teams>
     fn with_channel_teams_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-teams
+    /// <https://dev.twitch.tv/docs/api/reference/#get-teams>
     fn with_teams_read(&mut self) -> &mut Self;
 }
 
@@ -336,34 +336,34 @@ pub trait UsersScopes {
     // Users
     fn with_user_api(&mut self) -> &mut Self;
     /// user:read:email
-    /// https://dev.twitch.tv/docs/api/reference/#get-users
+    /// <https://dev.twitch.tv/docs/api/reference/#get-users>
     fn with_users_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-user
+    /// <https://dev.twitch.tv/docs/api/reference/#update-user>
     fn with_users_manage(&mut self) -> &mut Self;
     /// user:read:blocked_users
-    /// https://dev.twitch.tv/docs/api/reference/#get-user-block-list
+    /// <https://dev.twitch.tv/docs/api/reference/#get-user-block-list>
     fn with_block_list_read(&mut self) -> &mut Self;
     /// user:manage:blocked_users
-    /// https://dev.twitch.tv/docs/api/reference/#block-user
-    /// https://dev.twitch.tv/docs/api/reference/#unblock-user
+    /// <https://dev.twitch.tv/docs/api/reference/#block-user>
+    /// <https://dev.twitch.tv/docs/api/reference/#unblock-user>
     fn with_block_list_manage(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-user-active-extensions
+    /// <https://dev.twitch.tv/docs/api/reference/#get-user-active-extensions>
     fn with_user_extensions_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#update-user-extensions
+    /// <https://dev.twitch.tv/docs/api/reference/#update-user-extensions>
     fn with_user_extensions_manage(&mut self) -> &mut Self;
 }
 
 pub trait VideosScopes {
     fn with_videos_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#get-videos
+    /// <https://dev.twitch.tv/docs/api/reference/#get-videos>
     fn with_videos_read(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#delete-videos
+    /// <https://dev.twitch.tv/docs/api/reference/#delete-videos>
     fn with_videos_delete(&mut self) -> &mut Self;
 }
 
 pub trait WhispersScopes {
     fn with_whispers_api(&mut self) -> &mut Self;
-    /// https://dev.twitch.tv/docs/api/reference/#send-whisper
+    /// <https://dev.twitch.tv/docs/api/reference/#send-whisper>
     fn with_whisper_write(&mut self) -> &mut Self;
 }
 
@@ -1187,7 +1187,7 @@ impl IRCScopes for ScopesMut<'_> {
 }
 
 /// inspired PathSegmentsMut
-/// https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42
+/// <https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42>
 #[derive(Debug)]
 pub struct ScopesMut<'a> {
     scopes: &'a mut HashSet<Scope>,

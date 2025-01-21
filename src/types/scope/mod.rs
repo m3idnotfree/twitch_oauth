@@ -17,58 +17,58 @@ pub enum Scope {
     /// View analytics data for the Twitch Extensions owned by the authenticated account.
     /// API
     /// Get Extension Analytics
-    /// https://dev.twitch.tv/docs/api/reference/#get-extension-analytics
+    /// <https://dev.twitch.tv/docs/api/reference/#get-extension-analytics>
     AnalyticsReadExtensions,
     /// View analytics data for the games owned by the authenticated account.
     /// API
     /// Get Game Analytics
-    /// https://dev.twitch.tv/docs/api/reference/#get-game-analytics
+    /// <https://dev.twitch.tv/docs/api/reference/#get-game-analytics>
     AnalyticsReadGames,
     /// View Bits information for a channel.
     ///
     /// API
     /// Get Bits Leaderboard
-    /// https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard
+    /// <https://dev.twitch.tv/docs/api/reference/#get-bits-leaderboard>
     ///
     /// EventSub
     /// Channel Cheer
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcheer
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcheer>
     BitsRead,
     /// Joins your channel’s chatroom as a bot user, and perform chat-related actions as that user.
     ///
     /// API
     /// Send Chat Message
-    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
     ///
     /// EventSub
     /// Channel Chat Clear
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear>
     /// Channel Chat Clear User Messages
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear_user_messages
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatclear_user_messages>
     /// Channel Chat Message
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage>
     /// Channel Chat Message Delete
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage_delete
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage_delete>
     /// Channel Chat Notification
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatnotification
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatnotification>
     /// Channel Chat Settings Update
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchat_settingsupdate
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchat_settingsupdate>
     ChannelBot,
     /// Manage ads schedule on a channel.
     ///
     /// API
     /// Snooze Next Ad
-    /// https://dev.twitch.tv/docs/api/reference/#snooze-next-ad
+    /// <https://dev.twitch.tv/docs/api/reference/#snooze-next-ad>
     ChannelManageAds,
     /// Read the ads schedule and details on your channel.
     ///
     /// API
     /// Get Ad Schedule
-    /// https://dev.twitch.tv/docs/api/reference/#get-ad-schedule
+    /// <https://dev.twitch.tv/docs/api/reference/#get-ad-schedule>
     ///
     /// EventSub
     /// Channel Ad Break Begin
-    /// https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelad_breakbegin
+    /// <https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelad_breakbegin>
     ChannelReadAds,
     /// Manage a channel’s broadcast configuration, including updating channel configuration and managing stream markers and stream tags.
     ///
@@ -540,7 +540,7 @@ pub enum Scope {
     ///
     /// API
     /// Send Chat Message
-    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
     ///
     /// EventSub
     /// Channel Chat Clear
@@ -568,15 +568,15 @@ pub enum Scope {
     ///
     /// API
     /// Get User Block List
-    /// https://dev.twitch.tv/docs/api/reference/#get-user-block-list
+    /// <https://dev.twitch.tv/docs/api/reference/#get-user-block-list>
     UserReadBlockedUsers,
     /// Manage the block list of a user.
     ///
     /// API
     /// Block User
-    /// https://dev.twitch.tv/docs/api/reference/#block-user
+    /// <https://dev.twitch.tv/docs/api/reference/#block-user>
     /// Unblock User
-    /// https://dev.twitch.tv/docs/api/reference/#unblock-user
+    /// <https://dev.twitch.tv/docs/api/reference/#unblock-user>
     UserManageBlockedUsers,
     /// View a user’s broadcasting configuration, including Extension configurations.
     ///
@@ -615,7 +615,7 @@ pub enum Scope {
     ///
     /// API
     /// Get User Emotes
-    /// https://dev.twitch.tv/docs/api/reference/#get-user-emotes
+    /// <https://dev.twitch.tv/docs/api/reference/#get-user-emotes>
     UserReadEmotes,
     /// View the list of channels a user follows.
     ///
@@ -650,22 +650,22 @@ pub enum Scope {
     ///
     /// API
     /// Send Chat Message
-    /// https://dev.twitch.tv/docs/api/reference/#send-chat-message
+    /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
     UserWriteChat,
 
     /// Send chat messages to a chatroom using an IRC connection.
     ///
-    /// https://dev.twitch.tv/docs/chat/irc
+    /// <https://dev.twitch.tv/docs/chat/irc>
     ChatEdit,
     /// View chat messages sent in a chatroom using an IRC connection.
     ///
-    /// https://dev.twitch.tv/docs/chat/irc
+    /// <https://dev.twitch.tv/docs/chat/irc>
     ChatRead,
     /// The following table lists the scopes used only by PubSub.
     /// There may be additional scopes needed for some PubSub topics, but those are not listed here.
     /// Receive whisper messages for your user using PubSub.
     ///
-    /// https://dev.twitch.tv/docs/pubsub
+    /// <https://dev.twitch.tv/docs/pubsub>
     WhispersRead,
     EmptyString,
 }

@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::HttpError;
 
-/// https://dev.twitch.tv/docs/authentication/validate-tokens/
+/// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_token(access_token: AccessToken) -> Result<APIResponse, HttpError> {
     let response = api_request(ValidateRequest::new(
         access_token.clone(),
@@ -17,7 +17,7 @@ pub async fn validate_token(access_token: AccessToken) -> Result<APIResponse, Ht
     Ok(APIResponse::from_response(response).await?)
 }
 
-/// https://dev.twitch.tv/docs/authentication/validate-tokens/
+/// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 #[derive(Debug)]
 pub struct ValidateRequest {
     access_token: AccessToken,

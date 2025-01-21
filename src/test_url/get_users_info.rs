@@ -7,7 +7,7 @@ use url::Url;
 
 use crate::HttpError;
 
-/// https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token
+/// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UsersResponse {
     pub cursor: String,

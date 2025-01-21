@@ -8,6 +8,10 @@ repository = "https://github.com/m3idnotfree/twitch_oauth.git"
 license = "MIT"
 keywords = ["twitch", "oauth"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [features]
 default = ["oauth"]
 oauth = ["types", "http-serde", "serde_json", "thiserror", "url"]

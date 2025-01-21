@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::types::GrantType;
 
-/// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
+/// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
 #[derive(Debug)]
 pub struct ClientCredentialsRequest {
     client_id: ClientId,

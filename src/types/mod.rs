@@ -40,7 +40,7 @@ impl Token {
     }
 }
 
-/// https://dev.twitch.tv/docs/authentication/validate-tokens/
+/// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateToken {
     pub client_id: String,
@@ -50,7 +50,7 @@ pub struct ValidateToken {
     pub expires_in: u64,
 }
 
-/// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
+/// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientCredentials {
     pub access_token: AccessToken,

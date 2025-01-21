@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::types::GrantType;
 
-/// https://dev.twitch.tv/docs/authentication/refresh-tokens/
+/// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
 #[derive(Debug)]
 pub struct RefreshRequest {
     client_id: ClientId,

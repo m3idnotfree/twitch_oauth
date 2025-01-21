@@ -1,5 +1,6 @@
 //! # Usage
 //! ```toml
+//! [dependencies]
 //! twitch_oauth_token = { version = "1", features = ["oneshot-server"] }
 //! url = "2"
 //! anyhow = "1"
@@ -69,6 +70,7 @@
 //!
 //! # Useing the Twitch CLI Mock Server
 //! ```toml
+//! [dependencies]
 //! twitch_oauth_token = { version = "1", features = ["oauth", "test"] }
 //! ```
 //!```ignore
@@ -83,7 +85,7 @@
 //!     // Does not contain a user_id
 //!     // When first run twitch mock-api generate
 //!     // copy user_id
-//!     // https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token
+//!     // <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
 //!     let users_info = get_users_info(None).await.expect("Failed to connect to Twitch mock server");
 //!     let user = users_info.data.first().expect("Mock server returned empty user data");
 //!
@@ -125,14 +127,17 @@
 //!
 //! # Only Types
 //! ```toml
+//! [dependencies]
 //! twitch_oauth_token = { version = "1.1.0", default-features = false, features = ["types"] }
 //! ```
 //! - Token
-//! - ValidateToken: https://dev.twitch.tv/docs/authentication/validate-tokens
-//! - ClientCredentials: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow
-//! - Scope: https://dev.twitch.tv/docs/authentication/scopes
+//! - ValidateToken: <https://dev.twitch.tv/docs/authentication/validate-tokens>
+//! - ClientCredentials: <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
+//! - Scope: <https://dev.twitch.tv/docs/authentication/scopes>
 //! - ResponseType
 //! - GrantType
+
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "oauth")]
 mod oauth;
@@ -150,6 +155,7 @@ pub use request::{
 #[cfg(feature = "oneshot-server")]
 mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
+#[cfg_attr(docsrs, doc(cfg(feature = "oneshot-server")))]
 pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
 
 #[cfg(any(feature = "oauth", feature = "oneshot-server"))]

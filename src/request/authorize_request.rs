@@ -5,7 +5,7 @@ use url::Url;
 
 use crate::types::{scopes_mut, ResponseType, Scope, ScopesMut};
 
-/// https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow
+/// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
 pub struct AuthrozationRequest {
     auth_url: AuthUrl,
     client_id: ClientId,

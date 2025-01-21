@@ -4,7 +4,7 @@ use asknothingx2_util::{
 };
 use url::Url;
 
-/// https://dev.twitch.tv/docs/authentication/revoke-tokens/
+/// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]
 pub struct RevokeRequest {
     access_token: AccessToken,
