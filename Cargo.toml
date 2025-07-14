@@ -21,7 +21,7 @@ test = []
 full = ["oauth", "oneshot-server", "test"]
 
 [dependencies]
-asknothingx2-util = { version = "0.0.28", features = ["api", "oauth"] }
+asknothingx2-util = { version = "0.1.2", features = ["api", "oauth"] }
 serde = { version = "1.0.217", features = ["derive"] }
 
 http-serde = { version = "2.1.1", optional = true }
