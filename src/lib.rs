@@ -139,6 +139,8 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+mod error;
+pub use error::{Error, Kind};
 #[cfg(feature = "oauth")]
 mod oauth;
 #[cfg(feature = "oauth")]
@@ -157,11 +159,6 @@ mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
 #[cfg_attr(docsrs, doc(cfg(feature = "oneshot-server")))]
 pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
-
-#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
-mod error;
-#[cfg(any(feature = "oauth", feature = "oneshot-server"))]
-pub use error::{Error, HttpError, OAuthError, ServerError, ValidationError};
 
 #[cfg(feature = "test")]
 pub mod test_url;
