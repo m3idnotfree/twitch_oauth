@@ -139,6 +139,9 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+pub const APPTYPE: asknothingx2_util::api::app_type::AppType =
+    asknothingx2_util::api::app_type::AppType::from_static("twitch-oauth");
+
 mod error;
 pub use error::{Error, Kind};
 #[cfg(feature = "oauth")]
