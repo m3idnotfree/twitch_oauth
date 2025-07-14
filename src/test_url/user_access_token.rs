@@ -1,14 +1,16 @@
 use std::collections::HashSet;
 
 use asknothingx2_util::{
-    api::{api_request, APIRequest, APIResponse, Method},
+    api::{
+        request::{IntoRequestParts, RequestParts},
+        Method, Response,
+    },
     oauth::{AuthUrl, ClientId, ClientSecret},
 };
-use url::Url;
 
 use crate::{
     types::{scopes_mut, GrantType, Scope, ScopesMut},
-    HttpError,
+    APPTYPE,
 };
 
 pub struct TestAccessToken {
@@ -43,15 +45,13 @@ impl TestAccessToken {
         scopes_mut(&mut self.scopes)
     }
 
-    pub async fn request_access_token(self) -> Result<APIResponse, HttpError> {
-        let response = api_request(self).await?;
-
-        Ok(APIResponse::from_response(response).await?)
+    pub async fn request_access_token(self) -> Result<Response, asknothingx2_util::api::Error> {
+        self.into_request_parts().send().await
     }
 }
 
-impl APIRequest for TestAccessToken {
-    fn url(&self) -> Url {
+impl IntoRequestParts for TestAccessToken {
+    fn into_request_parts(self) -> RequestParts {
         let mut url = self.auth_url.url().clone();
 
         let mut params = vec![
@@ -80,10 +80,7 @@ impl APIRequest for TestAccessToken {
 
         url.query_pairs_mut().extend_pairs(params);
 
-        url
-    }
-    fn method(&self) -> Method {
-        Method::POST
+        RequestParts::new(Method::POST, url, APPTYPE)
     }
 }
 
@@ -92,7 +89,7 @@ mod test {
     use std::collections::HashSet;
 
     use asknothingx2_util::{
-        api::{APIRequest, Method},
+        api::{request::IntoRequestParts, Method},
         oauth::{AuthUrl, ClientId, ClientSecret},
     };
     use url::Url;
@@ -131,8 +128,11 @@ mod test {
             .query_pairs_mut()
             .extend_pairs(expected_params);
 
-        assert_eq!(0, test_client.headers().len());
-        assert_eq!(Method::POST, test_client.method());
-        assert_eq!(None, test_client.urlencoded());
+        let test_client = test_client.into_request_parts();
+
+        assert_eq!(0, test_client.headers.len());
+        assert_eq!(Method::POST, test_client.method);
+        // assert_eq!(None, test_client.body);
+        assert!(test_client.body.is_none());
     }
 }

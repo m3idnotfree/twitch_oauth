@@ -1,7 +1,7 @@
 #[cfg(feature = "test")]
 #[test]
 fn user_token() {
-    use asknothingx2_util::api::{APIRequest, Method};
+    use asknothingx2_util::api::{request::IntoRequestParts, Method};
     use twitch_oauth_token::{types::Scope, TwitchOauth};
     use url::Url;
 
@@ -31,14 +31,16 @@ fn user_token() {
         .extend_pairs(expected_params)
         .extend_pairs([("scope", expected_scopes)]);
 
-    assert_eq!(expected_url.to_string(), token.url().to_string());
-    assert_eq!(Method::POST, token.method());
+    let token = token.into_request_parts();
+
+    assert_eq!(expected_url.to_string(), token.url.to_string());
+    assert_eq!(Method::POST, token.method);
 }
 
 #[cfg(feature = "test")]
 #[test]
 fn app_token() {
-    use asknothingx2_util::api::{APIRequest, Method};
+    use asknothingx2_util::api::{request::IntoRequestParts, Method};
     use twitch_oauth_token::{types::Scope, TwitchOauth};
     use url::Url;
 
@@ -67,15 +69,17 @@ fn app_token() {
         .extend_pairs(expected_params)
         .extend_pairs([("scope", expected_scopes)]);
 
-    assert_eq!(expected_url.to_string(), token.url().to_string());
-    assert_eq!(Method::POST, token.method());
+    let token = token.into_request_parts();
+
+    assert_eq!(expected_url.to_string(), token.url.to_string());
+    assert_eq!(Method::POST, token.method);
 }
 
 // twitch mock-api start
 #[cfg(feature = "test")]
 #[tokio::test]
 async fn twitch_mock_server() {
-    use asknothingx2_util::api::api_request;
+    use asknothingx2_util::api::request::IntoRequestParts;
     use dotenv::dotenv;
     use twitch_oauth_token::{
         test_url::get_users_info,
@@ -102,7 +106,10 @@ async fn twitch_mock_server() {
     let mut test_user = test_oauth.user_token(user_id);
     test_user.scopes_mut().push(Scope::ChannelReadPolls);
 
-    let user_token = api_request(test_user)
+    let test_user = test_user.into_request_parts();
+
+    let user_token = test_user
+        .send()
         .await
         .expect("Failed to request user access token from mock server");
     let user_token = user_token
@@ -115,7 +122,10 @@ async fn twitch_mock_server() {
     let mut app_token = test_oauth.app_token();
     app_token.scopes_mut().clear();
 
-    let app_token = api_request(app_token)
+    let app_token = app_token.into_request_parts();
+
+    let app_token = app_token
+        .send()
         .await
         .expect("Failed to request app access token from mock server");
     let app_token = app_token

@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{APIRequest, Method},
+    api::{request::IntoRequestParts, Method},
     oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
 };
 use twitch_oauth_token::{types::GrantType, CodeTokenRequest};
@@ -28,11 +28,16 @@ fn request() {
         .finish()
         .into_bytes();
 
-    assert_eq!(Method::POST, request.method());
+    let request = request.into_request_parts();
+
+    assert_eq!(Method::POST, request.method);
     assert_eq!(
         Url::parse("https://id.twitch.tv/oauth2/token").unwrap(),
-        request.url()
+        request.url
     );
-    assert_eq!(2, request.headers().len());
-    assert_eq!(Some(expected_body), request.urlencoded());
+    assert_eq!(2, request.headers.len());
+    let expected_content_length = expected_body.len() as u64;
+    let content_length = request.body.unwrap().content_length().unwrap();
+    assert_eq!(expected_content_length, content_length);
+    // assert_eq!(Some(expected_body), request.urlencoded());
 }

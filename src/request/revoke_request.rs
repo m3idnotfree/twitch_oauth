@@ -1,8 +1,14 @@
 use asknothingx2_util::{
-    api::{form_urlencoded_serialize, APIRequest, HeaderBuilder, HeaderMap, Method},
+    api::{
+        request::{IntoRequestParts, RequestBody, RequestParts},
+        Method,
+    },
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
-use url::Url;
+
+use crate::APPTYPE;
+
+use super::CLIENT_ID;
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]
@@ -22,24 +28,19 @@ impl RevokeRequest {
     }
 }
 
-impl APIRequest for RevokeRequest {
-    fn url(&self) -> Url {
-        self.revoke_url.url().clone()
-    }
-    fn method(&self) -> Method {
-        Method::POST
-    }
-    fn headers(&self) -> HeaderMap {
-        let mut headers = HeaderBuilder::new();
-        headers.accept_json().content_type_formencoded();
-        headers.build()
-    }
-    fn urlencoded(&self) -> Option<Vec<u8>> {
-        let params = vec![
-            ("client_id", self.client_id.as_str()),
-            ("token", self.access_token.secret()),
-        ];
+impl IntoRequestParts for RevokeRequest {
+    fn into_request_parts(self) -> RequestParts {
+        let mut request = RequestParts::new(Method::POST, self.revoke_url.url().clone(), APPTYPE);
+        request
+            .header_mut()
+            .accept_json()
+            .content_type_formencoded();
 
-        Some(form_urlencoded_serialize(params))
+        request.body(RequestBody::from_form_pairs([
+            (CLIENT_ID, self.client_id.as_str()),
+            ("token", self.access_token.secret()),
+        ]));
+
+        request
     }
 }

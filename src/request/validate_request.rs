@@ -1,20 +1,23 @@
 use asknothingx2_util::{
-    api::{api_request, APIRequest, APIResponse, HeaderBuilder, HeaderMap, Method},
+    api::{
+        request::{IntoRequestParts, RequestParts},
+        AuthScheme, Method, Response,
+    },
     oauth::{AccessToken, ValidateUrl},
 };
-use url::Url;
 
-use crate::HttpError;
+use crate::{Error, APPTYPE};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
-pub async fn validate_token(access_token: AccessToken) -> Result<APIResponse, HttpError> {
-    let response = api_request(ValidateRequest::new(
+pub async fn validate_token(access_token: AccessToken) -> Result<Response, Error> {
+    ValidateRequest::new(
         access_token.clone(),
         ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap(),
-    ))
-    .await?;
-
-    Ok(APIResponse::from_response(response).await?)
+    )
+    .into_request_parts()
+    .send()
+    .await
+    .map_err(Error::from)
 }
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
@@ -33,17 +36,13 @@ impl ValidateRequest {
     }
 }
 
-impl APIRequest for ValidateRequest {
-    fn url(&self) -> Url {
-        self.validate_url.url().clone()
-    }
-    fn method(&self) -> Method {
-        Method::GET
-    }
-    fn headers(&self) -> HeaderMap {
-        let mut headers = HeaderBuilder::new();
-        headers.authorization("OAuth", self.access_token.secret());
+impl IntoRequestParts for ValidateRequest {
+    fn into_request_parts(self) -> RequestParts {
+        let mut request = RequestParts::new(Method::GET, self.validate_url.url().clone(), APPTYPE);
+        request
+            .header_mut()
+            .authorization(AuthScheme::custom("OAuth", self.access_token.secret()));
 
-        headers.build()
+        request
     }
 }

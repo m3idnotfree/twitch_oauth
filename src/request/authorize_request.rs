@@ -5,6 +5,8 @@ use url::Url;
 
 use crate::types::{scopes_mut, ResponseType, Scope, ScopesMut};
 
+use super::CLIENT_ID;
+
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
 pub struct AuthrozationRequest {
     auth_url: AuthUrl,
@@ -46,7 +48,7 @@ impl AuthrozationRequest {
 
     pub fn url(self) -> Url {
         let mut pairs = vec![
-            ("client_id", self.client_id.as_str()),
+            (CLIENT_ID, self.client_id.as_str()),
             ("redirect_uri", self.redirect_url.as_str()),
             ("response_type", self.response_type.as_str()),
             ("state", self.state.secret()),

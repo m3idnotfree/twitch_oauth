@@ -1,11 +1,11 @@
 use asknothingx2_util::{
-    api::get,
+    api,
     oauth::{ClientId, ClientSecret},
 };
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::HttpError;
+use crate::{error, Error};
 
 /// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
 #[derive(Debug, Serialize, Deserialize)]
@@ -26,7 +26,7 @@ pub struct User {
     pub IsExtension: bool,
 }
 
-pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, HttpError> {
+pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, Error> {
     let mut base_url = Url::parse("http://localhost:8080").unwrap();
     if let Some(port) = port {
         base_url.set_port(Some(port)).unwrap();
@@ -38,9 +38,12 @@ pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, HttpErro
         .push("units")
         .push("clients");
 
-    get(base_url)
-        .await?
+    api::get(base_url)
+        .await
+        .send()
+        .await
+        .map_err(error::network::request)?
         .json()
         .await
-        .map_err(|x| HttpError::DeserializationError(x.to_string()))
+        .map_err(error::validation::json)
 }

@@ -8,7 +8,7 @@ use tokio::{
 };
 use url::Url;
 
-use crate::{Error, OAuthError, ServerError, ValidationError};
+use crate::error::{self, Error};
 
 #[derive(Debug)]
 pub struct CodeState {
@@ -27,9 +27,10 @@ pub enum ServerStatus {
 /// only support localhost
 pub async fn oneshot_server(url: Url, duration: Duration) -> Result<CodeState, Error> {
     validate_host(&url)?;
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", url.port().unwrap()))
+    let address = format!("127.0.0.1:{}", url.port().unwrap());
+    let listener = TcpListener::bind(&address)
         .await
-        .map_err(|x| ServerError::BindAddressError(x.to_string()))?;
+        .map_err(|e| error::server::bind(&address, e))?;
 
     // when this signal completes, start shutdown
     let mut signal = std::pin::pin!(shutdown_signal());
@@ -44,10 +45,10 @@ pub async fn oneshot_server(url: Url, duration: Duration) -> Result<CodeState, E
     }
 }
 
-fn validate_host(url: &Url) -> Result<(), ValidationError> {
-    let host = url.host_str().ok_or(ValidationError::MissingHost)?;
+fn validate_host(url: &Url) -> Result<(), Error> {
+    let host = url.host_str().ok_or_else(error::validation::missing_host)?;
     if host != "localhost" {
-        return Err(ValidationError::InvalidHost(host.to_string()));
+        return Err(error::validation::invalid_host(host));
     }
     Ok(())
 }
@@ -57,7 +58,7 @@ async fn handle_connection_result(
 ) -> Result<CodeState, Error> {
     match rev {
         Ok(res) => {
-            let (stream, _addr) = res.map_err(ServerError::Io)?;
+            let (stream, _addr) = res.map_err(Error::from)?;
             let (code, csrf_token) = code_state_parse(stream).await?;
             Ok(CodeState {
                 state: ServerStatus::Recive,
@@ -91,24 +92,23 @@ async fn code_state_parse(mut stream: TcpStream) -> Result<(String, String), Err
     reader
         .read_line(&mut request_line)
         .await
-        .map_err(ServerError::Io)?;
+        .map_err(Error::from)?;
 
     // "GET /?code=...&scope=...&state=.... HTTP/1.1\r\n"
     let redirect_url = request_line.split_whitespace().nth(1).unwrap();
-    let url = Url::parse(&("http://localhost".to_string() + redirect_url))
-        .map_err(ValidationError::UrlParse)?;
+    let url = Url::parse(&("http://localhost".to_string() + redirect_url)).map_err(Error::from)?;
 
     let code = url
         .query_pairs()
         .find(|(key, _)| key == "code")
         .map(|(_, code)| code.into_owned())
-        .ok_or(OAuthError::MissingQueryParam("code".to_string()))?;
+        .ok_or_else(|| error::validation::missing_query_param("code"))?;
 
     let state = url
         .query_pairs()
         .find(|(key, _)| key == "state")
         .map(|(_, state)| state.into_owned())
-        .ok_or(OAuthError::MissingQueryParam("state".to_string()))?;
+        .ok_or_else(|| error::validation::missing_query_param("state"))?;
 
     Ok((code, state))
 }

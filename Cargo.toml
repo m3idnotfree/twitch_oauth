@@ -14,8 +14,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["oauth"]
-oauth = ["types", "http-serde", "serde_json", "thiserror", "url"]
-oneshot-server = ["types", "http-serde", "url", "thiserror", "tokio"]
+oauth = ["types", "http-serde", "url"]
+oneshot-server = ["types", "http-serde", "url", "tokio"]
 types = []
 test = []
 full = ["oauth", "oneshot-server", "test"]
@@ -25,8 +25,6 @@ asknothingx2-util = { version = "0.1.2", features = ["api", "oauth"] }
 serde = { version = "1.0.217", features = ["derive"] }
 
 http-serde = { version = "2.1.1", optional = true }
-serde_json = { version = "1.0.135", optional = true }
-thiserror = { version = "2.0.10", optional = true }
 tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
 url = { version = "2.5.4", optional = true }
 

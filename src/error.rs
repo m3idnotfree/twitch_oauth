@@ -178,12 +178,6 @@ impl From<url::ParseError> for Error {
     }
 }
 
-impl From<serde_json::Error> for Error {
-    fn from(value: serde_json::Error) -> Self {
-        Self::with_source(Kind::Json, value)
-    }
-}
-
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         if value.kind() == std::io::ErrorKind::TimedOut {

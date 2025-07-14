@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{api_request, APIRequest, Method, StatusCode},
+    api::{request::IntoRequestParts, Method, StatusCode},
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
 use twitch_oauth_token::{types::GrantType, RefreshRequest};
@@ -11,17 +11,19 @@ mod server;
 async fn with_server() {
     let mock_uri = server::refresh().await;
 
-    let a = api_request(RefreshRequest::new(
+    let request = RefreshRequest::new(
         ClientId::new("hof5gwx0su6owfnys0yan9c87zr6t".to_string()),
         ClientSecret::new("".to_string()),
         GrantType::RefreshToken,
         RefreshToken::new("gdw3k62zpqi0kw01escg7zgbdhtxi6hm0155tiwcztxczkx17".to_string()),
-        TokenUrl::new(format!("{}/refresh", mock_uri)).unwrap(),
-    ))
+        TokenUrl::new(format!("{mock_uri}/refresh")).unwrap(),
+    )
+    .into_request_parts()
+    .send()
     .await
     .unwrap();
 
-    assert_eq!(StatusCode::OK, a.status());
+    assert_eq!(StatusCode::OK, request.status());
 }
 
 #[test]
@@ -45,11 +47,15 @@ fn request() {
         .finish()
         .into_bytes();
 
-    assert_eq!(Method::POST, request.method());
+    let request = request.into_request_parts();
+
+    assert_eq!(Method::POST, request.method);
     assert_eq!(
         Url::parse("https://id.twitch.tv/oauth2/token").unwrap(),
-        request.url()
+        request.url
     );
-    assert_eq!(2, request.headers().len());
-    assert_eq!(Some(expected_body), request.urlencoded());
+    assert_eq!(2, request.headers.len());
+    let expected_content_length = expected_body.len() as u64;
+    let content_length = request.body.unwrap().content_length().unwrap();
+    assert_eq!(expected_content_length, content_length);
 }

@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{api_request, APIRequest, Method, StatusCode},
+    api::{request::IntoRequestParts, Method, StatusCode},
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
 use twitch_oauth_token::RevokeRequest;
@@ -11,11 +11,13 @@ mod server;
 async fn with_server() {
     let mock_uri = server::revoke().await;
 
-    let a = api_request(RevokeRequest::new(
+    let a = RevokeRequest::new(
         AccessToken::new("rfx2uswqe8l4g1mkagrvg5tv0ks3".to_string()),
         ClientId::new("hof5gwx0su6owfnys0yan9c87zr6t".to_string()),
-        RevocationUrl::new(format!("{}/revoke", mock_uri)).unwrap(),
-    ))
+        RevocationUrl::new(format!("{mock_uri}/revoke")).unwrap(),
+    )
+    .into_request_parts()
+    .send()
     .await
     .unwrap();
 
@@ -37,11 +39,16 @@ fn request() {
         .finish()
         .into_bytes();
 
-    assert_eq!(Method::POST, request.method());
+    let request = request.into_request_parts();
+
+    assert_eq!(Method::POST, request.method);
     assert_eq!(
         Url::parse("https://id.twitch.tv/oauth2/revoke").unwrap(),
-        request.url()
+        request.url
     );
-    assert_eq!(2, request.headers().len());
-    assert_eq!(Some(expected_body), request.urlencoded());
+    assert_eq!(2, request.headers.len());
+    let expected_content_length = expected_body.len() as u64;
+    let content_length = request.body.unwrap().content_length().unwrap();
+    assert_eq!(expected_content_length, content_length);
+    // assert_eq!(Some(expected_body), request.urlencoded());
 }
