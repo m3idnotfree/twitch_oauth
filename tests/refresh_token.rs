@@ -1,8 +1,5 @@
-use asknothingx2_util::{
-    api::{request::IntoRequestParts, Method, StatusCode},
-    oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
-};
-use twitch_oauth_token::{types::GrantType, RefreshRequest};
+use asknothingx2_util::api::{request::IntoRequestParts, Method, StatusCode};
+use twitch_oauth_token::{ClientId, ClientSecret, RefreshRequest, RefreshToken, TokenUrl};
 use url::Url;
 
 mod server;
@@ -10,31 +7,28 @@ mod server;
 #[tokio::test]
 async fn with_server() {
     let mock_uri = server::refresh().await;
+    let client_id = ClientId::new("hof5gwx0su6owfnys0yan9c87zr6t".into());
+    let client_secret = ClientSecret::new("".into());
+    let refresh_token =
+        RefreshToken::new("gdw3k62zpqi0kw01escg7zgbdhtxi6hm0155tiwcztxczkx17".into());
+    let token_url = TokenUrl::new(format!("{mock_uri}/refresh")).unwrap();
 
-    let request = RefreshRequest::new(
-        ClientId::new("hof5gwx0su6owfnys0yan9c87zr6t".to_string()),
-        ClientSecret::new("".to_string()),
-        GrantType::RefreshToken,
-        RefreshToken::new("gdw3k62zpqi0kw01escg7zgbdhtxi6hm0155tiwcztxczkx17".to_string()),
-        TokenUrl::new(format!("{mock_uri}/refresh")).unwrap(),
-    )
-    .into_request_parts()
-    .send()
-    .await
-    .unwrap();
+    let request = RefreshRequest::new(&client_id, &client_secret, &refresh_token, &token_url)
+        .into_request_parts()
+        .send()
+        .await
+        .unwrap();
 
     assert_eq!(StatusCode::OK, request.status());
 }
 
 #[test]
 fn request() {
-    let request = RefreshRequest::new(
-        ClientId::new("test_id".to_string()),
-        ClientSecret::new("test_secret".to_string()),
-        GrantType::RefreshToken,
-        RefreshToken::new("refres88efi".to_string()),
-        TokenUrl::new("https://id.twitch.tv/oauth2/token".to_string()).unwrap(),
-    );
+    let client_id = ClientId::new("test_id".into());
+    let client_secret = ClientSecret::new("test_secret".into());
+    let refresh_token = RefreshToken::new("refres88efi".into());
+    let token_url = TokenUrl::new("https://id.twitch.tv/oauth2/token".into()).unwrap();
+    let request = RefreshRequest::new(&client_id, &client_secret, &refresh_token, &token_url);
     let params = vec![
         ("client_id", "test_id"),
         ("client_secret", "test_secret"),

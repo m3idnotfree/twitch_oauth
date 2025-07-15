@@ -1,6 +1,5 @@
 use std::{io, net::SocketAddr, time::Duration};
 
-use asknothingx2_util::oauth::{AuthorizationCode, CsrfToken};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     net::{TcpListener, TcpStream},
@@ -8,13 +7,16 @@ use tokio::{
 };
 use url::Url;
 
-use crate::error::{self, Error};
+use crate::{
+    error::{self, Error},
+    AuthorizationCode,
+};
 
 #[derive(Debug)]
 pub struct CodeState {
     pub state: ServerStatus,
     pub code: Option<AuthorizationCode>,
-    pub csrf_token: Option<CsrfToken>,
+    pub csrf_token: Option<String>,
 }
 
 #[derive(Debug)]
@@ -63,7 +65,7 @@ async fn handle_connection_result(
             Ok(CodeState {
                 state: ServerStatus::Recive,
                 code: Some(AuthorizationCode::new(code)),
-                csrf_token: Some(CsrfToken::new(csrf_token)),
+                csrf_token: Some(csrf_token),
             })
         }
         Err(_) => Ok(create_code_state(ServerStatus::Timeout)),

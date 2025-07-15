@@ -1,48 +1,42 @@
-use asknothingx2_util::{
-    api::{
-        request::{IntoRequestParts, RequestBody, RequestParts},
-        Method,
-    },
-    oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
+use asknothingx2_util::api::{
+    request::{IntoRequestParts, RequestBody, RequestParts},
+    Method,
 };
 
-use crate::{types::GrantType, APPTYPE};
+use crate::{
+    oauth::TOKEN_URL, types::GrantType, AuthorizationCode, ClientId, ClientSecret, RedirectUrl,
+    APPTYPE,
+};
 
 use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 #[derive(Debug)]
-pub struct CodeTokenRequest {
-    client_id: ClientId,
-    client_secret: ClientSecret,
-    code: AuthorizationCode,
-    grant_type: GrantType,
-    token_url: TokenUrl,
-    redirect_url: RedirectUrl,
+pub struct CodeTokenRequest<'a> {
+    client_id: &'a ClientId,
+    client_secret: &'a ClientSecret,
+    code: &'a AuthorizationCode,
+    redirect_url: &'a RedirectUrl,
 }
 
-impl CodeTokenRequest {
+impl<'a> CodeTokenRequest<'a> {
     pub fn new(
-        client_id: ClientId,
-        client_secret: ClientSecret,
-        code: AuthorizationCode,
-        grant_type: GrantType,
-        token_url: TokenUrl,
-        redirect_url: RedirectUrl,
+        client_id: &'a ClientId,
+        client_secret: &'a ClientSecret,
+        code: &'a AuthorizationCode,
+        redirect_url: &'a RedirectUrl,
     ) -> Self {
         Self {
             client_id,
             client_secret,
             code,
-            grant_type,
-            token_url,
             redirect_url,
         }
     }
 }
 
-impl IntoRequestParts for CodeTokenRequest {
+impl IntoRequestParts for CodeTokenRequest<'_> {
     fn into_request_parts(self) -> RequestParts {
-        let mut request = RequestParts::new(Method::POST, self.token_url.url().clone(), APPTYPE);
+        let mut request = RequestParts::new(Method::POST, TOKEN_URL.url().clone(), APPTYPE);
 
         request
             .header_mut()
@@ -53,7 +47,7 @@ impl IntoRequestParts for CodeTokenRequest {
             (CLIENT_ID, self.client_id.as_str()),
             (CLIENT_SECRET, self.client_secret.secret()),
             ("code", self.code.secret()),
-            (GRANT_TYPE, self.grant_type.as_str()),
+            (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),
             ("redirect_uri", self.redirect_url.as_str()),
         ]));
 

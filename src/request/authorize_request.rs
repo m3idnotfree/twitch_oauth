@@ -1,37 +1,39 @@
+use std::borrow::Cow;
 use std::collections::HashSet;
 
-use asknothingx2_util::oauth::{AuthUrl, ClientId, CsrfToken, RedirectUrl};
+use asknothingx2_util::oauth::{AuthUrl, ClientId, RedirectUrl};
 use url::Url;
 
-use crate::types::{scopes_mut, ResponseType, Scope, ScopesMut};
+use crate::{
+    error,
+    types::{scopes_mut, ResponseType, Scope, ScopesMut},
+    Error,
+};
 
 use super::CLIENT_ID;
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-pub struct AuthrozationRequest {
-    auth_url: AuthUrl,
-    client_id: ClientId,
+pub struct AuthrozationRequest<'a> {
+    auth_url: &'a AuthUrl,
+    client_id: &'a ClientId,
     force_verify: Option<bool>,
-    redirect_url: RedirectUrl,
-    response_type: ResponseType,
+    redirect_url: Option<Cow<'a, RedirectUrl>>,
     scopes: HashSet<Scope>,
-    state: CsrfToken,
+    state: String,
 }
 
-impl AuthrozationRequest {
+impl<'a> AuthrozationRequest<'a> {
     pub fn new(
-        auth_url: AuthUrl,
-        client_id: ClientId,
-        redirect_url: RedirectUrl,
-        response_type: ResponseType,
-        state: CsrfToken,
+        auth_url: &'a AuthUrl,
+        client_id: &'a ClientId,
+        redirect_url: Option<&'a RedirectUrl>,
+        state: String,
     ) -> Self {
         Self {
             auth_url,
             client_id,
             force_verify: None,
-            redirect_url,
-            response_type,
+            redirect_url: redirect_url.map(Cow::Borrowed),
             scopes: HashSet::new(),
             state,
         }
@@ -46,12 +48,16 @@ impl AuthrozationRequest {
         self
     }
 
-    pub fn url(self) -> Url {
+    pub fn url(self) -> Result<Url, Error> {
+        let redirect_url = self
+            .redirect_url
+            .ok_or_else(error::oauth::missing_redirect_url)?;
+
         let mut pairs = vec![
             (CLIENT_ID, self.client_id.as_str()),
-            ("redirect_uri", self.redirect_url.as_str()),
-            ("response_type", self.response_type.as_str()),
-            ("state", self.state.secret()),
+            ("redirect_uri", redirect_url.as_ref()),
+            ("response_type", ResponseType::Code.as_str()),
+            ("state", &self.state),
         ];
 
         let force_verify = if let Some(verify) = self.force_verify {
@@ -75,10 +81,10 @@ impl AuthrozationRequest {
             pairs.push(("force_verify", &force_verify));
         }
 
-        let mut url: Url = self.auth_url.url().clone();
+        let mut url: Url = self.auth_url.url().to_owned();
 
         url.query_pairs_mut().extend_pairs(pairs);
 
-        url
+        Ok(url)
     }
 }

@@ -3,41 +3,32 @@ use asknothingx2_util::{
         request::{IntoRequestParts, RequestBody, RequestParts},
         Method,
     },
-    oauth::{ClientId, ClientSecret, TokenUrl},
+    oauth::{ClientId, ClientSecret},
 };
 
-use crate::{types::GrantType, APPTYPE};
+use crate::{oauth::TOKEN_URL, types::GrantType, APPTYPE};
 
 use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
 #[derive(Debug)]
-pub struct ClientCredentialsRequest {
-    client_id: ClientId,
-    client_secret: ClientSecret,
-    grant_type: GrantType,
-    token_url: TokenUrl,
+pub struct ClientCredentialsRequest<'a> {
+    client_id: &'a ClientId,
+    client_secret: &'a ClientSecret,
 }
 
-impl ClientCredentialsRequest {
-    pub fn new(
-        client_id: ClientId,
-        client_secret: ClientSecret,
-        grant_type: GrantType,
-        token_url: TokenUrl,
-    ) -> Self {
+impl<'a> ClientCredentialsRequest<'a> {
+    pub fn new(client_id: &'a ClientId, client_secret: &'a ClientSecret) -> Self {
         Self {
             client_id,
             client_secret,
-            grant_type,
-            token_url,
         }
     }
 }
 
-impl IntoRequestParts for ClientCredentialsRequest {
+impl IntoRequestParts for ClientCredentialsRequest<'_> {
     fn into_request_parts(self) -> RequestParts {
-        let mut request = RequestParts::new(Method::POST, self.token_url.url().clone(), APPTYPE);
+        let mut request = RequestParts::new(Method::POST, TOKEN_URL.url().clone(), APPTYPE);
 
         request
             .header_mut()
@@ -47,7 +38,7 @@ impl IntoRequestParts for ClientCredentialsRequest {
         request.body(RequestBody::from_form_pairs([
             (CLIENT_ID, self.client_id.as_str()),
             (CLIENT_SECRET, self.client_secret.secret()),
-            (GRANT_TYPE, self.grant_type.as_str()),
+            (GRANT_TYPE, GrantType::ClientCredentials.as_str()),
         ]));
 
         request

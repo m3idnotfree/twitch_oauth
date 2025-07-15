@@ -1,19 +1,21 @@
-use asknothingx2_util::{
-    api::{request::IntoRequestParts, Method},
-    oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
+use asknothingx2_util::api::{request::IntoRequestParts, Method};
+use twitch_oauth_token::{
+    AuthorizationCode, ClientId, ClientSecret, CodeTokenRequest, RedirectUrl,
 };
-use twitch_oauth_token::{types::GrantType, CodeTokenRequest};
 use url::Url;
 
 #[test]
 fn request() {
+    let client_id = ClientId::new("test_id".into());
+    let client_secret = ClientSecret::new("test_secret".into());
+    let authorization_code = AuthorizationCode::new("authorization_code".into());
+    let redirect_url = RedirectUrl::new("http://localhost:3000".into()).unwrap();
+
     let request = CodeTokenRequest::new(
-        ClientId::new("test_id".to_string()),
-        ClientSecret::new("test_secret".to_string()),
-        AuthorizationCode::new("authorization_code".to_string()),
-        GrantType::AuthorizationCode,
-        TokenUrl::new("https://id.twitch.tv/oauth2/token".to_string()).unwrap(),
-        RedirectUrl::new("http://localhost:3000".to_string()).unwrap(),
+        &client_id,
+        &client_secret,
+        &authorization_code,
+        &redirect_url,
     );
     let params = vec![
         ("client_id", "test_id"),
@@ -39,5 +41,4 @@ fn request() {
     let expected_content_length = expected_body.len() as u64;
     let content_length = request.body.unwrap().content_length().unwrap();
     assert_eq!(expected_content_length, content_length);
-    // assert_eq!(Some(expected_body), request.urlencoded());
 }

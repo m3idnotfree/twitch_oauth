@@ -1,8 +1,3 @@
-use std::{collections::HashSet, fmt};
-
-use asknothingx2_util::oauth::{AccessToken, RefreshToken};
-use serde::{Deserialize, Serialize};
-
 mod scope;
 
 pub use scope::{
@@ -13,6 +8,12 @@ pub use scope::{
     ScopesMut, SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes,
     UsersScopes, VideosScopes, WhispersScopes,
 };
+
+use std::{collections::HashSet, fmt};
+
+use serde::{Deserialize, Serialize};
+
+use crate::{AccessToken, RefreshToken};
 
 pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scope::new(scopes)
@@ -58,7 +59,7 @@ pub struct ClientCredentials {
     pub token_type: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ResponseType {
     Token,
     Code,

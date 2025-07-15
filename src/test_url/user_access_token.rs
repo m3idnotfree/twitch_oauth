@@ -1,16 +1,13 @@
 use std::collections::HashSet;
 
-use asknothingx2_util::{
-    api::{
-        request::{IntoRequestParts, RequestParts},
-        Method, Response,
-    },
-    oauth::{AuthUrl, ClientId, ClientSecret},
+use asknothingx2_util::api::{
+    request::{IntoRequestParts, RequestParts},
+    Method, Response,
 };
 
 use crate::{
     types::{scopes_mut, GrantType, Scope, ScopesMut},
-    APPTYPE,
+    AuthUrl, ClientId, ClientSecret, APPTYPE,
 };
 
 pub struct TestAccessToken {
@@ -88,13 +85,13 @@ impl IntoRequestParts for TestAccessToken {
 mod test {
     use std::collections::HashSet;
 
-    use asknothingx2_util::{
-        api::{request::IntoRequestParts, Method},
-        oauth::{AuthUrl, ClientId, ClientSecret},
-    };
+    use asknothingx2_util::api::{request::IntoRequestParts, Method};
     use url::Url;
 
-    use crate::types::{GrantType, Scope};
+    use crate::{
+        types::{GrantType, Scope},
+        AuthUrl, ClientId, ClientSecret,
+    };
 
     use super::TestAccessToken;
 
@@ -132,7 +129,6 @@ mod test {
 
         assert_eq!(0, test_client.headers.len());
         assert_eq!(Method::POST, test_client.method);
-        // assert_eq!(None, test_client.body);
         assert!(test_client.body.is_none());
     }
 }

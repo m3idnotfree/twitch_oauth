@@ -1,11 +1,8 @@
-use asknothingx2_util::{
-    api,
-    oauth::{ClientId, ClientSecret},
-};
+use asknothingx2_util::api;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{error, Error};
+use crate::{error, ClientId, ClientSecret, Error};
 
 /// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,4 +1,5 @@
-#[cfg(feature = "test")]
+#![cfg(all(feature = "test", feature = "oneshot-server"))]
+
 #[test]
 fn user_token() {
     use asknothingx2_util::api::{request::IntoRequestParts, Method};
@@ -6,9 +7,9 @@ fn user_token() {
     use url::Url;
 
     let oauth = TwitchOauth::new(
-        "cb7b5eba670c41fa757410b811601b".to_string(),
-        "f40fbf26d4e2c20de5772e4408589c".to_string(),
-        None,
+        "cb7b5eba670c41fa757410b811601b",
+        "f40fbf26d4e2c20de5772e4408589c",
+        None::<String>,
     )
     .unwrap()
     .with_url(None);
@@ -45,9 +46,9 @@ fn app_token() {
     use url::Url;
 
     let oauth = TwitchOauth::new(
-        "cb7b5eba670c41fa757410b811601b".to_string(),
-        "f40fbf26d4e2c20de5772e4408589c".to_string(),
-        None,
+        "cb7b5eba670c41fa757410b811601b",
+        "f40fbf26d4e2c20de5772e4408589c",
+        None::<String>,
     )
     .unwrap()
     .with_url(None);
@@ -76,7 +77,7 @@ fn app_token() {
 }
 
 // twitch mock-api start
-#[cfg(feature = "test")]
+#[cfg(all(feature = "test", feature = "oneshot-server"))]
 #[tokio::test]
 async fn twitch_mock_server() {
     use asknothingx2_util::api::request::IntoRequestParts;
@@ -98,9 +99,10 @@ async fn twitch_mock_server() {
         .first()
         .expect("Mock server returned empty user data");
 
-    let test_oauth = TwitchOauth::from_credentials(user.ID.clone(), user.Secret.clone(), None)
-        .expect("Failed to initialize TwitchOAuth with mock credentials")
-        .with_url(None);
+    let test_oauth =
+        TwitchOauth::from_credentials(user.ID.clone(), user.Secret.clone(), None::<String>)
+            .expect("Failed to initialize TwitchOAuth with mock credentials")
+            .with_url(None);
 
     // Getting a user access token
     let mut test_user = test_oauth.user_token(user_id);

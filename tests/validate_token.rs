@@ -1,8 +1,7 @@
-use asknothingx2_util::{
-    api::{request::IntoRequestParts, AuthScheme, HeaderMut, Method, StatusCode},
-    oauth::{AccessToken, ValidateUrl},
+use asknothingx2_util::api::{
+    request::IntoRequestParts, AuthScheme, HeaderMut, Method, StatusCode,
 };
-use twitch_oauth_token::ValidateRequest;
+use twitch_oauth_token::{AccessToken, ValidateRequest, ValidateUrl};
 use url::Url;
 use wiremock::http::HeaderMap;
 
@@ -12,24 +11,22 @@ mod server;
 async fn with_server() {
     let mock_uri = server::validate("rfx2uswqe8l4g1mkagrvg5tv0ks3").await;
 
-    let request = ValidateRequest::new(
-        AccessToken::new("rfx2uswqe8l4g1mkagrvg5tv0ks3".to_string()),
-        ValidateUrl::new(format!("{mock_uri}/validate")).unwrap(),
-    )
-    .into_request_parts()
-    .send()
-    .await
-    .unwrap();
+    let access_token = AccessToken::new("rfx2uswqe8l4g1mkagrvg5tv0ks3".into());
+    let validate_url = ValidateUrl::new(format!("{mock_uri}/validate")).unwrap();
+    let request = ValidateRequest::new(&access_token, &validate_url)
+        .into_request_parts()
+        .send()
+        .await
+        .unwrap();
 
     assert_eq!(StatusCode::OK, request.status());
 }
 
 #[test]
 fn request() {
-    let request = ValidateRequest::new(
-        AccessToken::new("ue85uei4ui".to_string()),
-        ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap(),
-    );
+    let access_token = AccessToken::new("ue85uei4ui".into());
+    let validate_url = ValidateUrl::new("https://id.twitch.tv/oauth2/validate".into()).unwrap();
+    let request = ValidateRequest::new(&access_token, &validate_url);
 
     let mut expected_headers = HeaderMap::new();
     HeaderMut::new(&mut expected_headers).authorization(AuthScheme::custom("OAuth", "ue85uei4ui"));
