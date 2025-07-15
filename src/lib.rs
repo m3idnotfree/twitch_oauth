@@ -147,6 +147,7 @@
 pub const APPTYPE: asknothingx2_util::api::app_type::AppType =
     asknothingx2_util::api::app_type::AppType::from_static("twitch-oauth");
 
+pub mod csrf;
 mod error;
 pub use error::{Error, Kind};
 #[cfg(feature = "oauth")]
