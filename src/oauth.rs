@@ -1,4 +1,4 @@
-use std::{fmt, sync::LazyLock};
+use std::{fmt, marker::PhantomData, sync::LazyLock};
 
 use asknothingx2_util::{
     api::{request::IntoRequestParts, Response},
@@ -28,6 +28,20 @@ pub(crate) static REVOKE_URL: LazyLock<RevocationUrl> =
 pub(crate) static VALIDATE_URL: LazyLock<ValidateUrl> =
     LazyLock::new(|| ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap());
 
+mod private {
+    pub trait Sealed {}
+}
+
+pub trait OauthState: private::Sealed {}
+
+pub struct Unconfigured;
+impl private::Sealed for Unconfigured {}
+impl OauthState for Unconfigured {}
+
+pub struct Configured;
+impl private::Sealed for Configured {}
+impl OauthState for Configured {}
+
 /// OAuth client for Twitch API authentication.
 ///
 /// This client handles all OAuth flows including authorization code,
@@ -51,7 +65,10 @@ pub(crate) static VALIDATE_URL: LazyLock<ValidateUrl> =
 ///     Ok(())
 /// }
 /// ```
-pub struct TwitchOauth {
+pub struct TwitchOauth<HasRedirectUri = Unconfigured>
+where
+    HasRedirectUri: OauthState,
+{
     client_id: ClientId,
     client_secret: ClientSecret,
     redirect_uri: Option<RedirectUrl>,
@@ -60,58 +77,21 @@ pub struct TwitchOauth {
     test_user: crate::test_url::TestUrlHold,
     #[cfg(feature = "test")]
     test_app: crate::test_url::TestUrlHold,
+    phanthom: PhantomData<HasRedirectUri>,
 }
 
-impl TwitchOauth {
-    pub fn new(
-        client_id: impl Into<String>,
-        client_secret: impl Into<String>,
-        redirect_uri: Option<impl Into<String>>,
-    ) -> Result<Self, Error> {
-        Ok(Self {
-            client_id: ClientId::new(client_id.into()),
-            client_secret: ClientSecret::new(client_secret.into()),
-            redirect_uri: match redirect_uri {
-                Some(uri) => {
-                    Some(RedirectUrl::new(uri.into()).map_err(error::oauth::invalid_redirect_url)?)
-                }
-                None => None,
-            },
-            secret_key: csrf::generate_secret_key(),
-
-            #[cfg(feature = "test")]
-            test_user: crate::test_url::TestUrlHold::default(),
-            #[cfg(feature = "test")]
-            test_app: crate::test_url::TestUrlHold::default(),
-        })
+impl<State> TwitchOauth<State>
+where
+    State: OauthState,
+{
+    #[cfg(feature = "test")]
+    pub fn client_id(&self) -> &ClientId {
+        &self.client_id
     }
 
-    pub fn from_credentials(
-        client_id: ClientId,
-        client_secret: ClientSecret,
-        redirect_uri: Option<impl Into<String>>,
-    ) -> Result<Self, Error> {
-        Ok(Self {
-            client_id,
-            client_secret,
-            redirect_uri: match redirect_uri {
-                Some(uri) => {
-                    Some(RedirectUrl::new(uri.into()).map_err(error::oauth::invalid_redirect_url)?)
-                }
-                None => None,
-            },
-            secret_key: csrf::generate_secret_key(),
-            #[cfg(feature = "test")]
-            test_user: crate::test_url::TestUrlHold::default(),
-            #[cfg(feature = "test")]
-            test_app: crate::test_url::TestUrlHold::default(),
-        })
-    }
-
-    pub fn set_redirect_uri(mut self, redir_url: impl Into<String>) -> Result<Self, Error> {
-        self.redirect_uri =
-            Some(RedirectUrl::new(redir_url.into()).map_err(error::oauth::invalid_redirect_url)?);
-        Ok(self)
+    #[cfg(feature = "test")]
+    pub fn client_secret(&self) -> &ClientSecret {
+        &self.client_secret
     }
 
     pub fn get_redirect_uri(&self) -> Option<Url> {
@@ -136,6 +116,157 @@ impl TwitchOauth {
             .ok_or_else(error::oauth::missing_redirect_url)
     }
 
+    /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
+    pub async fn exchange_refresh_token(
+        &self,
+        refresh_token: &RefreshToken,
+    ) -> Result<Response, Error> {
+        RefreshRequest::new(
+            &self.client_id,
+            &self.client_secret,
+            refresh_token,
+            self.get_token_url(),
+        )
+        .into_request_parts()
+        .send()
+        .await
+        .map_err(error::network::request)
+    }
+
+    /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
+    pub async fn revoke_token(&self, access_token: &AccessToken) -> Result<Response, Error> {
+        RevokeRequest::new(access_token, &self.client_id, self.get_revoke_url())
+            .into_request_parts()
+            .send()
+            .await
+            .map_err(error::network::request)
+    }
+
+    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
+    pub async fn client_credentials(&self) -> Result<Response, Error> {
+        ClientCredentialsRequest::new(&self.client_id.clone(), &self.client_secret.clone())
+            .into_request_parts()
+            .send()
+            .await
+            .map_err(error::network::request)
+    }
+}
+
+impl TwitchOauth<Unconfigured> {
+    pub fn new(
+        client_id: impl Into<String>,
+        client_secret: impl Into<String>,
+    ) -> Result<Self, Error> {
+        Ok(Self {
+            client_id: ClientId::new(client_id.into()),
+            client_secret: ClientSecret::new(client_secret.into()),
+            redirect_uri: None,
+            secret_key: csrf::generate_secret_key(),
+
+            #[cfg(feature = "test")]
+            test_user: crate::test_url::TestUrlHold::default(),
+            #[cfg(feature = "test")]
+            test_app: crate::test_url::TestUrlHold::default(),
+            phanthom: PhantomData,
+        })
+    }
+
+    pub fn from_credentials(
+        client_id: ClientId,
+        client_secret: ClientSecret,
+    ) -> Result<Self, Error> {
+        Ok(Self {
+            client_id,
+            client_secret,
+            redirect_uri: None,
+            secret_key: csrf::generate_secret_key(),
+            #[cfg(feature = "test")]
+            test_user: crate::test_url::TestUrlHold::default(),
+            #[cfg(feature = "test")]
+            test_app: crate::test_url::TestUrlHold::default(),
+            phanthom: PhantomData,
+        })
+    }
+
+    pub fn set_redirect_uri(
+        self,
+        redir_url: impl Into<String>,
+    ) -> Result<TwitchOauth<Configured>, Error> {
+        Ok(TwitchOauth {
+            client_id: self.client_id,
+            client_secret: self.client_secret,
+            redirect_uri: Some(
+                RedirectUrl::new(redir_url.into()).map_err(error::oauth::invalid_redirect_url)?,
+            ),
+            secret_key: self.secret_key,
+            #[cfg(feature = "test")]
+            test_user: self.test_user,
+            #[cfg(feature = "test")]
+            test_app: self.test_app,
+            phanthom: PhantomData,
+        })
+    }
+
+    #[cfg(feature = "test")]
+    pub fn with_url(mut self, port: Option<u16>) -> Self {
+        let mut user_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
+        let mut app_url = Url::parse("http://localhost:8080/auth/token").unwrap();
+        if let Some(port) = port {
+            user_url.set_port(Some(port)).unwrap();
+            app_url.set_port(Some(port)).unwrap();
+        }
+        self.test_user = self.test_user.with_url(user_url.to_string());
+        self.test_app = self.test_app.with_url(app_url.to_string());
+        self
+    }
+
+    /// Getting a user access token
+    #[cfg(feature = "test")]
+    pub fn user_token<'a>(&'a self, user_id: &'a str) -> crate::test_url::TestAccessToken<'a> {
+        crate::test_url::TestAccessToken::new(
+            &self.client_id,
+            &self.client_secret,
+            GrantType::UserToken,
+            Some(user_id),
+            std::collections::HashSet::new(),
+            self.test_auth_url(TestOauthType::User),
+        )
+    }
+
+    /// Getting an app access token
+    #[cfg(feature = "test")]
+    pub fn app_token<'a>(&'a self) -> crate::test_url::TestAccessToken<'a> {
+        crate::test_url::TestAccessToken::new(
+            &self.client_id,
+            &self.client_secret,
+            GrantType::ClientCredentials,
+            None,
+            std::collections::HashSet::new(),
+            self.test_auth_url(TestOauthType::App),
+        )
+    }
+
+    #[cfg(feature = "test")]
+    fn test_auth_url(&self, kind: TestOauthType) -> AuthUrl {
+        match kind {
+            TestOauthType::App => {
+                if let Some(url) = &self.test_app.get_test_url() {
+                    return AuthUrl::new(url.clone()).unwrap();
+                }
+
+                AuthUrl::new(self.get_token_url().to_string()).unwrap()
+            }
+            TestOauthType::User => {
+                if let Some(url) = &self.test_user.get_test_url() {
+                    return AuthUrl::new(url.to_string()).unwrap();
+                }
+
+                AuthUrl::new(self.get_token_url().to_string()).unwrap()
+            }
+        }
+    }
+}
+impl TwitchOauth<Configured> {
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub fn authorize_url<'a>(&'a self) -> Result<AuthrozationRequest<'a>, Error> {
         Ok(AuthrozationRequest::new(
@@ -185,99 +316,6 @@ impl TwitchOauth {
                     .code
                     .ok_or_else(error::oauth::missing_auth_code)?;
                 self.exchange_code_for_token(code).await
-            }
-        }
-    }
-    /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
-    pub async fn exchange_refresh_token(
-        &self,
-        refresh_token: &RefreshToken,
-    ) -> Result<Response, Error> {
-        RefreshRequest::new(
-            &self.client_id,
-            &self.client_secret,
-            refresh_token,
-            self.get_token_url(),
-        )
-        .into_request_parts()
-        .send()
-        .await
-        .map_err(error::network::request)
-    }
-
-    /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
-    pub async fn revoke_token(&self, access_token: &AccessToken) -> Result<Response, Error> {
-        RevokeRequest::new(access_token, &self.client_id, self.get_revoke_url())
-            .into_request_parts()
-            .send()
-            .await
-            .map_err(error::network::request)
-    }
-
-    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-    pub async fn client_credentials(&self) -> Result<Response, Error> {
-        ClientCredentialsRequest::new(&self.client_id.clone(), &self.client_secret.clone())
-            .into_request_parts()
-            .send()
-            .await
-            .map_err(error::network::request)
-    }
-
-    #[cfg(feature = "test")]
-    pub fn with_url(mut self, port: Option<u16>) -> Self {
-        let mut user_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
-        let mut app_url = Url::parse("http://localhost:8080/auth/token").unwrap();
-        if let Some(port) = port {
-            user_url.set_port(Some(port)).unwrap();
-            app_url.set_port(Some(port)).unwrap();
-        }
-        self.test_user = self.test_user.with_url(user_url.to_string());
-        self.test_app = self.test_app.with_url(app_url.to_string());
-        self
-    }
-
-    /// Getting a user access token
-    #[cfg(feature = "test")]
-    pub fn user_token(&self, user_id: String) -> crate::test_url::TestAccessToken {
-        crate::test_url::TestAccessToken::new(
-            self.client_id.clone(),
-            self.client_secret.clone(),
-            GrantType::UserToken,
-            Some(user_id),
-            std::collections::HashSet::new(),
-            self.test_auth_url(TestOauthType::User),
-        )
-    }
-
-    /// Getting an app access token
-    #[cfg(feature = "test")]
-    pub fn app_token(&self) -> crate::test_url::TestAccessToken {
-        crate::test_url::TestAccessToken::new(
-            self.client_id.clone(),
-            self.client_secret.clone(),
-            GrantType::ClientCredentials,
-            None,
-            std::collections::HashSet::new(),
-            self.test_auth_url(TestOauthType::App),
-        )
-    }
-
-    #[cfg(feature = "test")]
-    fn test_auth_url(&self, kind: TestOauthType) -> AuthUrl {
-        match kind {
-            TestOauthType::App => {
-                if let Some(url) = &self.test_app.get_test_url() {
-                    return AuthUrl::new(url.clone()).unwrap();
-                }
-
-                AuthUrl::new(self.get_token_url().to_string()).unwrap()
-            }
-            TestOauthType::User => {
-                if let Some(url) = &self.test_user.get_test_url() {
-                    return AuthUrl::new(url.to_string()).unwrap();
-                }
-
-                AuthUrl::new(self.get_token_url().to_string()).unwrap()
             }
         }
     }
