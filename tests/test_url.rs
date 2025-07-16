@@ -1,5 +1,7 @@
 #![cfg(all(feature = "test", feature = "oneshot-server"))]
 
+use twitch_oauth_token::test_oauth::{OauthTestExt, TestEnv};
+
 #[test]
 fn user_token() {
     use asknothingx2_util::api::{request::IntoRequestParts, Method};
@@ -9,12 +11,11 @@ fn user_token() {
     let oauth = TwitchOauth::new(
         "cb7b5eba670c41fa757410b811601b",
         "f40fbf26d4e2c20de5772e4408589c",
-        None::<String>,
     )
     .unwrap()
-    .with_url(None);
+    .with_test_env(TestEnv::default());
 
-    let mut token = oauth.user_token("29405430".to_string());
+    let mut token = oauth.create_user_token("29405430");
     token.scopes_mut().extend([Scope::UserReadEmail]);
 
     let expected_scopes = [String::from(Scope::UserReadEmail)].join(" ");
@@ -48,12 +49,11 @@ fn app_token() {
     let oauth = TwitchOauth::new(
         "cb7b5eba670c41fa757410b811601b",
         "f40fbf26d4e2c20de5772e4408589c",
-        None::<String>,
     )
     .unwrap()
-    .with_url(None);
+    .with_test_env(TestEnv::default());
 
-    let mut token = oauth.app_token();
+    let mut token = oauth.create_app_token();
     token.scopes_mut().extend([Scope::UserReadEmail]);
 
     let expected_scopes = [String::from(Scope::UserReadEmail)].join(" ");
@@ -83,7 +83,7 @@ async fn twitch_mock_server() {
     use asknothingx2_util::api::request::IntoRequestParts;
     use dotenv::dotenv;
     use twitch_oauth_token::{
-        test_url::get_users_info,
+        test_oauth::{get_users_info, OauthTestExt, TestEnv},
         types::{Scope, Token},
         TwitchOauth,
     };
@@ -99,13 +99,12 @@ async fn twitch_mock_server() {
         .first()
         .expect("Mock server returned empty user data");
 
-    let test_oauth =
-        TwitchOauth::from_credentials(user.ID.clone(), user.Secret.clone(), None::<String>)
-            .expect("Failed to initialize TwitchOAuth with mock credentials")
-            .with_url(None);
+    let test_oauth = TwitchOauth::from_credentials(user.ID.clone(), user.Secret.clone())
+        .expect("Failed to initialize TwitchOAuth with mock credentials")
+        .with_test_env(TestEnv::default());
 
     // Getting a user access token
-    let mut test_user = test_oauth.user_token(user_id);
+    let mut test_user = test_oauth.create_user_token(&user_id);
     test_user.scopes_mut().push(Scope::ChannelReadPolls);
 
     let test_user = test_user.into_request_parts();
@@ -121,7 +120,7 @@ async fn twitch_mock_server() {
     assert_eq!(vec![Scope::ChannelReadPolls], user_token.scope);
 
     // Getting an app access token
-    let mut app_token = test_oauth.app_token();
+    let mut app_token = test_oauth.create_app_token();
     app_token.scopes_mut().clear();
 
     let app_token = app_token.into_request_parts();

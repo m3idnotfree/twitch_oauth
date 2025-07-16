@@ -32,7 +32,7 @@ mod oneshot_server;
 pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
 
 #[cfg(feature = "test")]
-pub mod test_url;
+pub mod test_oauth;
 
 #[cfg(feature = "types")]
 pub mod types;

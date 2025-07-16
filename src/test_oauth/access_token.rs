@@ -10,21 +10,21 @@ use crate::{
     AuthUrl, ClientId, ClientSecret, APPTYPE,
 };
 
-pub struct TestAccessToken {
-    client_id: ClientId,
-    client_secret: ClientSecret,
+pub struct TestAccessToken<'a> {
+    client_id: &'a ClientId,
+    client_secret: &'a ClientSecret,
     grant_type: GrantType,
-    user_id: Option<String>,
+    user_id: Option<&'a str>,
     scopes: HashSet<Scope>,
     auth_url: AuthUrl,
 }
 
-impl TestAccessToken {
+impl<'a> TestAccessToken<'a> {
     pub fn new(
-        client_id: ClientId,
-        client_secret: ClientSecret,
+        client_id: &'a ClientId,
+        client_secret: &'a ClientSecret,
         grant_type: GrantType,
-        user_id: Option<String>,
+        user_id: Option<&'a str>,
         scopes: HashSet<Scope>,
         auth_url: AuthUrl,
     ) -> Self {
@@ -47,7 +47,7 @@ impl TestAccessToken {
     }
 }
 
-impl IntoRequestParts for TestAccessToken {
+impl IntoRequestParts for TestAccessToken<'_> {
     fn into_request_parts(self) -> RequestParts {
         let mut url = self.auth_url.url().clone();
 
@@ -57,10 +57,10 @@ impl IntoRequestParts for TestAccessToken {
             ("grant_type", self.grant_type.as_str()),
         ];
 
-        let user_id = self.user_id.clone().unwrap_or_default();
+        let user_id = self.user_id.unwrap_or_default();
 
         if !user_id.is_empty() {
-            params.push(("user_id", &user_id));
+            params.push(("user_id", user_id));
         }
 
         let scopes = self
@@ -98,10 +98,10 @@ mod test {
     #[test]
     fn test_access_token() {
         let mut test_client = TestAccessToken {
-            client_id: ClientId::new("ef74yew8ew".to_string()),
-            client_secret: ClientSecret::new("fl790fiits".to_string()),
+            client_id: &ClientId::new("ef74yew8ew".to_string()),
+            client_secret: &ClientSecret::new("fl790fiits".to_string()),
             grant_type: GrantType::UserToken,
-            user_id: Some("8086138".to_string()),
+            user_id: Some("8086138"),
             scopes: HashSet::new(),
             auth_url: AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
         };
