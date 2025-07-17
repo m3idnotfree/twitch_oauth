@@ -12,6 +12,7 @@ pub mod csrf;
 
 mod error;
 pub use error::{Error, Kind};
+
 #[cfg(feature = "oauth")]
 mod oauth;
 #[cfg(feature = "oauth")]
@@ -29,7 +30,7 @@ pub use request::{
 mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
 #[cfg_attr(docsrs, doc(cfg(feature = "oneshot-server")))]
-pub use oneshot_server::{oneshot_server, CodeState, ServerStatus};
+pub use oneshot_server::{oneshot_server, ServerError};
 
 #[cfg(feature = "test")]
 pub mod test_oauth;

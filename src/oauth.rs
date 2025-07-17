@@ -202,50 +202,24 @@ impl TwitchOauth<Configured> {
     }
 
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub async fn exchange_code_for_token(
-        &self,
+    pub fn exchange_code<'a>(
+        &'a self,
         code: AuthorizationCode,
-    ) -> Result<Response, Error> {
-        CodeTokenRequest::new(
+        state: String,
+    ) -> Result<CodeTokenRequest<'a>, Error> {
+        if csrf::validate(&self.secret_key, &state, None, 600) {
+            return Err(error::oauth::csrf_token_mismatch());
+        }
+
+        Ok(CodeTokenRequest::new(
             &self.client_id,
             &self.client_secret,
-            &code,
-            &self.validate_redirect_uri()?,
-        )
-        .into_request_parts()
-        .send()
-        .await
-        .map_err(error::network::request)
-    }
-
-    /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    #[cfg(feature = "oneshot-server")]
-    pub async fn exchange_code(
-        &mut self,
-        code_state: crate::oneshot_server::CodeState,
-    ) -> Result<Response, Error> {
-        match code_state.state {
-            crate::oneshot_server::ServerStatus::Timeout => Err(error::server::timeout()),
-            crate::oneshot_server::ServerStatus::Shutdown => Err(error::server::shutdown()),
-            crate::oneshot_server::ServerStatus::Recive => {
-                let received_csrf = code_state
-                    .csrf_token
-                    .ok_or_else(error::oauth::missing_csrf_token)?;
-
-                if csrf::validate(&self.secret_key, &received_csrf, None, 6000) {
-                    return Err(error::oauth::csrf_token_mismatch());
-                }
-
-                let code = code_state
-                    .code
-                    .ok_or_else(error::oauth::missing_auth_code)?;
-                self.exchange_code_for_token(code).await
-            }
-        }
+            code,
+            self.validate_redirect_uri()?,
+        ))
     }
 }
 
-#[cfg(feature = "test")]
 impl<State> fmt::Debug for TwitchOauth<State>
 where
     State: OauthState,
@@ -257,12 +231,6 @@ where
             .field("redirect_uri", &self.redirect_uri)
             .finish()
     }
-}
-
-#[cfg(feature = "test")]
-enum TestOauthType {
-    User,
-    App,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
