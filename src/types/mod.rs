@@ -26,6 +26,7 @@ pub struct Token {
     pub expires_in: u64,
     pub token_type: String,
     pub refresh_token: RefreshToken,
+    #[serde(default)]
     pub scope: Vec<Scope>,
 }
 
