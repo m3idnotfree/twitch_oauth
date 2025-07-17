@@ -1,12 +1,17 @@
 use asknothingx2_util::{
     api::{
         request::{IntoRequestParts, RequestBody, RequestParts},
-        Method,
+        Method, Response,
     },
     oauth::{ClientId, ClientSecret},
 };
 
-use crate::{oauth::TOKEN_URL, types::GrantType, APPTYPE};
+use crate::{
+    error,
+    oauth::TOKEN_URL,
+    types::{ClientCredentials, GrantType},
+    Error, TokenError, APPTYPE,
+};
 
 use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
@@ -22,6 +27,30 @@ impl<'a> ClientCredentialsRequest<'a> {
         Self {
             client_id,
             client_secret,
+        }
+    }
+
+    pub async fn send(self) -> Result<Response, Error> {
+        self.into_request_parts()
+            .send()
+            .await
+            .map_err(error::network::request)
+    }
+
+    pub async fn json(self) -> Result<ClientCredentials, Error> {
+        let resp = self
+            .into_request_parts()
+            .send()
+            .await
+            .map_err(error::network::request)?;
+
+        if resp.status().is_success() {
+            resp.json::<ClientCredentials>()
+                .await
+                .map_err(error::validation::json)
+        } else {
+            let error_response: TokenError = resp.json().await.map_err(error::validation::json)?;
+            Err(error::oauth::from_token_error(error_response))
         }
     }
 }

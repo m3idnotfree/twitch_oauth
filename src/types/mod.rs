@@ -1,5 +1,6 @@
 mod scope;
 
+use asknothingx2_util::oauth::AuthorizationCode;
 pub use scope::{
     AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,

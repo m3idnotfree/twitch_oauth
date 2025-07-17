@@ -19,7 +19,7 @@ mod oauth;
 mod request;
 
 #[cfg(feature = "oauth")]
-pub use oauth::{TokenError, TwitchOauth};
+pub use oauth::{Configured, TokenError, TwitchOauth, Unconfigured};
 #[cfg(feature = "oauth")]
 pub use request::{
     validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,

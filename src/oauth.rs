@@ -49,7 +49,7 @@ impl OauthState for Configured {}
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```no_run
 /// use twitch_oauth_token::TwitchOauth;
 ///
 /// #[tokio::main]
@@ -57,9 +57,9 @@ impl OauthState for Configured {}
 ///     let oauth = TwitchOauth::new(
 ///         "client_id",
 ///         "client_secret",
-///     )?;
+///     );
 ///     
-///     let token = oauth.client_credentials().await?;
+///     let token = oauth.client_credentials().json().await?;
 ///     println!("Got token: {:?}", token);
 ///     Ok(())
 /// }
@@ -106,27 +106,20 @@ where
         &REVOKE_URL
     }
 
-    fn validate_redirect_uri(&self) -> Result<RedirectUrl, Error> {
+    fn validate_redirect_uri(&self) -> Result<&RedirectUrl, Error> {
         self.redirect_uri
-            .clone()
+            .as_ref()
             .ok_or_else(error::oauth::missing_redirect_url)
     }
 
     /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
-    pub async fn exchange_refresh_token(
-        &self,
-        refresh_token: &RefreshToken,
-    ) -> Result<Response, Error> {
+    pub fn exchange_refresh_token<'a>(&'a self, refresh_token: RefreshToken) -> RefreshRequest<'a> {
         RefreshRequest::new(
             &self.client_id,
             &self.client_secret,
             refresh_token,
             self.get_token_url(),
         )
-        .into_request_parts()
-        .send()
-        .await
-        .map_err(error::network::request)
     }
 
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
@@ -139,27 +132,20 @@ where
     }
 
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-    pub async fn client_credentials(&self) -> Result<Response, Error> {
-        ClientCredentialsRequest::new(&self.client_id.clone(), &self.client_secret.clone())
-            .into_request_parts()
-            .send()
-            .await
-            .map_err(error::network::request)
+    pub fn client_credentials(&self) -> ClientCredentialsRequest {
+        ClientCredentialsRequest::new(&self.client_id, &self.client_secret)
     }
 }
 
 impl TwitchOauth<Unconfigured> {
-    pub fn new(
-        client_id: impl Into<String>,
-        client_secret: impl Into<String>,
-    ) -> Result<Self, Error> {
-        Ok(Self {
+    pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
+        Self {
             client_id: ClientId::new(client_id.into()),
             client_secret: ClientSecret::new(client_secret.into()),
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
             phanthom: PhantomData,
-        })
+        }
     }
 
     pub fn from_credentials(
@@ -196,7 +182,7 @@ impl TwitchOauth<Configured> {
         Ok(AuthrozationRequest::new(
             self.get_auth_url(),
             &self.client_id,
-            self.redirect_uri.as_ref(),
+            self.validate_redirect_uri()?,
             csrf::generate(&self.secret_key, Some(&self.client_id)),
         ))
     }
