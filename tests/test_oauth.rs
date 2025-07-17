@@ -12,11 +12,10 @@ fn user_token() {
         "cb7b5eba670c41fa757410b811601b",
         "f40fbf26d4e2c20de5772e4408589c",
     )
-    .unwrap()
     .with_test_env(TestEnv::default());
 
     let mut token = oauth.create_user_token("29405430");
-    token.scopes_mut().extend([Scope::UserReadEmail]);
+    token.scopes_mut().push(Scope::UserReadEmail);
 
     let expected_scopes = [String::from(Scope::UserReadEmail)].join(" ");
 
@@ -50,11 +49,10 @@ fn app_token() {
         "cb7b5eba670c41fa757410b811601b",
         "f40fbf26d4e2c20de5772e4408589c",
     )
-    .unwrap()
     .with_test_env(TestEnv::default());
 
     let mut token = oauth.create_app_token();
-    token.scopes_mut().extend([Scope::UserReadEmail]);
+    token.scopes_mut().push(Scope::UserReadEmail);
 
     let expected_scopes = [String::from(Scope::UserReadEmail)].join(" ");
 

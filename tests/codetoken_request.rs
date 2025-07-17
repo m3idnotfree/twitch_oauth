@@ -14,7 +14,7 @@ fn request() {
     let request = CodeTokenRequest::new(
         &client_id,
         &client_secret,
-        &authorization_code,
+        authorization_code,
         &redirect_url,
     );
     let params = vec![

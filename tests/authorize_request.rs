@@ -8,18 +8,19 @@ fn request() {
     let mut request = AuthrozationRequest::new(
         &auth_url,
         &client_id,
-        Some(&redirect_url),
+        &redirect_url,
         csrf::generate(&csrf::generate_secret_key(), None),
     );
 
     request
         .scopes_mut()
         .push(Scope::ChatRead)
-        .extend([Scope::ChannelManageSchedule, Scope::ModeratorManageAutomod])
+        .push(Scope::ChannelManageSchedule)
+        .push(Scope::ModeratorManageAutomod)
         .push(Scope::UserBot)
         .push(Scope::ChatRead);
 
-    let expected_url = request.url().unwrap().to_string();
+    let expected_url = request.url().to_string();
     assert!(expected_url.contains("chat%3Aread"));
     assert!(expected_url.contains("channel%3Amanage%3Aschedule"));
     assert!(expected_url.contains("manage%3Aautomod"));
@@ -35,12 +36,12 @@ fn request_not_include_scopes() {
     let request = AuthrozationRequest::new(
         &auth_url,
         &client_id,
-        Some(&redirect_url),
+        &redirect_url,
         csrf::generate(&csrf::generate_secret_key(), None),
     );
 
-    let expected_url = request.url().unwrap().to_string();
-    assert!(!expected_url.contains("scope"));
+    let expected_url = request.url().to_string();
+    assert!(expected_url.contains("scope"));
     assert!(!expected_url.contains("force_verify"));
 }
 
@@ -53,12 +54,13 @@ fn request_force_verify() {
     let mut request = AuthrozationRequest::new(
         &auth_url,
         &client_id,
-        Some(&redirect_url),
+        &redirect_url,
         csrf::generate(&csrf::generate_secret_key(), None),
     );
     request.set_force_verify(true);
 
-    let expected_url = request.url().unwrap().to_string();
-    assert!(!expected_url.contains("scope"));
+    let expected_url = request.url().to_string();
+    assert!(expected_url.contains("scope"));
+    assert!(expected_url.contains("scope"));
     assert!(expected_url.contains("force_verify=true"));
 }

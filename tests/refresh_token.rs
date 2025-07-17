@@ -13,7 +13,7 @@ async fn with_server() {
         RefreshToken::new("gdw3k62zpqi0kw01escg7zgbdhtxi6hm0155tiwcztxczkx17".into());
     let token_url = TokenUrl::new(format!("{mock_uri}/refresh")).unwrap();
 
-    let request = RefreshRequest::new(&client_id, &client_secret, &refresh_token, &token_url)
+    let request = RefreshRequest::new(&client_id, &client_secret, refresh_token, &token_url)
         .into_request_parts()
         .send()
         .await
@@ -28,7 +28,7 @@ fn request() {
     let client_secret = ClientSecret::new("test_secret".into());
     let refresh_token = RefreshToken::new("refres88efi".into());
     let token_url = TokenUrl::new("https://id.twitch.tv/oauth2/token".into()).unwrap();
-    let request = RefreshRequest::new(&client_id, &client_secret, &refresh_token, &token_url);
+    let request = RefreshRequest::new(&client_id, &client_secret, refresh_token, &token_url);
     let params = vec![
         ("client_id", "test_id"),
         ("client_secret", "test_secret"),
