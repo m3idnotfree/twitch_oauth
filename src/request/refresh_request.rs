@@ -5,9 +5,9 @@ use reqwest::{
 };
 
 use crate::{
-    error,
+    error::{self, TokenError},
     types::{GrantType, Token},
-    ClientId, ClientSecret, Error, RefreshToken, TokenError, TokenUrl,
+    ClientId, ClientSecret, Error, RefreshToken, TokenUrl,
 };
 
 use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};

@@ -7,9 +7,7 @@ use asknothingx2_util::{
         RevocationUrl, TokenUrl, ValidateUrl,
     },
 };
-use http_serde::http::StatusCode;
 use reqwest::{Client, Response};
-use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
@@ -230,24 +228,3 @@ where
             .finish()
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenError {
-    #[serde(with = "http_serde::status_code")]
-    pub status: StatusCode,
-    pub message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
-impl fmt::Display for TokenError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "OAuth error {}: {}", self.status, self.message)?;
-        if let Some(ref error) = self.error {
-            write!(f, " ({error})")?;
-        }
-        Ok(())
-    }
-}
-
-impl std::error::Error for TokenError {}

@@ -8,10 +8,10 @@ use reqwest::{
 };
 
 use crate::{
-    error,
+    error::{self, TokenError},
     oauth::TOKEN_URL,
     types::{ClientCredentials, GrantType},
-    Error, TokenError,
+    Error,
 };
 
 use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};

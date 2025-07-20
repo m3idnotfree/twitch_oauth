@@ -13,30 +13,26 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["oauth"]
-oauth = ["types", "http-serde", "url"]
-oneshot-server = ["types", "http-serde", "url", "tokio"]
-types = []
+default = []
+oneshot-server = ["tokio"]
 test = []
-full = ["oauth", "oneshot-server", "test"]
+full = ["oneshot-server", "test"]
+
 
 [dependencies]
 asknothingx2-util = { version = "0.1.4", features = ["api", "oauth"] }
-serde = { version = "1.0.217", features = ["derive"] }
 reqwest = "0.12.22"
+url = "2.5.4"
+serde = { version = "1.0.217", features = ["derive"] }
 serde_urlencoded = "0.7.1"
-
-http-serde = { version = "2.1.1", optional = true }
-tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
-url = { version = "2.5.4", optional = true }
-
-#csrf token
+http-serde = "2.1.1"
 base64 = "0.22.1"
 hmac = "0.12.1"
 hex = "0.4.3"
 chrono = { version = "0.4.41", features = ["serde"] }
 rand = "0.9.1"
 sha2 = "0.10.9"
+tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
 
 [dev-dependencies]
 dotenv = "0.15.0"

@@ -1,6 +1,5 @@
 mod scope;
 
-use asknothingx2_util::oauth::AuthorizationCode;
 pub use scope::{
     AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
@@ -12,6 +11,7 @@ pub use scope::{
 
 use std::{collections::HashSet, fmt};
 
+use asknothingx2_util::oauth::AuthorizationCode;
 use serde::{Deserialize, Serialize};
 
 use crate::{AccessToken, RefreshToken};

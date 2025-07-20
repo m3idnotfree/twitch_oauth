@@ -1,5 +1,8 @@
 use std::fmt;
 
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
+
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
 pub struct Error {
@@ -140,14 +143,12 @@ impl From<url::ParseError> for Error {
     }
 }
 
-#[cfg(feature = "oauth")]
 impl From<asknothingx2_util::api::Error> for Error {
     fn from(value: asknothingx2_util::api::Error) -> Self {
         Self::with_source(Kind::Request, value)
     }
 }
 
-#[cfg(feature = "oauth")]
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         Self::with_source(Kind::Request, value)
@@ -175,6 +176,27 @@ impl fmt::Display for Kind {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenError {
+    #[serde(with = "http_serde::status_code")]
+    pub status: StatusCode,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+impl fmt::Display for TokenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "OAuth error {}: {}", self.status, self.message)?;
+        if let Some(ref error) = self.error {
+            write!(f, " ({error})")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::error::Error for TokenError {}
+
 pub mod network {
     use super::{BoxError, Error, Kind};
 
@@ -184,7 +206,7 @@ pub mod network {
 }
 
 pub mod oauth {
-    use crate::TokenError;
+    use super::TokenError;
 
     use super::{BoxError, Error, Kind};
 
