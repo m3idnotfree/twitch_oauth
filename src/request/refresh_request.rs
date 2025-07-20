@@ -1,15 +1,16 @@
-use asknothingx2_util::api::{
-    request::{IntoRequestParts, RequestBody, RequestParts},
-    Method, Response,
+use asknothingx2_util::api::{mime_type::Application, Method};
+use reqwest::{
+    header::{ACCEPT, CONTENT_TYPE},
+    Client, RequestBuilder, Response,
 };
 
 use crate::{
     error,
     types::{GrantType, Token},
-    ClientId, ClientSecret, Error, RefreshToken, TokenError, TokenUrl, APPTYPE,
+    ClientId, ClientSecret, Error, RefreshToken, TokenError, TokenUrl,
 };
 
-use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
+use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
 #[derive(Debug)]
@@ -18,6 +19,7 @@ pub struct RefreshRequest<'a> {
     client_secret: &'a ClientSecret,
     refresh_token: RefreshToken,
     token_url: &'a TokenUrl,
+    client: &'a Client,
 }
 
 impl<'a> RefreshRequest<'a> {
@@ -26,28 +28,27 @@ impl<'a> RefreshRequest<'a> {
         client_secret: &'a ClientSecret,
         refresh_token: RefreshToken,
         token_url: &'a TokenUrl,
+        client: &'a Client,
     ) -> Self {
         Self {
             client_id,
             client_secret,
             refresh_token,
             token_url,
+            client,
         }
     }
 
     pub async fn send(self) -> Result<Response, Error> {
-        self.into_request_parts()
+        let client = self.client.clone();
+        self.into_request_builder(&client)?
             .send()
             .await
             .map_err(error::network::request)
     }
 
     pub async fn json(self) -> Result<Token, Error> {
-        let resp = self
-            .into_request_parts()
-            .send()
-            .await
-            .map_err(error::network::request)?;
+        let resp = self.send().await?;
 
         if resp.status().is_success() {
             resp.json::<Token>().await.map_err(error::validation::json)
@@ -58,21 +59,22 @@ impl<'a> RefreshRequest<'a> {
     }
 }
 
-impl IntoRequestParts for RefreshRequest<'_> {
-    fn into_request_parts(self) -> RequestParts {
-        let mut request = RequestParts::new(Method::POST, self.token_url.url().clone(), APPTYPE);
-        request
-            .header_mut()
-            .accept_json()
-            .content_type_formencoded();
+impl IntoRequestBuilder for RefreshRequest<'_> {
+    type Error = Error;
 
-        request.body(RequestBody::from_form_pairs(vec![
+    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Error> {
+        let form_string = serde_urlencoded::to_string([
             (CLIENT_ID, self.client_id.as_str()),
             (CLIENT_SECRET, self.client_secret.secret()),
             (GRANT_TYPE, GrantType::RefreshToken.as_str()),
             ("refresh_token", self.refresh_token.secret()),
-        ]));
+        ])
+        .map_err(error::validation::url_encode)?;
 
-        request
+        Ok(client
+            .request(Method::POST, self.token_url.url().clone())
+            .header(ACCEPT, Application::Json)
+            .header(CONTENT_TYPE, Application::FormUrlEncoded)
+            .body(form_string))
     }
 }

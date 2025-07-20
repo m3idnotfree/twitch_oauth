@@ -22,6 +22,7 @@ pub enum Kind {
     CsrfTokenMismatch,
 
     UrlParse,
+    UrlEncode,
     Json,
 
     OAuthError,
@@ -147,8 +148,8 @@ impl From<asknothingx2_util::api::Error> for Error {
 }
 
 #[cfg(feature = "oauth")]
-impl From<asknothingx2_util::api::ReqwestError> for Error {
-    fn from(value: asknothingx2_util::api::ReqwestError) -> Self {
+impl From<reqwest::Error> for Error {
+    fn from(value: reqwest::Error) -> Self {
         Self::with_source(Kind::Request, value)
     }
 }
@@ -161,6 +162,7 @@ impl Kind {
             Kind::MissingRedirectUrl => "missing redirect URL",
             Kind::CsrfTokenMismatch => "CSRF token mismatch",
             Kind::UrlParse => "failed to parse URL",
+            Kind::UrlEncode => "failed to encoding URL",
             Kind::Json => "failed to parse JSON",
             Kind::OAuthError => "OAuth error response",
         }
@@ -216,6 +218,10 @@ pub mod oauth {
 
 pub mod validation {
     use super::{BoxError, Error, Kind};
+
+    pub fn url_encode<E: Into<BoxError>>(source: E) -> Error {
+        Error::with_source(Kind::UrlEncode, source)
+    }
 
     pub fn json<E: Into<BoxError>>(e: E) -> Error {
         Error::with_source(Kind::Json, e)

@@ -1,13 +1,12 @@
-use asknothingx2_util::api::{
-    request::{IntoRequestParts, RequestBody, RequestParts},
-    Method,
+use asknothingx2_util::api::{mime_type::Application, Method};
+use reqwest::{
+    header::{ACCEPT, CONTENT_TYPE},
+    Client, RequestBuilder,
 };
 
-use crate::APPTYPE;
+use crate::{error, AccessToken, ClientId, Error, RevocationUrl};
 
-use crate::{AccessToken, ClientId, RevocationUrl};
-
-use super::CLIENT_ID;
+use super::{IntoRequestBuilder, CLIENT_ID};
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]
@@ -31,19 +30,20 @@ impl<'a> RevokeRequest<'a> {
     }
 }
 
-impl IntoRequestParts for RevokeRequest<'_> {
-    fn into_request_parts(self) -> RequestParts {
-        let mut request = RequestParts::new(Method::POST, self.revoke_url.url().clone(), APPTYPE);
-        request
-            .header_mut()
-            .accept_json()
-            .content_type_formencoded();
+impl IntoRequestBuilder for RevokeRequest<'_> {
+    type Error = Error;
 
-        request.body(RequestBody::from_form_pairs([
+    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
+        let form_string = serde_urlencoded::to_string([
             (CLIENT_ID, self.client_id.as_str()),
             ("token", self.access_token.secret()),
-        ]));
+        ])
+        .map_err(error::validation::url_encode)?;
 
-        request
+        Ok(client
+            .request(Method::POST, self.revoke_url.url().clone())
+            .header(ACCEPT, Application::Json)
+            .header(CONTENT_TYPE, Application::FormUrlEncoded)
+            .body(form_string))
     }
 }

@@ -1,19 +1,20 @@
 use std::{fmt, marker::PhantomData, sync::LazyLock};
 
 use asknothingx2_util::{
-    api::{request::IntoRequestParts, Response},
+    api::preset,
     oauth::{
         AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
         RevocationUrl, TokenUrl, ValidateUrl,
     },
 };
 use http_serde::http::StatusCode;
+use reqwest::{Client, Response};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
-    csrf, error, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error,
-    RefreshRequest, RevokeRequest,
+    csrf, error, request::IntoRequestBuilder, AuthrozationRequest, ClientCredentialsRequest,
+    CodeTokenRequest, Error, RefreshRequest, RevokeRequest,
 };
 
 pub(crate) static AUTH_URL: LazyLock<AuthUrl> =
@@ -73,6 +74,7 @@ where
     client_secret: ClientSecret,
     redirect_uri: Option<RedirectUrl>,
     secret_key: [u8; 32],
+    client: Client,
     phanthom: PhantomData<HasRedirectUri>,
 }
 
@@ -119,13 +121,14 @@ where
             &self.client_secret,
             refresh_token,
             self.get_token_url(),
+            &self.client,
         )
     }
 
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_token(&self, access_token: &AccessToken) -> Result<Response, Error> {
         RevokeRequest::new(access_token, &self.client_id, self.get_revoke_url())
-            .into_request_parts()
+            .into_request_builder(&self.client)?
             .send()
             .await
             .map_err(error::network::request)
@@ -133,7 +136,7 @@ where
 
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub fn client_credentials(&self) -> ClientCredentialsRequest {
-        ClientCredentialsRequest::new(&self.client_id, &self.client_secret)
+        ClientCredentialsRequest::new(&self.client_id, &self.client_secret, &self.client)
     }
 }
 
@@ -145,6 +148,7 @@ impl TwitchOauth<Unconfigured> {
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
             phanthom: PhantomData,
+            client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
         }
     }
 
@@ -158,7 +162,13 @@ impl TwitchOauth<Unconfigured> {
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
             phanthom: PhantomData,
+            client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
         })
+    }
+
+    pub fn set_client(mut self, client: Client) -> Self {
+        self.client = client;
+        self
     }
 
     pub fn set_redirect_uri(
@@ -172,6 +182,7 @@ impl TwitchOauth<Unconfigured> {
                 RedirectUrl::new(redir_url.into()).map_err(error::oauth::invalid_redirect_url)?,
             ),
             secret_key: self.secret_key,
+            client: self.client,
             phanthom: PhantomData,
         })
     }
@@ -202,6 +213,7 @@ impl TwitchOauth<Configured> {
             &self.client_secret,
             code,
             self.validate_redirect_uri()?,
+            &self.client,
         ))
     }
 }

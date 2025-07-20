@@ -35,8 +35,10 @@ pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, Error> {
         .push("units")
         .push("clients");
 
-    api::get(base_url)
-        .await
+    api::preset::for_test("test/1.0")
+        .build_client()
+        .unwrap()
+        .get(base_url)
         .send()
         .await
         .map_err(error::network::request)?

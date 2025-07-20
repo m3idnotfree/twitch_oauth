@@ -1,13 +1,15 @@
 use std::collections::HashSet;
 
 use asknothingx2_util::api::{
+    preset,
     request::{IntoRequestParts, RequestParts},
-    Method, Response,
+    Method,
 };
+use reqwest::Response;
 
 use crate::{
     types::{scopes_mut, GrantType, Scope, ScopesMut},
-    AuthUrl, ClientId, ClientSecret, APPTYPE,
+    AuthUrl, ClientId, ClientSecret,
 };
 
 pub struct TestAccessToken<'a> {
@@ -43,7 +45,13 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn request_access_token(self) -> Result<Response, asknothingx2_util::api::Error> {
-        self.into_request_parts().send().await
+        let client = preset::for_test("test/1.0").build_client().unwrap();
+        self.into_request_parts()
+            .into_request_builder(&client)
+            .unwrap()
+            .send()
+            .await
+            .map_err(asknothingx2_util::api::Error::from)
     }
 }
 
@@ -77,7 +85,7 @@ impl IntoRequestParts for TestAccessToken<'_> {
 
         url.query_pairs_mut().extend_pairs(params);
 
-        RequestParts::new(Method::POST, url, APPTYPE)
+        RequestParts::new(Method::POST, url)
     }
 }
 

@@ -5,9 +5,7 @@ pub use asknothingx2_util::oauth::{
     RevocationUrl, TokenUrl, ValidateUrl,
 };
 
-pub const APPTYPE: asknothingx2_util::api::app_type::AppType =
-    asknothingx2_util::api::app_type::AppType::from_static("twitch-oauth");
-
+// pub mod config;
 pub mod csrf;
 
 mod error;
@@ -23,7 +21,7 @@ pub use oauth::{Configured, TokenError, TwitchOauth, Unconfigured};
 #[cfg(feature = "oauth")]
 pub use request::{
     validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
-    RefreshRequest, RevokeRequest, ValidateRequest,
+    IntoRequestBuilder, RefreshRequest, RevokeRequest, ValidateRequest,
 };
 
 #[cfg(feature = "oneshot-server")]

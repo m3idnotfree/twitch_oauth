@@ -1,17 +1,21 @@
 use asknothingx2_util::{
-    api::{
-        request::{IntoRequestParts, RequestParts},
-        AuthScheme, Method,
-    },
+    api::{AuthScheme, Method},
     oauth::{AccessToken, ValidateUrl},
 };
+use reqwest::{header::AUTHORIZATION, Client, RequestBuilder};
 
-use crate::{oauth::VALIDATE_URL, types::ValidateToken, Error, APPTYPE};
+use crate::{oauth::VALIDATE_URL, types::ValidateToken, Error};
+
+use super::IntoRequestBuilder;
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
-pub async fn validate_token(access_token: &AccessToken) -> Result<ValidateToken, Error> {
+pub async fn validate_token(
+    access_token: &AccessToken,
+    client: &Client,
+) -> Result<ValidateToken, Error> {
     ValidateRequest::new(access_token, &VALIDATE_URL)
-        .into_request_parts()
+        .into_request_builder(client)
+        .unwrap()
         .send()
         .await
         .map_err(Error::from)?
@@ -36,13 +40,16 @@ impl<'a> ValidateRequest<'a> {
     }
 }
 
-impl IntoRequestParts for ValidateRequest<'_> {
-    fn into_request_parts(self) -> RequestParts {
-        let mut request = RequestParts::new(Method::GET, self.validate_url.url().clone(), APPTYPE);
-        request
-            .header_mut()
-            .authorization(AuthScheme::custom("OAuth", self.access_token.secret()));
-
-        request
+impl IntoRequestBuilder for ValidateRequest<'_> {
+    type Error = Error;
+    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Error> {
+        Ok(client
+            .request(Method::GET, self.validate_url.url().clone())
+            .header(
+                AUTHORIZATION,
+                AuthScheme::custom("OAuth", self.access_token.secret())
+                    .to_header_value()
+                    .unwrap(),
+            ))
     }
 }

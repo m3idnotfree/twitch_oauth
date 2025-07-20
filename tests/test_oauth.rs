@@ -78,7 +78,6 @@ fn app_token() {
 #[cfg(all(feature = "test", feature = "oneshot-server"))]
 #[tokio::test]
 async fn twitch_mock_server() {
-    use asknothingx2_util::api::request::IntoRequestParts;
     use dotenv::dotenv;
     use twitch_oauth_token::{
         test_oauth::{get_users_info, OauthTestExt, TestEnv},
@@ -105,10 +104,8 @@ async fn twitch_mock_server() {
     let mut test_user = test_oauth.create_user_token(&user_id);
     test_user.scopes_mut().push(Scope::ChannelReadPolls);
 
-    let test_user = test_user.into_request_parts();
-
     let user_token = test_user
-        .send()
+        .request_access_token()
         .await
         .expect("Failed to request user access token from mock server");
     let user_token = user_token
@@ -121,10 +118,8 @@ async fn twitch_mock_server() {
     let mut app_token = test_oauth.create_app_token();
     app_token.scopes_mut().clear();
 
-    let app_token = app_token.into_request_parts();
-
     let app_token = app_token
-        .send()
+        .request_access_token()
         .await
         .expect("Failed to request app access token from mock server");
     let app_token = app_token
