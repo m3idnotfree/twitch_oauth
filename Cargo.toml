@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "1.1.10"
+version = "1.1.11"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
@@ -23,6 +23,8 @@ full = ["oauth", "oneshot-server", "test"]
 [dependencies]
 asknothingx2-util = { version = "0.1.4", features = ["api", "oauth"] }
 serde = { version = "1.0.217", features = ["derive"] }
+reqwest = "0.12.22"
+serde_urlencoded = "0.7.1"
 
 http-serde = { version = "2.1.1", optional = true }
 tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
@@ -35,11 +37,8 @@ hex = "0.4.3"
 chrono = { version = "0.4.41", features = ["serde"] }
 rand = "0.9.1"
 sha2 = "0.10.9"
-reqwest = "0.12.22"
-serde_urlencoded = "0.7.1"
 
 [dev-dependencies]
-anyhow = "1.0.95"
 dotenv = "0.15.0"
 tokio = { version = "1.43.0", features = ["full"] }
 wiremock = "0.6.2"
