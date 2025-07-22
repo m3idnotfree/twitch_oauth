@@ -73,6 +73,9 @@ where
     redirect_uri: Option<RedirectUrl>,
     secret_key: [u8; 32],
     client: Client,
+    token_url: TokenUrl,
+    auth_url: AuthUrl,
+    revoke_url: RevocationUrl,
     phanthom: PhantomData<HasRedirectUri>,
 }
 
@@ -80,13 +83,11 @@ impl<State> TwitchOauth<State>
 where
     State: OauthState,
 {
-    #[cfg(feature = "test")]
-    pub fn client_id(&self) -> &ClientId {
+    pub(crate) fn client_id(&self) -> &ClientId {
         &self.client_id
     }
 
-    #[cfg(feature = "test")]
-    pub fn client_secret(&self) -> &ClientSecret {
+    pub(crate) fn client_secret(&self) -> &ClientSecret {
         &self.client_secret
     }
 
@@ -94,16 +95,36 @@ where
         self.redirect_uri.clone().map(|uri| uri.url().clone())
     }
 
-    pub fn get_auth_url(&self) -> &'static AuthUrl {
-        &AUTH_URL
+    pub fn get_auth_url(&self) -> &AuthUrl {
+        &self.auth_url
     }
 
-    fn get_token_url(&self) -> &'static TokenUrl {
-        &TOKEN_URL
+    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
+        self.auth_url = auth_url;
+        self
     }
 
-    fn get_revoke_url(&self) -> &'static RevocationUrl {
-        &REVOKE_URL
+    pub fn get_token_url(&self) -> &TokenUrl {
+        &self.token_url
+    }
+
+    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
+        self.token_url = token_url;
+        self
+    }
+
+    pub fn get_revoke_url(&self) -> &RevocationUrl {
+        &self.revoke_url
+    }
+
+    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+        self.revoke_url = revoke_url;
+        self
+    }
+
+    pub fn set_client(mut self, client: Client) -> Self {
+        self.client = client;
+        self
     }
 
     fn validate_redirect_uri(&self) -> Result<&RedirectUrl, Error> {
@@ -145,8 +166,11 @@ impl TwitchOauth<Unconfigured> {
             client_secret: ClientSecret::new(client_secret.into()),
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
-            phanthom: PhantomData,
+            token_url: TOKEN_URL.clone(),
+            auth_url: AUTH_URL.clone(),
+            revoke_url: REVOKE_URL.clone(),
             client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
+            phanthom: PhantomData,
         }
     }
 
@@ -159,30 +183,26 @@ impl TwitchOauth<Unconfigured> {
             client_secret,
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
-            phanthom: PhantomData,
             client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
+            token_url: TOKEN_URL.clone(),
+            auth_url: AUTH_URL.clone(),
+            revoke_url: REVOKE_URL.clone(),
+            phanthom: PhantomData,
         })
     }
 
-    pub fn set_client(mut self, client: Client) -> Self {
-        self.client = client;
-        self
-    }
-
-    pub fn set_redirect_uri(
-        self,
-        redir_url: impl Into<String>,
-    ) -> Result<TwitchOauth<Configured>, Error> {
-        Ok(TwitchOauth {
+    pub fn set_redirect_uri(self, redirect_uri: RedirectUrl) -> TwitchOauth<Configured> {
+        TwitchOauth {
             client_id: self.client_id,
             client_secret: self.client_secret,
-            redirect_uri: Some(
-                RedirectUrl::new(redir_url.into()).map_err(error::oauth::invalid_redirect_url)?,
-            ),
+            redirect_uri: Some(redirect_uri),
             secret_key: self.secret_key,
             client: self.client,
+            token_url: self.token_url,
+            auth_url: self.auth_url,
+            revoke_url: REVOKE_URL.clone(),
             phanthom: PhantomData,
-        })
+        }
     }
 }
 impl TwitchOauth<Configured> {
@@ -225,6 +245,9 @@ where
             .field("client_id", &self.client_id)
             .field("client_secret", &self.client_secret)
             .field("redirect_uri", &self.redirect_uri)
+            .field("token_url", &self.token_url)
+            .field("auth_url", &self.auth_url)
+            .field("revoke_url", &self.revoke_url)
             .finish()
     }
 }
