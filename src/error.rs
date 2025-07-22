@@ -20,7 +20,9 @@ struct Inner {
 pub enum Kind {
     Request,
 
-    InvalidRedirectUrl,
+    ResponseText,
+    ResponseJson,
+
     MissingRedirectUrl,
     CsrfTokenMismatch,
 
@@ -87,19 +89,23 @@ impl Error {
     pub fn is_oauth_error(&self) -> bool {
         matches!(
             self.inner.kind,
-            Kind::InvalidRedirectUrl
-                | Kind::MissingRedirectUrl
-                | Kind::CsrfTokenMismatch
-                | Kind::OAuthError
+            |Kind::MissingRedirectUrl| Kind::CsrfTokenMismatch | Kind::OAuthError
         )
     }
 
     pub fn is_validation_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::UrlParse | Kind::Json)
+        matches!(
+            self.inner.kind,
+            Kind::UrlParse | Kind::Json | Kind::ResponseText | Kind::ResponseJson
+        )
     }
 
     pub fn is_retryable(&self) -> bool {
         matches!(self.inner.kind, Kind::Request)
+    }
+
+    pub fn is_response_parsing_error(&self) -> bool {
+        matches!(self.inner.kind, Kind::ResponseText | Kind::ResponseJson)
     }
 }
 
@@ -159,7 +165,8 @@ impl Kind {
     pub fn as_str(&self) -> &'static str {
         match self {
             Kind::Request => "network request failed",
-            Kind::InvalidRedirectUrl => "invalid redirect URL",
+            Kind::ResponseText => "failed to read response as text",
+            Kind::ResponseJson => "failed to parse response as JSON",
             Kind::MissingRedirectUrl => "missing redirect URL",
             Kind::CsrfTokenMismatch => "CSRF token mismatch",
             Kind::UrlParse => "failed to parse URL",
@@ -206,13 +213,8 @@ pub mod network {
 }
 
 pub mod oauth {
-    use super::TokenError;
 
-    use super::{BoxError, Error, Kind};
-
-    pub fn invalid_redirect_url<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::InvalidRedirectUrl, e)
-    }
+    use super::{Error, Kind};
 
     pub fn missing_redirect_url() -> Error {
         Error::with_message(
@@ -227,15 +229,6 @@ pub mod oauth {
             "CSRF token validation failed - possible security issue",
         )
     }
-
-    pub fn from_token_error(response: TokenError) -> Error {
-        let message = if let Some(desc) = &response.error {
-            format!("{}: {}, {}", response.status, response.message, desc)
-        } else {
-            format!("{}: {}", response.status, response.message)
-        };
-        Error::with_message(Kind::OAuthError, message)
-    }
 }
 
 pub mod validation {
@@ -247,5 +240,17 @@ pub mod validation {
 
     pub fn json<E: Into<BoxError>>(e: E) -> Error {
         Error::with_source(Kind::Json, e)
+    }
+}
+
+pub mod response {
+    use super::{BoxError, Error, Kind};
+
+    pub fn text<E: Into<BoxError>>(e: E) -> Error {
+        Error::with_source(Kind::ResponseText, e)
+    }
+
+    pub fn json<E: Into<BoxError>>(e: E) -> Error {
+        Error::with_source(Kind::ResponseText, e)
     }
 }
