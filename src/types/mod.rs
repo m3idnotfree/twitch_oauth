@@ -11,10 +11,8 @@ pub use scope::{
 
 use std::{collections::HashSet, fmt};
 
-use asknothingx2_util::oauth::AuthorizationCode;
+use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, RefreshToken};
 use serde::{Deserialize, Serialize};
-
-use crate::{AccessToken, RefreshToken};
 
 pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scope::new(scopes)

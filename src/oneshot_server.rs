@@ -1,12 +1,13 @@
 use std::{fmt, io, net::SocketAddr, time::Duration};
 
+use asknothingx2_util::oauth::AuthorizationCode;
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     net::{TcpListener, TcpStream},
     time::timeout,
 };
 
-use crate::{types::OAuthCallbackQuery, AuthorizationCode};
+use crate::types::OAuthCallbackQuery;
 
 /// only support localhost
 pub async fn oneshot_server(

@@ -1,13 +1,17 @@
-use asknothingx2_util::api::{mime_type::Application, Method};
+use asknothingx2_util::{
+    api::{mime_type::Application, Method},
+    oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
+};
 use reqwest::{
     header::{ACCEPT, CONTENT_TYPE},
-    Client, RequestBuilder, Response,
+    Client, RequestBuilder,
 };
 
 use crate::{
-    error::{self, TokenError},
+    error,
+    response::{Response, TokenResponse},
     types::{GrantType, Token},
-    ClientId, ClientSecret, Error, RefreshToken, TokenUrl,
+    Error,
 };
 
 use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
@@ -39,23 +43,20 @@ impl<'a> RefreshRequest<'a> {
         }
     }
 
-    pub async fn send(self) -> Result<Response, Error> {
+    pub async fn send(self) -> Result<Response<TokenResponse>, Error> {
         let client = self.client.clone();
-        self.into_request_builder(&client)?
+        let resp = self
+            .into_request_builder(&client)?
             .send()
             .await
-            .map_err(error::network::request)
+            .map_err(error::network::request)?;
+
+        Ok(Response::new(resp))
     }
 
     pub async fn json(self) -> Result<Token, Error> {
         let resp = self.send().await?;
-
-        if resp.status().is_success() {
-            resp.json::<Token>().await.map_err(error::validation::json)
-        } else {
-            let error_response: TokenError = resp.json().await.map_err(error::validation::json)?;
-            Err(error::oauth::from_token_error(error_response))
-        }
+        resp.token().await
     }
 }
 

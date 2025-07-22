@@ -7,12 +7,14 @@ use asknothingx2_util::{
         RevocationUrl, TokenUrl, ValidateUrl,
     },
 };
-use reqwest::{Client, Response};
+use reqwest::Client;
 use url::Url;
 
 use crate::{
-    csrf, error, request::IntoRequestBuilder, AuthrozationRequest, ClientCredentialsRequest,
-    CodeTokenRequest, Error, RefreshRequest, RevokeRequest,
+    csrf, error,
+    response::{NoContentResponse, Response},
+    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
+    RevokeRequest,
 };
 
 pub(crate) static AUTH_URL: LazyLock<AuthUrl> =
@@ -133,8 +135,9 @@ where
             .ok_or_else(error::oauth::missing_redirect_url)
     }
 
+    /// Refresh an access token using a refresh token
     /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
-    pub fn exchange_refresh_token<'a>(&'a self, refresh_token: RefreshToken) -> RefreshRequest<'a> {
+    pub fn refresh_access_token(&self, refresh_token: RefreshToken) -> RefreshRequest {
         RefreshRequest::new(
             &self.client_id,
             &self.client_secret,
@@ -144,18 +147,33 @@ where
         )
     }
 
+    /// Revoke/invalidate an access token
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
-    pub async fn revoke_token(&self, access_token: &AccessToken) -> Result<Response, Error> {
-        RevokeRequest::new(access_token, &self.client_id, self.get_revoke_url())
-            .into_request_builder(&self.client)?
-            .send()
-            .await
-            .map_err(error::network::request)
+    pub async fn revoke_access_token(
+        &self,
+        access_token: &AccessToken,
+    ) -> Result<Response<NoContentResponse>, Error> {
+        RevokeRequest::new(
+            access_token,
+            &self.client_id,
+            self.get_revoke_url(),
+            &self.client,
+        )
+        // .into_request_builder(&self.client)?
+        .send()
+        .await
+        .map_err(error::network::request)
     }
 
+    /// Get an application access token (client credentials flow)
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-    pub fn client_credentials(&self) -> ClientCredentialsRequest {
-        ClientCredentialsRequest::new(&self.client_id, &self.client_secret, &self.client)
+    pub fn app_access_token(&self) -> ClientCredentialsRequest {
+        ClientCredentialsRequest::new(
+            &self.client_id,
+            &self.client_secret,
+            &self.client,
+            &self.token_url,
+        )
     }
 }
 
@@ -207,7 +225,7 @@ impl TwitchOauth<Unconfigured> {
 }
 impl TwitchOauth<Configured> {
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub fn authorize_url<'a>(&'a self) -> Result<AuthrozationRequest<'a>, Error> {
+    pub fn authorization_url<'a>(&'a self) -> Result<AuthrozationRequest<'a>, Error> {
         Ok(AuthrozationRequest::new(
             self.get_auth_url(),
             &self.client_id,
@@ -216,8 +234,9 @@ impl TwitchOauth<Configured> {
         ))
     }
 
+    /// Exchange authorization code for user access token (authorization code flow step 2)
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub fn exchange_code<'a>(
+    pub fn user_access_token<'a>(
         &'a self,
         code: AuthorizationCode,
         state: String,
@@ -232,6 +251,7 @@ impl TwitchOauth<Configured> {
             code,
             self.validate_redirect_uri()?,
             &self.client,
+            &self.token_url,
         ))
     }
 }

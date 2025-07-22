@@ -1,14 +1,17 @@
-use asknothingx2_util::api::{mime_type::Application, Method};
+use asknothingx2_util::{
+    api::{mime_type::Application, Method},
+    oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
+};
 use reqwest::{
     header::{ACCEPT, CONTENT_TYPE},
-    Client, Response,
+    Client,
 };
 
 use crate::{
-    error::{self, TokenError},
-    oauth::TOKEN_URL,
+    error::{self},
+    response::{Response, TokenResponse},
     types::{GrantType, Token},
-    AuthorizationCode, ClientId, ClientSecret, Error, RedirectUrl,
+    Error,
 };
 
 use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
@@ -20,6 +23,7 @@ pub struct CodeTokenRequest<'a> {
     code: AuthorizationCode,
     redirect_url: &'a RedirectUrl,
     client: &'a Client,
+    token_url: &'a TokenUrl,
 }
 
 impl<'a> CodeTokenRequest<'a> {
@@ -29,6 +33,7 @@ impl<'a> CodeTokenRequest<'a> {
         code: AuthorizationCode,
         redirect_url: &'a RedirectUrl,
         client: &'a Client,
+        token_url: &'a TokenUrl,
     ) -> Self {
         Self {
             client_id,
@@ -36,26 +41,24 @@ impl<'a> CodeTokenRequest<'a> {
             code,
             redirect_url,
             client,
+            token_url,
         }
     }
 
-    pub async fn send(self) -> Result<Response, Error> {
+    pub async fn send(self) -> Result<Response<TokenResponse>, Error> {
         let client = self.client.clone();
-        self.into_request_builder(&client)?
+        let resp = self
+            .into_request_builder(&client)?
             .send()
             .await
-            .map_err(error::network::request)
+            .map_err(error::network::request)?;
+
+        Ok(Response::new(resp))
     }
 
     pub async fn json(self) -> Result<Token, Error> {
         let resp = self.send().await?;
-
-        if resp.status().is_success() {
-            resp.json::<Token>().await.map_err(error::validation::json)
-        } else {
-            let error_response: TokenError = resp.json().await.map_err(error::validation::json)?;
-            Err(error::oauth::from_token_error(error_response))
-        }
+        resp.token().await
     }
 }
 
@@ -73,7 +76,7 @@ impl IntoRequestBuilder for CodeTokenRequest<'_> {
         .map_err(error::validation::url_encode)?;
 
         let client = client
-            .request(Method::POST, TOKEN_URL.url().clone())
+            .request(Method::POST, self.token_url.url().clone())
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
             .body(form_string);
