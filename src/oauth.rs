@@ -1,11 +1,12 @@
-use std::{fmt, marker::PhantomData, sync::LazyLock};
+use std::{
+    fmt,
+    marker::PhantomData,
+    sync::{LazyLock, OnceLock},
+};
 
-use asknothingx2_util::{
-    api::preset,
-    oauth::{
-        AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
-        RevocationUrl, TokenUrl, ValidateUrl,
-    },
+use asknothingx2_util::oauth::{
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
+    RevocationUrl, TokenUrl, ValidateUrl,
 };
 use reqwest::Client;
 use url::Url;
@@ -28,6 +29,49 @@ pub(crate) static REVOKE_URL: LazyLock<RevocationUrl> =
 
 pub(crate) static VALIDATE_URL: LazyLock<ValidateUrl> =
     LazyLock::new(|| ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap());
+
+static CLIENT: OnceLock<Client> = OnceLock::new();
+
+pub mod client {
+    use asknothingx2_util::api::preset::{self, Preset};
+    use reqwest::Client;
+
+    use crate::{error, Error};
+
+    use super::CLIENT;
+
+    pub fn setup<F>(f: F) -> Result<(), Error>
+    where
+        F: FnOnce(Preset) -> Result<Preset, asknothingx2_util::api::Error>,
+    {
+        if CLIENT.get().is_some() {
+            return Err(error::client_setup::already_initialized());
+        }
+        let preset = preset::for_auth("twitch-oauth/1.0");
+
+        let preset = f(preset).map_err(|e| {
+            error::client_setup::from_preset_error("preset configuration failed", e)
+        })?;
+
+        let client = preset
+            .build_client()
+            .map_err(error::client_setup::build_failed)?;
+
+        CLIENT
+            .set(client)
+            .map_err(|_| error::client_setup::already_initialized())?;
+
+        Ok(())
+    }
+
+    pub fn get() -> &'static Client {
+        CLIENT.get_or_init(|| {
+            preset::for_auth("twitch-oauth/1.0")
+                .build_client()
+                .expect("failed to build default http client")
+        })
+    }
+}
 
 mod private {
     pub trait Sealed {}
@@ -159,7 +203,6 @@ where
             self.get_revoke_url(),
             &self.client,
         )
-        // .into_request_builder(&self.client)?
         .send()
         .await
         .map_err(error::network::request)
@@ -187,7 +230,7 @@ impl TwitchOauth<Unconfigured> {
             token_url: TOKEN_URL.clone(),
             auth_url: AUTH_URL.clone(),
             revoke_url: REVOKE_URL.clone(),
-            client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
+            client: client::get().clone(),
             phanthom: PhantomData,
         }
     }
@@ -201,7 +244,7 @@ impl TwitchOauth<Unconfigured> {
             client_secret,
             redirect_uri: None,
             secret_key: csrf::generate_secret_key(),
-            client: preset::for_auth("twitch-oauth/1.0").build_client().unwrap(),
+            client: client::get().clone(),
             token_url: TOKEN_URL.clone(),
             auth_url: AUTH_URL.clone(),
             revoke_url: REVOKE_URL.clone(),

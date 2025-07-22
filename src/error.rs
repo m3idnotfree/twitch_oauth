@@ -31,6 +31,8 @@ pub enum Kind {
     Json,
 
     OAuthError,
+
+    ClientSetup,
 }
 
 impl Error {
@@ -107,6 +109,10 @@ impl Error {
     pub fn is_response_parsing_error(&self) -> bool {
         matches!(self.inner.kind, Kind::ResponseText | Kind::ResponseJson)
     }
+
+    pub fn is_client_setup_error(&self) -> bool {
+        matches!(self.inner.kind, Kind::ClientSetup)
+    }
 }
 
 impl fmt::Debug for Error {
@@ -173,6 +179,7 @@ impl Kind {
             Kind::UrlEncode => "failed to encoding URL",
             Kind::Json => "failed to parse JSON",
             Kind::OAuthError => "OAuth error response",
+            Kind::ClientSetup => "HTTP client setup failed",
         }
     }
 }
@@ -252,5 +259,31 @@ pub mod response {
 
     pub fn json<E: Into<BoxError>>(e: E) -> Error {
         Error::with_source(Kind::ResponseText, e)
+    }
+}
+
+pub mod client_setup {
+    use super::{BoxError, Error, Kind};
+
+    pub fn already_initialized() -> Error {
+        Error::with_message(
+            Kind::ClientSetup,
+            "HTTP client has already been initialized and cannot be reconfigured",
+        )
+    }
+
+    pub fn build_failed<E: Into<BoxError>>(source: E) -> Error {
+        Error::with_message_and_source(
+            Kind::ClientSetup,
+            "failed to build HTTP client from preset configuration",
+            source,
+        )
+    }
+
+    pub fn from_preset_error<M: Into<String>>(
+        message: M,
+        source: asknothingx2_util::api::Error,
+    ) -> Error {
+        Error::with_message_and_source(Kind::ClientSetup, message, source)
     }
 }
