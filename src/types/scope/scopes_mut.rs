@@ -42,6 +42,7 @@ pub trait ChannelScopes {
     fn with_followed_channels_read(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-channel-followers>
     fn with_channel_followers_read(&mut self) -> &mut Self;
+    fn with_channel_ban_unban(&mut self) -> &mut Self;
 }
 
 pub trait ChannelPointsScopes {
@@ -454,6 +455,10 @@ impl ChannelScopes for ScopesMut<'_> {
     }
     fn with_channel_followers_read(&mut self) -> &mut Self {
         self.push(Scope::ModeratorReadFollowers);
+        self
+    }
+    fn with_channel_ban_unban(&mut self) -> &mut Self {
+        self.push(Scope::ChannelModerate);
         self
     }
 }

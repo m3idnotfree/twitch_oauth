@@ -164,6 +164,12 @@ pub enum Scope {
     /// Remove Channel Moderator
     /// Get Moderators
     ChannelManageModerators,
+    /// Perform moderation actions in a channel.
+    ///
+    /// EventSub
+    /// Channel Moderate
+    /// Channel Moderate v2
+    ChannelModerate,
     /// View a channel’s polls.
     ///
     /// API
@@ -689,6 +695,7 @@ impl Scope {
             Self::ChannelManageGuestStar => "channel:manage:guest_star",
             Self::ChannelReadHypeTrain => "channel:read:hype_train",
             Self::ChannelManageModerators => "channel:manage:moderators",
+            Self::ChannelModerate => "channel:moderate",
             Self::ChannelReadPolls => "channel:read:polls",
             Self::ChannelManagePolls => "channel:manage:polls",
             Self::ChannelReadPredictions => "channel:read:predictions",
@@ -719,8 +726,8 @@ impl Scope {
             Self::ModeratorReadChatters => "moderator:read:chatters",
             Self::ModeratorReadFollowers => "moderator:read:followers",
             Self::ModeratorReadGuestStar => "moderator:read:guest_star",
-            Self::ModeratorManageGuestStar => "moderator:manage:guest_star	",
-            Self::ModeratorReadModerators => "moderator:read:moderators	",
+            Self::ModeratorManageGuestStar => "moderator:manage:guest_star",
+            Self::ModeratorReadModerators => "moderator:read:moderators",
             Self::ModeratorReadShieldMode => "moderator:read:shield_mode",
             Self::ModeratorManageShieldMode => "moderator:manage:shield_mode",
             Self::ModeratorReadShoutouts => "moderator:read:shoutouts",
@@ -776,6 +783,7 @@ impl Display for Scope {
             Self::ChannelManageGuestStar => write!(f, "channel:manage:guest_star"),
             Self::ChannelReadHypeTrain => write!(f, "channel:read:hype_train"),
             Self::ChannelManageModerators => write!(f, "channel:manage:moderators"),
+            Self::ChannelModerate => write!(f, "channel:moderate"),
             Self::ChannelReadPolls => write!(f, "channel:read:polls"),
             Self::ChannelManagePolls => write!(f, "channel:manage:polls"),
             Self::ChannelReadPredictions => write!(f, "channel:read:predictions"),
@@ -863,6 +871,7 @@ impl From<Scope> for String {
             Scope::ChannelManageGuestStar => "channel:manage:guest_star".to_string(),
             Scope::ChannelReadHypeTrain => "channel:read:hype_train".to_string(),
             Scope::ChannelManageModerators => "channel:manage:moderators".to_string(),
+            Scope::ChannelModerate => "channel:moderate".to_string(),
             Scope::ChannelReadPolls => "channel:read:polls".to_string(),
             Scope::ChannelManagePolls => "channel:manage:polls".to_string(),
             Scope::ChannelReadPredictions => "channel:read:predictions".to_string(),
@@ -952,6 +961,7 @@ impl From<&str> for Scope {
             "channel:manage:guest_star" => Self::ChannelManageGuestStar,
             "channel:read:hype_train" => Self::ChannelReadHypeTrain,
             "channel:manage:moderators" => Self::ChannelManageModerators,
+            "channel:moderate" => Self::ChannelModerate,
             "channel:read:polls" => Self::ChannelReadPolls,
             "channel:manage:polls" => Self::ChannelManagePolls,
             "channel:read:predictions" => Self::ChannelReadPredictions,
@@ -1051,6 +1061,7 @@ impl<'de> Deserialize<'de> for Scope {
             "channel:manage:guest_star" => Ok(Self::ChannelManageGuestStar),
             "channel:read:hype_train" => Ok(Self::ChannelReadHypeTrain),
             "channel:manage:moderators" => Ok(Self::ChannelManageModerators),
+            "channel:moderate" => Ok(Self::ChannelModerate),
             "channel:read:polls" => Ok(Self::ChannelReadPolls),
             "channel:manage:polls" => Ok(Self::ChannelManagePolls),
             "channel:read:predictions" => Ok(Self::ChannelReadPredictions),
@@ -1113,7 +1124,7 @@ impl<'de> Deserialize<'de> for Scope {
             "chat:edit" => Ok(Self::ChatEdit),
             "chat:read" => Ok(Self::ChatRead),
             "" => Ok(Self::EmptyString),
-            _ => Err(D::Error::custom(format!("unknown scope: '{}'", s))),
+            _ => Err(D::Error::custom(format!("unknown scope: '{s}'"))),
         }
     }
 }
