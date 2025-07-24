@@ -16,7 +16,6 @@ use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 pub struct ClientCredentialsRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
-    client: &'a Client,
     token_url: &'a TokenUrl,
 }
 
@@ -24,31 +23,13 @@ impl<'a> ClientCredentialsRequest<'a> {
     pub fn new(
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
-        client: &'a Client,
         token_url: &'a TokenUrl,
     ) -> Self {
         Self {
             client_id,
             client_secret,
-            client,
             token_url,
         }
-    }
-
-    pub async fn send(self) -> Result<Response<ClientCredentialsResponse>, Error> {
-        let client = self.client.clone();
-        let resp = self
-            .into_request_builder(&client)?
-            .send()
-            .await
-            .map_err(error::network::request)?;
-
-        Ok(Response::new(resp))
-    }
-
-    pub async fn json(self) -> Result<ClientCredentials, Error> {
-        let resp = self.send().await?;
-        resp.client_credentials().await
     }
 }
 

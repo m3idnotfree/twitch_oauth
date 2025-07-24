@@ -18,7 +18,6 @@ pub struct RefreshRequest<'a> {
     client_secret: &'a ClientSecret,
     refresh_token: RefreshToken,
     token_url: &'a TokenUrl,
-    client: &'a Client,
 }
 
 impl<'a> RefreshRequest<'a> {
@@ -27,31 +26,13 @@ impl<'a> RefreshRequest<'a> {
         client_secret: &'a ClientSecret,
         refresh_token: RefreshToken,
         token_url: &'a TokenUrl,
-        client: &'a Client,
     ) -> Self {
         Self {
             client_id,
             client_secret,
             refresh_token,
             token_url,
-            client,
         }
-    }
-
-    pub async fn send(self) -> Result<Response<TokenResponse>, Error> {
-        let client = self.client.clone();
-        let resp = self
-            .into_request_builder(&client)?
-            .send()
-            .await
-            .map_err(error::network::request)?;
-
-        Ok(Response::new(resp))
-    }
-
-    pub async fn json(self) -> Result<Token, Error> {
-        let resp = self.send().await?;
-        resp.token().await
     }
 }
 

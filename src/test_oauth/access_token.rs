@@ -1,15 +1,14 @@
 use std::collections::HashSet;
 
-use asknothingx2_util::api::{
-    preset,
-    request::{IntoRequestParts, RequestParts},
-    Method,
+use asknothingx2_util::{
+    api::{preset, IntoRequestBuilder, Method},
+    oauth::{AuthUrl, ClientId, ClientSecret},
 };
 use reqwest::Response;
 
 use crate::{
     types::{scopes_mut, GrantType, Scope, ScopesMut},
-    AuthUrl, ClientId, ClientSecret,
+    Error,
 };
 
 pub struct TestAccessToken<'a> {
@@ -45,9 +44,8 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn request_access_token(self) -> Result<Response, asknothingx2_util::api::Error> {
-        let client = preset::for_test("test/1.0").build_client().unwrap();
-        self.into_request_parts()
-            .into_request_builder(&client)
+        let client = preset::testing("test/1.0").build_client().unwrap();
+        self.into_request_builder(&client)
             .unwrap()
             .send()
             .await
@@ -55,8 +53,12 @@ impl<'a> TestAccessToken<'a> {
     }
 }
 
-impl IntoRequestParts for TestAccessToken<'_> {
-    fn into_request_parts(self) -> RequestParts {
+impl IntoRequestBuilder for TestAccessToken<'_> {
+    type Error = Error;
+    fn into_request_builder(
+        self,
+        client: &reqwest::Client,
+    ) -> Result<reqwest::RequestBuilder, Self::Error> {
         let mut url = self.auth_url.url().clone();
 
         let mut params = vec![
@@ -84,59 +86,6 @@ impl IntoRequestParts for TestAccessToken<'_> {
         }
 
         url.query_pairs_mut().extend_pairs(params);
-
-        RequestParts::new(Method::POST, url)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use std::collections::HashSet;
-
-    use asknothingx2_util::api::{request::IntoRequestParts, Method};
-    use url::Url;
-
-    use crate::{
-        types::{GrantType, Scope},
-        AuthUrl, ClientId, ClientSecret,
-    };
-
-    use super::TestAccessToken;
-
-    #[test]
-    fn test_access_token() {
-        let mut test_client = TestAccessToken {
-            client_id: &ClientId::new("ef74yew8ew".to_string()),
-            client_secret: &ClientSecret::new("fl790fiits".to_string()),
-            grant_type: GrantType::UserToken,
-            user_id: Some("8086138"),
-            scopes: HashSet::new(),
-            auth_url: AuthUrl::new("http://localhost:8080/auth/authorize".to_string()).unwrap(),
-        };
-
-        test_client
-            .scopes_mut()
-            .push(Scope::UserBot)
-            .extend([Scope::ChannelBot, Scope::UserWriteChat]);
-
-        let mut expected_auth_url = Url::parse("http://localhost:8080/auth/authorize").unwrap();
-
-        let expected_params = vec![
-            ("client_id", "ef74yew8ew"),
-            ("client_secret", "fl790fiits"),
-            ("grant_type", "user_token"),
-            ("user_id", "8086138"),
-            ("scope", "user:bot channel:bot user:write:chat"),
-        ];
-
-        expected_auth_url
-            .query_pairs_mut()
-            .extend_pairs(expected_params);
-
-        let test_client = test_client.into_request_parts();
-
-        assert_eq!(0, test_client.headers.len());
-        assert_eq!(Method::POST, test_client.method);
-        assert!(test_client.body.is_none());
+        Ok(client.request(Method::POST, url))
     }
 }

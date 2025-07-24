@@ -21,7 +21,6 @@ pub struct CodeTokenRequest<'a> {
     client_secret: &'a ClientSecret,
     code: AuthorizationCode,
     redirect_url: &'a RedirectUrl,
-    client: &'a Client,
     token_url: &'a TokenUrl,
 }
 
@@ -31,7 +30,6 @@ impl<'a> CodeTokenRequest<'a> {
         client_secret: &'a ClientSecret,
         code: AuthorizationCode,
         redirect_url: &'a RedirectUrl,
-        client: &'a Client,
         token_url: &'a TokenUrl,
     ) -> Self {
         Self {
@@ -39,25 +37,8 @@ impl<'a> CodeTokenRequest<'a> {
             client_secret,
             code,
             redirect_url,
-            client,
             token_url,
         }
-    }
-
-    pub async fn send(self) -> Result<Response<TokenResponse>, Error> {
-        let client = self.client.clone();
-        let resp = self
-            .into_request_builder(&client)?
-            .send()
-            .await
-            .map_err(error::network::request)?;
-
-        Ok(Response::new(resp))
-    }
-
-    pub async fn json(self) -> Result<Token, Error> {
-        let resp = self.send().await?;
-        resp.token().await
     }
 }
 

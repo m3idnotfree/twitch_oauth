@@ -17,7 +17,6 @@ pub struct RevokeRequest<'a> {
     access_token: &'a AccessToken,
     client_id: &'a ClientId,
     revoke_url: &'a RevocationUrl,
-    client: &'a Client,
 }
 
 impl<'a> RevokeRequest<'a> {
@@ -25,25 +24,12 @@ impl<'a> RevokeRequest<'a> {
         access_token: &'a AccessToken,
         client_id: &'a ClientId,
         revoke_url: &'a RevocationUrl,
-        client: &'a Client,
     ) -> Self {
         Self {
             access_token,
             client_id,
             revoke_url,
-            client,
         }
-    }
-
-    pub async fn send(self) -> Result<Response<NoContentResponse>, Error> {
-        let client = self.client.clone();
-        let resp = self
-            .into_request_builder(&client)?
-            .send()
-            .await
-            .map_err(error::network::request)?;
-
-        Ok(Response::new(resp))
     }
 }
 

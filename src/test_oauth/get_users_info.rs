@@ -1,8 +1,11 @@
-use asknothingx2_util::api;
+use asknothingx2_util::{
+    api,
+    oauth::{ClientId, ClientSecret},
+};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{error, ClientId, ClientSecret, Error};
+use crate::{error, Error};
 
 /// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,7 +38,7 @@ pub async fn get_users_info(port: Option<u16>) -> Result<UsersResponse, Error> {
         .push("units")
         .push("clients");
 
-    api::preset::for_test("test/1.0")
+    api::preset::testing("test/1.0")
         .build_client()
         .unwrap()
         .get(base_url)
