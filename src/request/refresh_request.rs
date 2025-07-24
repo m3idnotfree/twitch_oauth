@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{mime_type::Application, Method},
+    api::{mime_type::Application, IntoRequestBuilder, Method},
     oauth::{ClientId, ClientSecret, RefreshToken, TokenUrl},
 };
 use reqwest::{
@@ -7,14 +7,9 @@ use reqwest::{
     Client, RequestBuilder,
 };
 
-use crate::{
-    error,
-    response::{Response, TokenResponse},
-    types::{GrantType, Token},
-    Error,
-};
+use crate::{error, types::GrantType, Error};
 
-use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
+use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
 #[derive(Debug)]

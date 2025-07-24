@@ -20,7 +20,7 @@ full = ["oneshot-server", "test"]
 
 
 [dependencies]
-asknothingx2-util = { version = "0.1.4", features = ["api", "oauth"] }
+asknothingx2-util = { version = "0.1.6", features = ["api", "oauth"] }
 reqwest = "0.12.22"
 url = "2.5.4"
 serde = { version = "1.0.217", features = ["derive"] }
@@ -30,11 +30,12 @@ base64 = "0.22.1"
 hmac = "0.12.1"
 hex = "0.4.3"
 chrono = { version = "0.4.41", features = ["serde"] }
-rand = "0.9.1"
+rand = "0.9.2"
 sha2 = "0.10.9"
-tokio = { version = "1.43.0", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
+tokio = { version = "1.46.1", optional = true, features = ["signal", "time", "io-util", "net", "macros"] }
 
 [dev-dependencies]
 dotenv = "0.15.0"
-tokio = { version = "1.43.0", features = ["full"] }
-wiremock = "0.6.2"
+serde_json = "1.0.141"
+tokio = { version = "1.46.1", features = ["full"] }
+wiremock = "0.6.4"

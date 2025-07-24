@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{mime_type::Application, Method},
+    api::{mime_type::Application, IntoRequestBuilder, Method},
     oauth::{AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl},
 };
 use reqwest::{
@@ -9,12 +9,11 @@ use reqwest::{
 
 use crate::{
     error::{self},
-    response::{Response, TokenResponse},
-    types::{GrantType, Token},
+    types::GrantType,
     Error,
 };
 
-use super::{IntoRequestBuilder, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
+use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 #[derive(Debug)]
 pub struct CodeTokenRequest<'a> {

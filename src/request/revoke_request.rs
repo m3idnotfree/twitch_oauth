@@ -1,5 +1,5 @@
 use asknothingx2_util::{
-    api::{mime_type::Application, Method},
+    api::{mime_type::Application, IntoRequestBuilder, Method},
     oauth::{AccessToken, ClientId, RevocationUrl},
 };
 use reqwest::{
@@ -7,13 +7,9 @@ use reqwest::{
     Client, RequestBuilder,
 };
 
-use crate::{
-    error,
-    response::{NoContentResponse, Response},
-    Error,
-};
+use crate::{error, Error};
 
-use super::{IntoRequestBuilder, CLIENT_ID};
+use super::CLIENT_ID;
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]

@@ -11,8 +11,8 @@ mod request;
 pub use error::{Error, Kind};
 pub use oauth::{client, Configured, TwitchOauth, Unconfigured};
 pub use request::{
-    validate_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
-    IntoRequestBuilder, RefreshRequest, RevokeRequest, ValidateRequest,
+    validate_access_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
+    RefreshRequest, RevokeRequest, ValidateRequest,
 };
 
 #[cfg(feature = "oneshot-server")]
