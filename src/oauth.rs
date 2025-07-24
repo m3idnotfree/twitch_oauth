@@ -353,7 +353,7 @@ impl TwitchOauth<Configured> {
         code: AuthorizationCode,
         state: String,
     ) -> Result<Response<TokenResponse>, Error> {
-        if csrf::validate(&self.secret_key, &state, None, 600) {
+        if !csrf::validate(&self.secret_key, &state, Some(&self.client_id), 600) {
             return Err(error::oauth::csrf_token_mismatch());
         }
         self.send(CodeTokenRequest::new(
