@@ -105,3 +105,16 @@ impl Response<ValidateTokenResponse> {
 }
 
 impl Response<NoContentResponse> {}
+
+impl<State> fmt::Debug for Response<State>
+where
+    State: ResponseState,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Response")
+            .field("status", &self.status())
+            .field("success", &self.is_success())
+            .field("state_type", &std::any::type_name::<State>())
+            .finish_non_exhaustive()
+    }
+}
