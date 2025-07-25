@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{fmt, marker::PhantomData};
 
 use reqwest::StatusCode;
 
@@ -69,12 +69,7 @@ where
     where
         T: serde::de::DeserializeOwned,
     {
-        if self.is_success() {
-            self.inner.json::<T>().await.map_err(error::response::json)
-        } else {
-            let text = self.inner.text().await.map_err(error::response::text)?;
-            Err(Error::with_message(error::Kind::OAuthError, text))
-        }
+        self.inner.json::<T>().await.map_err(error::response::json)
     }
 
     pub async fn text(self) -> Result<String, Error> {
