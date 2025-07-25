@@ -1,5 +1,6 @@
 mod scope;
 
+use chrono::Utc;
 pub use scope::{
     AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
@@ -12,20 +13,20 @@ pub use scope::{
 use std::{collections::HashSet, fmt};
 
 use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, RefreshToken};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scope::new(scopes)
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct Token {
     pub access_token: AccessToken,
     pub expires_in: u64,
     pub token_type: String,
     pub refresh_token: RefreshToken,
-    #[serde(default)]
     pub scope: Vec<Scope>,
+    pub created_at: i64,
 }
 
 impl Token {
@@ -38,6 +39,55 @@ impl Token {
         }
 
         *self.scope.first().unwrap() == Scope::EmptyString
+    }
+
+    pub fn is_expired(&self) -> bool {
+        let now = Utc::now().timestamp();
+        now >= (self.created_at + self.expires_in as i64)
+    }
+}
+
+impl Serialize for Token {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("Token", 5)?;
+        state.serialize_field("access_token", &self.access_token)?;
+        state.serialize_field("expires_in", &self.expires_in)?;
+        state.serialize_field("token_type", &self.token_type)?;
+        state.serialize_field("refresh_token", &self.refresh_token)?;
+        state.serialize_field("scope", &self.scope)?;
+        state.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Token {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct TokenResponse {
+            access_token: AccessToken,
+            expires_in: u64,
+            token_type: String,
+            refresh_token: RefreshToken,
+            #[serde(default)]
+            scope: Vec<Scope>,
+        }
+
+        let resp = TokenResponse::deserialize(deserializer)?;
+        Ok(Token {
+            access_token: resp.access_token,
+            expires_in: resp.expires_in,
+            token_type: resp.token_type,
+            refresh_token: resp.refresh_token,
+            scope: resp.scope,
+            created_at: Utc::now().timestamp(),
+        })
     }
 }
 
