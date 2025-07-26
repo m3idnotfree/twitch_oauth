@@ -2,7 +2,7 @@ mod scope;
 
 use chrono::Utc;
 pub use scope::{
-    AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
+    AdsScopes, AnalyticsScopes, BitsScopes, CCLScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
     ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
     ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, Scope,

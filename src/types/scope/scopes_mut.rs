@@ -5,7 +5,7 @@ use super::Scope;
 pub trait AdsScopes {
     fn with_ads_api(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#start-commercial>
-    fn with_stard_commercial(&mut self) -> &mut Self;
+    fn with_start_commercial(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-ad-schedule>
     fn with_ad_schedule_read(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#snooze-next-ad>
@@ -104,8 +104,8 @@ pub trait ConduitsScopes {
     fn with_conduit_shards_read(&mut self) -> &mut Self;
 }
 
-pub trait CCLsScopes {
-    fn with_cclrs_api(&mut self) -> &mut Self;
+pub trait CCLScopes {
+    fn with_ccl_api(&mut self) -> &mut Self;
     fn with_content_classification_labels_read(&mut self) -> &mut Self;
 }
 
@@ -119,8 +119,8 @@ pub trait ExtensionsScopes {
     fn with_extensions_api(&mut self) -> &mut Self;
     fn with_extension_configuration_segment_read(&mut self) -> &mut Self;
     fn with_extension_configuration_segment_manage(&mut self) -> &mut Self;
-    fn with_extion_required_configuration_manage(&mut self) -> &mut Self;
-    fn with_extionsion_pubsub_message_write(&mut self) -> &mut Self;
+    fn with_extension_required_configuration_manage(&mut self) -> &mut Self;
+    fn with_extension_pubsub_message_write(&mut self) -> &mut Self;
     fn with_extension_live_channel_read(&mut self) -> &mut Self;
     fn with_extension_secrets_read(&mut self) -> &mut Self;
     fn with_extension_secret_create(&mut self) -> &mut Self;
@@ -150,7 +150,7 @@ pub trait GamesScopes {
 }
 
 pub trait GoalsScopes {
-    fn with_golas_api(&mut self) -> &mut Self;
+    fn with_goals_api(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-creator-goals>
     fn with_creator_goals_read(&mut self) -> &mut Self;
 }
@@ -174,13 +174,13 @@ pub trait GuestStarScopes {
     /// <https://dev.twitch.tv/docs/api/reference/#delete-guest-star-invite>
     fn with_guest_star_invites_delete(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#assign-guest-star-slot>
-    fn with_gust_star_slot_assign(&mut self) -> &mut Self;
+    fn with_guest_star_slot_assign(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot>
-    fn with_gust_star_slot_manage(&mut self) -> &mut Self;
+    fn with_guest_star_slot_manage(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#delete-guest-star-slot>
-    fn with_gust_star_slot_delete(&mut self) -> &mut Self;
+    fn with_guest_star_slot_delete(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#update-guest-star-slot-settings>
-    fn with_gust_star_slot_settings_manage(&mut self) -> &mut Self;
+    fn with_guest_star_slot_settings_manage(&mut self) -> &mut Self;
 }
 
 pub trait HypeTrainScopes {
@@ -224,7 +224,7 @@ pub trait ModerationScopes {
     /// <https://dev.twitch.tv/docs/api/reference/#get-moderators>
     fn with_moderators_read_as_app(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#add-channel-moderator>
-    fn with_chanel_moderator_add(&mut self) -> &mut Self;
+    fn with_channel_moderator_add(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#remove-channel-moderator>
     fn with_channel_moderator_remove(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-vips>
@@ -379,11 +379,11 @@ pub trait IRCScopes {
 
 impl AdsScopes for ScopesMut<'_> {
     fn with_ads_api(&mut self) -> &mut Self {
-        self.with_stard_commercial()
+        self.with_start_commercial()
             .with_ad_schedule_read()
             .with_snooze_next_ad()
     }
-    fn with_stard_commercial(&mut self) -> &mut Self {
+    fn with_start_commercial(&mut self) -> &mut Self {
         self.push(Scope::ChannelEditCommercial);
         self
     }
@@ -623,8 +623,8 @@ impl ConduitsScopes for ScopesMut<'_> {
     }
 }
 
-impl CCLsScopes for ScopesMut<'_> {
-    fn with_cclrs_api(&mut self) -> &mut Self {
+impl CCLScopes for ScopesMut<'_> {
+    fn with_ccl_api(&mut self) -> &mut Self {
         self.with_content_classification_labels_read()
     }
     fn with_content_classification_labels_read(&mut self) -> &mut Self {
@@ -649,8 +649,8 @@ impl ExtensionsScopes for ScopesMut<'_> {
     fn with_extensions_api(&mut self) -> &mut Self {
         self.with_extension_configuration_segment_read()
             .with_extension_configuration_segment_manage()
-            .with_extion_required_configuration_manage()
-            .with_extionsion_pubsub_message_write()
+            .with_extension_required_configuration_manage()
+            .with_extension_pubsub_message_write()
             .with_extension_live_channel_read()
             .with_extension_secrets_read()
             .with_extension_secret_create()
@@ -666,10 +666,10 @@ impl ExtensionsScopes for ScopesMut<'_> {
     fn with_extension_configuration_segment_manage(&mut self) -> &mut Self {
         self
     }
-    fn with_extion_required_configuration_manage(&mut self) -> &mut Self {
+    fn with_extension_required_configuration_manage(&mut self) -> &mut Self {
         self
     }
-    fn with_extionsion_pubsub_message_write(&mut self) -> &mut Self {
+    fn with_extension_pubsub_message_write(&mut self) -> &mut Self {
         self
     }
     fn with_extension_live_channel_read(&mut self) -> &mut Self {
@@ -728,7 +728,7 @@ impl GamesScopes for ScopesMut<'_> {
 }
 
 impl GoalsScopes for ScopesMut<'_> {
-    fn with_golas_api(&mut self) -> &mut Self {
+    fn with_goals_api(&mut self) -> &mut Self {
         self.with_creator_goals_read()
     }
     fn with_creator_goals_read(&mut self) -> &mut Self {
@@ -747,10 +747,10 @@ impl GuestStarScopes for ScopesMut<'_> {
             .with_guest_star_invites_read()
             .with_guest_star_invites_write()
             .with_guest_star_invites_delete()
-            .with_gust_star_slot_assign()
-            .with_gust_star_slot_manage()
-            .with_gust_star_slot_delete()
-            .with_gust_star_slot_settings_manage()
+            .with_guest_star_slot_assign()
+            .with_guest_star_slot_manage()
+            .with_guest_star_slot_delete()
+            .with_guest_star_slot_settings_manage()
     }
     fn with_channel_guest_star_setings_read(&mut self) -> &mut Self {
         self.extend([
@@ -796,19 +796,19 @@ impl GuestStarScopes for ScopesMut<'_> {
         self.push(Scope::ChannelManageGuestStar);
         self
     }
-    fn with_gust_star_slot_assign(&mut self) -> &mut Self {
+    fn with_guest_star_slot_assign(&mut self) -> &mut Self {
         self.push(Scope::ChannelManageGuestStar);
         self
     }
-    fn with_gust_star_slot_manage(&mut self) -> &mut Self {
+    fn with_guest_star_slot_manage(&mut self) -> &mut Self {
         self.push(Scope::ChannelManageGuestStar);
         self
     }
-    fn with_gust_star_slot_delete(&mut self) -> &mut Self {
+    fn with_guest_star_slot_delete(&mut self) -> &mut Self {
         self.push(Scope::ChannelManageGuestStar);
         self
     }
-    fn with_gust_star_slot_settings_manage(&mut self) -> &mut Self {
+    fn with_guest_star_slot_settings_manage(&mut self) -> &mut Self {
         self.push(Scope::ChannelManageGuestStar);
         self
     }
@@ -842,7 +842,7 @@ impl ModerationScopes for ScopesMut<'_> {
             .with_moderated_channels_read()
             .with_moderators_read_as_user()
             .with_moderators_read_as_app()
-            .with_chanel_moderator_add()
+            .with_channel_moderator_add()
             .with_channel_moderator_remove()
             .with_vips_read_as_user()
             .with_vips_read_as_app()
@@ -916,7 +916,7 @@ impl ModerationScopes for ScopesMut<'_> {
         self.push(Scope::ChannelManageModerators);
         self
     }
-    fn with_chanel_moderator_add(&mut self) -> &mut Self {
+    fn with_channel_moderator_add(&mut self) -> &mut Self {
         self.push(Scope::ChannelManageModerators);
         self
     }

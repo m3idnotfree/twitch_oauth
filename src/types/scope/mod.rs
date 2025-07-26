@@ -4,7 +4,7 @@ use std::fmt::Display;
 mod scopes_mut;
 pub(crate) use scopes_mut::new;
 pub use scopes_mut::{
-    AdsScopes, AnalyticsScopes, BitsScopes, CCLsScopes, ChannelPointsScopes, ChannelScopes,
+    AdsScopes, AnalyticsScopes, BitsScopes, CCLScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
     ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
     ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, ScopesMut,
