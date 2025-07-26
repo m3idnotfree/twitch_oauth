@@ -12,31 +12,31 @@ mod private {
     pub trait Sealed {}
 }
 
-pub trait ResponseState: private::Sealed {}
+pub trait ResponseType: private::Sealed {}
 
 pub struct Unknown;
 impl private::Sealed for Unknown {}
-impl ResponseState for Unknown {}
+impl ResponseType for Unknown {}
 
 pub struct ClientCredentialsResponse;
 impl private::Sealed for ClientCredentialsResponse {}
-impl ResponseState for ClientCredentialsResponse {}
+impl ResponseType for ClientCredentialsResponse {}
 
 pub struct TokenResponse;
 impl private::Sealed for TokenResponse {}
-impl ResponseState for TokenResponse {}
+impl ResponseType for TokenResponse {}
 
 pub struct ValidateTokenResponse;
 impl private::Sealed for ValidateTokenResponse {}
-impl ResponseState for ValidateTokenResponse {}
+impl ResponseType for ValidateTokenResponse {}
 
 pub struct NoContentResponse;
 impl private::Sealed for NoContentResponse {}
-impl ResponseState for NoContentResponse {}
+impl ResponseType for NoContentResponse {}
 
 pub struct Response<State = Unknown>
 where
-    State: ResponseState,
+    State: ResponseType,
 {
     inner: reqwest::Response,
     _state: PhantomData<State>,
@@ -44,7 +44,7 @@ where
 
 impl<State> Response<State>
 where
-    State: ResponseState,
+    State: ResponseType,
 {
     pub(crate) fn new(response: reqwest::Response) -> Self {
         Self {
@@ -103,7 +103,7 @@ impl Response<NoContentResponse> {}
 
 impl<State> fmt::Debug for Response<State>
 where
-    State: ResponseState,
+    State: ResponseType,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")

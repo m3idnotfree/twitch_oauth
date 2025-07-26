@@ -17,7 +17,7 @@ use url::Url;
 use crate::{
     csrf, error,
     response::{
-        ClientCredentialsResponse, NoContentResponse, Response, ResponseState, TokenResponse,
+        ClientCredentialsResponse, NoContentResponse, Response, ResponseType, TokenResponse,
         ValidateTokenResponse,
     },
     AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
@@ -329,7 +329,7 @@ where
     pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
     where
         T: IntoRequestBuilder<Error = Error>,
-        R: ResponseState,
+        R: ResponseType,
     {
         let resp = request
             .into_request_builder(&self.client)?

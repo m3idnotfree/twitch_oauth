@@ -8,15 +8,15 @@ use asknothingx2_util::oauth::{AuthUrl, ClientId, ClientSecret};
 pub use get_users_info::{get_users_info, User, UsersResponse};
 use url::Url;
 
-use crate::{oauth::OauthState, types::GrantType, Error, TwitchOauth};
+use crate::{oauth::OauthFlow, types::GrantType, Error, TwitchOauth};
 
-pub trait OauthTestExt<State: OauthState> {
+pub trait OauthTestExt<State: OauthFlow> {
     fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State>;
 }
 
 impl<State> OauthTestExt<State> for TwitchOauth<State>
 where
-    State: OauthState,
+    State: OauthFlow,
 {
     fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State> {
         TwitchOauthTest {
@@ -29,7 +29,7 @@ where
 #[derive(Debug, Clone)]
 pub struct TwitchOauthTest<State>
 where
-    State: OauthState,
+    State: OauthFlow,
 {
     oauth: TwitchOauth<State>,
     test_env: TestEnv,
@@ -37,7 +37,7 @@ where
 
 impl<State> TwitchOauthTest<State>
 where
-    State: OauthState,
+    State: OauthFlow,
 {
     pub fn oauth(&self) -> &TwitchOauth<State> {
         &self.oauth
