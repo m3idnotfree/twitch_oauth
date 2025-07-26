@@ -9,7 +9,7 @@ mod oauth;
 mod request;
 
 pub use error::{Error, Kind};
-pub use oauth::{client, Configured, TwitchOauth, Unconfigured};
+pub use oauth::{client, AppOnly, TwitchOauth, UserAuth};
 pub use request::{
     validate_access_token, AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest,
     RefreshRequest, RevokeRequest, ValidateRequest,
