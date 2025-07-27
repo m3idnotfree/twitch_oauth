@@ -22,7 +22,7 @@ async fn authorization_code_grant_flow() {
 
     let state = server::authorization_code_grant_flow(&server, &oauth, "").await;
 
-    let auth_url = oauth.authorization_url().unwrap().url();
+    let auth_url = oauth.authorization_url().url();
     let resp: OAuthCallbackQuery = config::client()
         .get(auth_url)
         .send()

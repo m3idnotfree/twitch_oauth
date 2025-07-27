@@ -26,7 +26,7 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct TwitchOauthTest<State>
 where
     State: OauthFlow,

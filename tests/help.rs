@@ -142,7 +142,7 @@ pub mod server {
         oauth: &TwitchOauth<UserAuth>,
         scopes: &str,
     ) -> String {
-        let auth_url = oauth.authorization_url().unwrap().url();
+        let auth_url = oauth.authorization_url().url();
         let state = auth_url
             .query_pairs()
             .find(|(k, _)| k == "state")

@@ -1,5 +1,5 @@
 use std::{
-    fmt,
+    fmt::{self, Debug},
     marker::PhantomData,
     sync::{LazyLock, OnceLock},
 };
@@ -12,7 +12,6 @@ use asknothingx2_util::{
     },
 };
 use reqwest::Client;
-use url::Url;
 
 use crate::{
     csrf, error,
@@ -167,7 +166,9 @@ mod private {
 }
 
 /// Marker trait for OAuth flow types - prevents external implementations
-pub trait OauthFlow: private::Sealed {}
+pub trait OauthFlow: private::Sealed {
+    type RedirectUrl: Debug;
+}
 
 /// **App-Only Authentication** (Client Credentials Flow)
 ///
@@ -183,7 +184,9 @@ pub trait OauthFlow: private::Sealed {}
 ///
 pub struct AppOnly;
 impl private::Sealed for AppOnly {}
-impl OauthFlow for AppOnly {}
+impl OauthFlow for AppOnly {
+    type RedirectUrl = ();
+}
 
 /// **User Authentication** (Authorization Code Flow)
 ///
@@ -199,7 +202,9 @@ impl OauthFlow for AppOnly {}
 ///
 pub struct UserAuth;
 impl private::Sealed for UserAuth {}
-impl OauthFlow for UserAuth {}
+impl OauthFlow for UserAuth {
+    type RedirectUrl = RedirectUrl;
+}
 
 /// **OAuth client for Twitch API authentication**
 ///
@@ -233,7 +238,7 @@ impl OauthFlow for UserAuth {}
 ///         .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string())?);
 ///     
 ///     // Step 1: Get authorization URL (send user here)
-///     let auth_request = oauth.authorization_url()?;
+///     let auth_request = oauth.authorization_url();
 ///     println!("Visit: {}", auth_request.url());
 ///     
 ///     // Step 2: After user authorizes, exchange code for token
@@ -249,7 +254,7 @@ where
 {
     client_id: ClientId,
     client_secret: ClientSecret,
-    redirect_uri: Option<RedirectUrl>,
+    redirect_uri: Flow::RedirectUrl,
     secret_key: [u8; 32],
     client: Client,
     token_url: TokenUrl,
@@ -269,10 +274,6 @@ where
 
     pub(crate) fn client_secret(&self) -> &ClientSecret {
         &self.client_secret
-    }
-
-    pub fn get_redirect_uri(&self) -> Option<Url> {
-        self.redirect_uri.clone().map(|uri| uri.url().clone())
     }
 
     pub fn get_auth_url(&self) -> &AuthUrl {
@@ -318,12 +319,6 @@ where
     pub fn set_client(mut self, client: Client) -> Self {
         self.client = client;
         self
-    }
-
-    fn validate_redirect_uri(&self) -> Result<&RedirectUrl, Error> {
-        self.redirect_uri
-            .as_ref()
-            .ok_or_else(error::oauth::missing_redirect_url)
     }
 
     pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
@@ -472,7 +467,7 @@ impl TwitchOauth<AppOnly> {
         Self {
             client_id: ClientId::new(client_id.into()),
             client_secret: ClientSecret::new(client_secret.into()),
-            redirect_uri: None,
+            redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
             token_url: TOKEN_URL.clone(),
             auth_url: AUTH_URL.clone(),
@@ -488,7 +483,7 @@ impl TwitchOauth<AppOnly> {
         TwitchOauth {
             client_id: self.client_id,
             client_secret: self.client_secret,
-            redirect_uri: Some(redirect_uri),
+            redirect_uri,
             secret_key: self.secret_key,
             token_url: self.token_url,
             auth_url: self.auth_url,
@@ -509,7 +504,7 @@ impl TwitchOauth<AppOnly> {
         Ok(Self {
             client_id,
             client_secret,
-            redirect_uri: None,
+            redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
             client: client::get().clone(),
             token_url: TOKEN_URL.clone(),
@@ -522,6 +517,10 @@ impl TwitchOauth<AppOnly> {
 }
 
 impl TwitchOauth<UserAuth> {
+    pub fn get_redirect_uri(&self) -> &RedirectUrl {
+        &self.redirect_uri
+    }
+
     /// **Generate authorization URL** for user login (Step 1 of user auth)
     ///
     /// This creates a URL that you send users to for Twitch login.
@@ -537,7 +536,7 @@ impl TwitchOauth<UserAuth> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret")
     ///     .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string())?);
     ///
-    /// let mut auth_request = oauth.authorization_url()?;
+    /// let mut auth_request = oauth.authorization_url();
     /// auth_request.scopes_mut().with_chat_api();
     ///
     /// let auth_url = auth_request.url();
@@ -548,13 +547,13 @@ impl TwitchOauth<UserAuth> {
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub fn authorization_url<'a>(&'a self) -> Result<AuthrozationRequest<'a>, Error> {
-        Ok(AuthrozationRequest::new(
+    pub fn authorization_url<'a>(&'a self) -> AuthrozationRequest<'a> {
+        AuthrozationRequest::new(
             self.get_auth_url(),
             &self.client_id,
-            self.validate_redirect_uri()?,
+            &self.redirect_uri,
             csrf::generate(&self.secret_key, Some(&self.client_id)),
-        ))
+        )
     }
 
     /// **Exchange authorization code for user access token** (Step 2 of user auth)
@@ -597,14 +596,14 @@ impl TwitchOauth<UserAuth> {
             &self.client_id,
             &self.client_secret,
             code,
-            self.validate_redirect_uri()?,
+            &self.redirect_uri,
             &self.token_url,
         ))
         .await
     }
 }
 
-impl<State> fmt::Debug for TwitchOauth<State>
+impl<State> Debug for TwitchOauth<State>
 where
     State: OauthFlow,
 {
