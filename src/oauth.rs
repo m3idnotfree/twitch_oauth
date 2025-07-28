@@ -268,50 +268,6 @@ impl<Flow> TwitchOauth<Flow>
 where
     Flow: OauthFlow,
 {
-    pub(crate) fn client_id(&self) -> &ClientId {
-        &self.client_id
-    }
-
-    pub(crate) fn client_secret(&self) -> &ClientSecret {
-        &self.client_secret
-    }
-
-    pub fn get_auth_url(&self) -> &AuthUrl {
-        &self.auth_url
-    }
-
-    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
-        self.auth_url = auth_url;
-        self
-    }
-
-    pub fn get_token_url(&self) -> &TokenUrl {
-        &self.token_url
-    }
-
-    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
-        self
-    }
-
-    pub fn get_revoke_url(&self) -> &RevocationUrl {
-        &self.revoke_url
-    }
-
-    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
-        self.revoke_url = revoke_url;
-        self
-    }
-
-    pub fn get_validate_url(&self) -> &ValidateUrl {
-        &self.validate_url
-    }
-
-    pub fn set_validate_url(mut self, validate_url: ValidateUrl) -> Self {
-        self.validate_url = validate_url;
-        self
-    }
-
     /// Override the HTTP client
     ///
     /// Note: This only affects this OAuth instance, not the global client.
@@ -374,7 +330,7 @@ where
             &self.client_id,
             &self.client_secret,
             refresh_token,
-            self.get_token_url(),
+            &self.token_url,
         ))
         .await
     }
@@ -404,7 +360,7 @@ where
         self.send(RevokeRequest::new(
             access_token,
             &self.client_id,
-            self.get_revoke_url(),
+            &self.revoke_url,
         ))
         .await
     }
@@ -549,7 +505,7 @@ impl TwitchOauth<UserAuth> {
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub fn authorization_url<'a>(&'a self) -> AuthrozationRequest<'a> {
         AuthrozationRequest::new(
-            self.get_auth_url(),
+            &self.auth_url,
             &self.client_id,
             &self.redirect_uri,
             csrf::generate(&self.secret_key, Some(&self.client_id)),
@@ -600,6 +556,40 @@ impl TwitchOauth<UserAuth> {
             &self.token_url,
         ))
         .await
+    }
+}
+
+#[cfg(feature = "test")]
+impl<Flow> TwitchOauth<Flow>
+where
+    Flow: OauthFlow,
+{
+    pub(crate) fn client_id(&self) -> &ClientId {
+        &self.client_id
+    }
+
+    pub(crate) fn client_secret(&self) -> &ClientSecret {
+        &self.client_secret
+    }
+
+    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
+        self.auth_url = auth_url;
+        self
+    }
+
+    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
+        self.token_url = token_url;
+        self
+    }
+
+    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+        self.revoke_url = revoke_url;
+        self
+    }
+
+    pub fn set_validate_url(mut self, validate_url: ValidateUrl) -> Self {
+        self.validate_url = validate_url;
+        self
     }
 }
 
