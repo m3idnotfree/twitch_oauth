@@ -7,6 +7,7 @@ use asknothingx2_util::{
 use reqwest::Response;
 
 use crate::{
+    error,
     types::{scopes_mut, GrantType, Scope, ScopesMut},
     Error,
 };
@@ -43,13 +44,13 @@ impl<'a> TestAccessToken<'a> {
         scopes_mut(&mut self.scopes)
     }
 
-    pub async fn request_access_token(self) -> Result<Response, asknothingx2_util::api::Error> {
+    pub async fn request_access_token(self) -> Result<Response, crate::Error> {
         let client = preset::testing("test/1.0").build_client().unwrap();
         self.into_request_builder(&client)
             .unwrap()
             .send()
             .await
-            .map_err(asknothingx2_util::api::Error::from)
+            .map_err(error::network::request)
     }
 }
 

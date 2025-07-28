@@ -20,7 +20,7 @@ full = ["oneshot-server", "test"]
 
 
 [dependencies]
-asknothingx2-util = { version = "0.1.6", features = ["api", "oauth"] }
+asknothingx2-util = { version = "0.1.7", features = ["api", "oauth"] }
 reqwest = "0.12.22"
 url = "2.5.4"
 serde = { version = "1.0.217", features = ["derive"] }
