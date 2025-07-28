@@ -1,4 +1,4 @@
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub mod csrf;
 pub mod response;
@@ -18,7 +18,6 @@ pub use request::{
 #[cfg(feature = "oneshot-server")]
 mod oneshot_server;
 #[cfg(feature = "oneshot-server")]
-#[cfg_attr(docsrs, doc(cfg(feature = "oneshot-server")))]
 pub use oneshot_server::{oneshot_server, ServerError};
 
 #[cfg(feature = "test")]
