@@ -453,11 +453,8 @@ impl TwitchOauth<AppOnly> {
     /// Create OAuth client from existing credentials (advanced usage)
     ///
     /// Most users should use `TwitchOauth::new()` instead.
-    pub fn from_credentials(
-        client_id: ClientId,
-        client_secret: ClientSecret,
-    ) -> Result<Self, Error> {
-        Ok(Self {
+    pub fn from_credentials(client_id: ClientId, client_secret: ClientSecret) -> Self {
+        Self {
             client_id,
             client_secret,
             redirect_uri: (),
@@ -468,7 +465,7 @@ impl TwitchOauth<AppOnly> {
             revoke_url: REVOKE_URL.clone(),
             validate_url: VALIDATE_URL.clone(),
             phanthom: PhantomData,
-        })
+        }
     }
 }
 
