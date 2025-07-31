@@ -19,6 +19,7 @@ use crate::{
         ClientCredentialsResponse, NoContentResponse, Response, ResponseType, TokenResponse,
         ValidateTokenResponse,
     },
+    types::GrantType,
     AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
     RevokeRequest, ValidateRequest,
 };
@@ -390,6 +391,7 @@ where
         self.send(ClientCredentialsRequest::new(
             &self.client_id,
             &self.client_secret,
+            GrantType::ClientCredentials,
             &self.token_url,
         ))
         .await
