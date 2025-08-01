@@ -1,14 +1,24 @@
+pub mod mock_api;
+pub mod response;
+
 mod access_token;
-mod get_users_info;
+
+pub use access_token::TestAccessToken;
 
 use std::collections::HashSet;
 
-pub use access_token::TestAccessToken;
-use asknothingx2_util::oauth::{AuthUrl, ClientId, ClientSecret};
-pub use get_users_info::{get_users_info, User, UsersResponse};
+use asknothingx2_util::{
+    api::preset,
+    oauth::{AuthUrl, TokenUrl},
+};
 use url::Url;
 
-use crate::{oauth::OauthFlow, types::GrantType, Error, TwitchOauth};
+use crate::{
+    oauth::OauthFlow,
+    response::{ClientCredentialsResponse, Response},
+    types::GrantType,
+    ClientCredentialsRequest, Error, TwitchOauth,
+};
 
 pub trait OauthTestExt<State: OauthFlow> {
     fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State>;
@@ -19,8 +29,13 @@ where
     State: OauthFlow,
 {
     fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State> {
+        let this = self.set_client(
+            preset::testing("twitch-oauth-token-test/1.0")
+                .build_client()
+                .unwrap(),
+        );
         TwitchOauthTest {
-            oauth: self,
+            oauth: this,
             test_env: env,
         }
     }
@@ -43,18 +58,28 @@ where
         &self.oauth
     }
 
-    pub fn create_user_token<'a>(&'a self, user_id: &'a str) -> TestAccessToken<'a> {
-        self.test_env
-            .user_token(self.oauth.client_id(), self.oauth.client_secret(), user_id)
+    pub fn user_access_token<'a>(&'a self, user_id: &'a str) -> TestAccessToken<'a> {
+        TestAccessToken::new(
+            self.oauth.client_id(),
+            self.oauth.client_secret(),
+            GrantType::UserToken,
+            Some(user_id),
+            HashSet::new(),
+            AuthUrl::new(self.test_env.user_auth_url().to_string()).unwrap(),
+        )
     }
 
-    pub fn create_app_token(&self) -> TestAccessToken {
-        self.test_env
-            .app_token(self.oauth.client_id(), self.oauth.client_secret())
-    }
-
-    pub async fn get_users_info(&self) -> Result<UsersResponse, Error> {
-        get_users_info(self.test_env.port).await
+    pub async fn app_access_token(
+        &self,
+    ) -> Result<Response<ClientCredentialsResponse>, crate::Error> {
+        self.oauth
+            .send(ClientCredentialsRequest::new(
+                self.oauth.client_id(),
+                self.oauth.client_secret(),
+                GrantType::ClientCredentials,
+                &TokenUrl::new(self.test_env.app_auth_url().to_string()).unwrap(),
+            ))
+            .await
     }
 }
 
@@ -67,11 +92,7 @@ pub struct TestEnv {
 
 impl TestEnv {
     pub fn new() -> Self {
-        Self {
-            port: None,
-            user_auth_url: None,
-            app_auth_url: None,
-        }
+        Self::default()
     }
 
     pub fn with_port(mut self, port: u16) -> Self {
@@ -126,37 +147,6 @@ impl TestEnv {
 
     pub fn port(&self) -> u16 {
         self.port.expect("Port should be configured")
-    }
-
-    pub fn user_token<'a>(
-        &'a self,
-        client_id: &'a ClientId,
-        client_secret: &'a ClientSecret,
-        user_id: &'a str,
-    ) -> TestAccessToken<'a> {
-        TestAccessToken::new(
-            client_id,
-            client_secret,
-            GrantType::UserToken,
-            Some(user_id),
-            HashSet::new(),
-            AuthUrl::new(self.user_auth_url().to_string()).unwrap(),
-        )
-    }
-
-    pub fn app_token<'a>(
-        &'a self,
-        client_id: &'a ClientId,
-        client_secret: &'a ClientSecret,
-    ) -> TestAccessToken<'a> {
-        TestAccessToken::new(
-            client_id,
-            client_secret,
-            GrantType::ClientCredentials,
-            None::<&str>,
-            HashSet::new(),
-            AuthUrl::new(self.app_auth_url().to_string()).unwrap(),
-        )
     }
 }
 

@@ -4,10 +4,11 @@ use asknothingx2_util::{
     api::{preset, IntoRequestBuilder, Method},
     oauth::{AuthUrl, ClientId, ClientSecret},
 };
-use reqwest::Response;
+use reqwest::Client;
 
 use crate::{
     error,
+    response::TokenResponse,
     types::{scopes_mut, GrantType, Scope, ScopesMut},
     Error,
 };
@@ -44,13 +45,11 @@ impl<'a> TestAccessToken<'a> {
         scopes_mut(&mut self.scopes)
     }
 
-    pub async fn request_access_token(self) -> Result<Response, crate::Error> {
-        let client = preset::testing("test/1.0").build_client().unwrap();
-        self.into_request_builder(&client)
-            .unwrap()
-            .send()
-            .await
-            .map_err(error::network::request)
+    pub async fn send(self) -> Result<crate::response::Response<TokenResponse>, crate::Error> {
+        let client = preset::testing("twitch-oauth-test/1.0")
+            .build_client()
+            .unwrap();
+        send(self, &client).await
     }
 }
 
@@ -89,4 +88,39 @@ impl IntoRequestBuilder for TestAccessToken<'_> {
         url.query_pairs_mut().extend_pairs(params);
         Ok(client.request(Method::POST, url))
     }
+}
+
+pub async fn send<T, R>(
+    request: T,
+    client: &Client,
+) -> Result<crate::response::Response<R>, T::Error>
+where
+    T: IntoRequestBuilder<Error = Error>,
+    R: crate::response::ResponseType,
+{
+    let resp = request
+        .into_request_builder(client)?
+        .send()
+        .await
+        .map_err(error::network::request)?;
+
+    if !resp.status().is_success() {
+        let status = resp.status();
+        match resp.text().await {
+            Ok(body) => {
+                return Err(Error::with_message(
+                    error::Kind::OAuthError,
+                    format!("HTTP {status}: {body}"),
+                ));
+            }
+            Err(e) => {
+                return Err(Error::with_message(
+                    error::Kind::OAuthError,
+                    format!("HTTP {status} - Failed to read error response: {e}"),
+                ))
+            }
+        }
+    }
+
+    Ok(crate::response::Response::new(resp))
 }
