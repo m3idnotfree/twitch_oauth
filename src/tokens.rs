@@ -1,26 +1,11 @@
-mod scope;
-
+use asknothingx2_util::oauth::{AccessToken, RefreshToken};
 use chrono::Utc;
-pub use scope::{
-    AdsScopes, AnalyticsScopes, BitsScopes, CCLScopes, ChannelPointsScopes, ChannelScopes,
-    CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
-    ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
-    ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, Scope,
-    ScopesMut, SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes,
-    UsersScopes, VideosScopes, WhispersScopes,
-};
-
-use std::{collections::HashSet, fmt};
-
-use asknothingx2_util::oauth::{AccessToken, AuthorizationCode, RefreshToken};
 use serde::{Deserialize, Serialize, Serializer};
 
-pub fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
-    scope::new(scopes)
-}
+use crate::scope::Scope;
 
 #[derive(Debug)]
-pub struct Token {
+pub struct UserToken {
     pub access_token: AccessToken,
     pub expires_in: u64,
     pub token_type: String,
@@ -29,7 +14,7 @@ pub struct Token {
     pub created_at: i64,
 }
 
-impl Token {
+impl UserToken {
     pub fn is_scope_empty(&self) -> bool {
         if self.scope.is_empty() {
             return true;
@@ -47,7 +32,7 @@ impl Token {
     }
 }
 
-impl Serialize for Token {
+impl Serialize for UserToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -64,7 +49,7 @@ impl Serialize for Token {
     }
 }
 
-impl<'de> Deserialize<'de> for Token {
+impl<'de> Deserialize<'de> for UserToken {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -77,16 +62,18 @@ impl<'de> Deserialize<'de> for Token {
             refresh_token: RefreshToken,
             #[serde(default)]
             scope: Vec<Scope>,
+            #[serde(default)]
+            created_at: Option<i64>,
         }
 
         let resp = TokenResponse::deserialize(deserializer)?;
-        Ok(Token {
+        Ok(UserToken {
             access_token: resp.access_token,
             expires_in: resp.expires_in,
             token_type: resp.token_type,
             refresh_token: resp.refresh_token,
             scope: resp.scope,
-            created_at: Utc::now().timestamp(),
+            created_at: resp.created_at.unwrap_or_else(|| Utc::now().timestamp()),
         })
     }
 }
@@ -103,63 +90,8 @@ pub struct ValidateToken {
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ClientCredentials {
+pub struct AppToken {
     pub access_token: AccessToken,
     pub expires_in: u64,
     pub token_type: String,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum ResponseType {
-    Token,
-    Code,
-}
-
-impl ResponseType {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::Token => "token",
-            Self::Code => "code",
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum GrantType {
-    ClientCredentials,
-    AuthorizationCode,
-    RefreshToken,
-    #[cfg(feature = "test")]
-    UserToken,
-}
-
-impl fmt::Display for GrantType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ClientCredentials => write!(f, "client_credentials"),
-            Self::AuthorizationCode => write!(f, "authorization_code"),
-            Self::RefreshToken => write!(f, "refresh_token"),
-            #[cfg(feature = "test")]
-            Self::UserToken => write!(f, "user_token"),
-        }
-    }
-}
-
-impl GrantType {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::ClientCredentials => "client_credentials",
-            Self::AuthorizationCode => "authorization_code",
-            Self::RefreshToken => "refresh_token",
-            #[cfg(feature = "test")]
-            Self::UserToken => "user_token",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct OAuthCallbackQuery {
-    pub code: AuthorizationCode,
-    pub scope: String,
-    pub state: String,
 }

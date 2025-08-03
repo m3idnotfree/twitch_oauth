@@ -1,8 +1,8 @@
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
-use std::fmt::Display;
-
 mod scopes_mut;
-pub(crate) use scopes_mut::new;
+
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use std::{collections::HashSet, fmt::Display};
+
 pub use scopes_mut::{
     AdsScopes, AnalyticsScopes, BitsScopes, CCLScopes, ChannelPointsScopes, ChannelScopes,
     CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
@@ -11,6 +11,10 @@ pub use scopes_mut::{
     SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes, UsersScopes,
     VideosScopes, WhispersScopes,
 };
+
+pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
+    scopes_mut::new(scopes)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scope {

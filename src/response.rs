@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 
 use crate::{
     error::{self},
-    types::{ClientCredentials, Token, ValidateToken},
+    tokens::{AppToken, UserToken, ValidateToken},
     Error,
 };
 
@@ -18,13 +18,13 @@ pub struct Unknown;
 impl private::Sealed for Unknown {}
 impl ResponseType for Unknown {}
 
-pub struct ClientCredentialsResponse;
-impl private::Sealed for ClientCredentialsResponse {}
-impl ResponseType for ClientCredentialsResponse {}
+pub struct AppTokenResponse;
+impl private::Sealed for AppTokenResponse {}
+impl ResponseType for AppTokenResponse {}
 
-pub struct TokenResponse;
-impl private::Sealed for TokenResponse {}
-impl ResponseType for TokenResponse {}
+pub struct UserTokenResponse;
+impl private::Sealed for UserTokenResponse {}
+impl ResponseType for UserTokenResponse {}
 
 pub struct ValidateTokenResponse;
 impl private::Sealed for ValidateTokenResponse {}
@@ -81,15 +81,15 @@ where
     }
 }
 
-impl Response<ClientCredentialsResponse> {
-    pub async fn client_credentials(self) -> Result<ClientCredentials, Error> {
-        self.json::<ClientCredentials>().await
+impl Response<AppTokenResponse> {
+    pub async fn app_token(self) -> Result<AppToken, Error> {
+        self.json::<AppToken>().await
     }
 }
 
-impl Response<TokenResponse> {
-    pub async fn token(self) -> Result<Token, Error> {
-        self.json::<Token>().await
+impl Response<UserTokenResponse> {
+    pub async fn user_token(self) -> Result<UserToken, Error> {
+        self.json::<UserToken>().await
     }
 }
 

@@ -12,7 +12,7 @@ async fn client_credentials_grant_flow() {
     let token = oauth.app_access_token().await.unwrap();
     assert_eq!(200, token.status());
 
-    let token = token.client_credentials().await.unwrap();
+    let token = token.app_token().await.unwrap();
     assert_eq!(token::access().secret(), token.access_token.secret());
 }
 
@@ -42,7 +42,7 @@ async fn authorization_code_grant_flow() {
 
     assert_eq!(200, token.status());
 
-    let token = token.token().await.unwrap();
+    let token = token.user_token().await.unwrap();
     assert_eq!(token::access().secret(), token.access_token.secret());
 }
 
@@ -55,7 +55,7 @@ async fn refresh_access_token() {
     let token = oauth.refresh_access_token(token::refresh()).await.unwrap();
     assert_eq!(200, token.status());
 
-    let token = token.token().await.unwrap();
+    let token = token.user_token().await.unwrap();
     assert_eq!(token.access_token.secret(), token::access().secret());
 }
 

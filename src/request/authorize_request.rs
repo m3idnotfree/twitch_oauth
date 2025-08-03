@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use asknothingx2_util::oauth::{AuthUrl, ClientId, RedirectUrl};
 use url::Url;
 
-use crate::types::{scopes_mut, ResponseType, Scope, ScopesMut};
+use crate::{
+    scope::{scopes_mut, Scope, ScopesMut},
+    types::ResponseType,
+};
 
 use super::CLIENT_ID;
 

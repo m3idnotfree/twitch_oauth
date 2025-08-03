@@ -15,7 +15,7 @@ use url::Url;
 
 use crate::{
     oauth::OauthFlow,
-    response::{ClientCredentialsResponse, Response},
+    response::{AppTokenResponse, Response},
     types::GrantType,
     ClientCredentialsRequest, Error, TwitchOauth,
 };
@@ -69,9 +69,7 @@ where
         )
     }
 
-    pub async fn app_access_token(
-        &self,
-    ) -> Result<Response<ClientCredentialsResponse>, crate::Error> {
+    pub async fn app_access_token(&self) -> Result<Response<AppTokenResponse>, crate::Error> {
         self.oauth
             .send(ClientCredentialsRequest::new(
                 self.oauth.client_id(),

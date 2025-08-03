@@ -16,7 +16,7 @@ use reqwest::Client;
 use crate::{
     csrf, error,
     response::{
-        ClientCredentialsResponse, NoContentResponse, Response, ResponseType, TokenResponse,
+        AppTokenResponse, NoContentResponse, Response, ResponseType, UserTokenResponse,
         ValidateTokenResponse,
     },
     types::GrantType,
@@ -183,9 +183,9 @@ pub trait OauthFlow: private::Sealed {
 /// - Perform actions on behalf of users
 /// - Handle user login flows
 ///
-pub struct AppOnly;
-impl private::Sealed for AppOnly {}
-impl OauthFlow for AppOnly {
+pub struct AppAuth;
+impl private::Sealed for AppAuth {}
+impl OauthFlow for AppAuth {
     type RedirectUrl = ();
 }
 
@@ -249,7 +249,7 @@ impl OauthFlow for UserAuth {
 /// }
 /// ```
 #[derive(Clone)]
-pub struct TwitchOauth<Flow = AppOnly>
+pub struct TwitchOauth<Flow = AppAuth>
 where
     Flow: OauthFlow,
 {
@@ -326,7 +326,7 @@ where
     pub async fn refresh_access_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> Result<Response<TokenResponse>, Error> {
+    ) -> Result<Response<UserTokenResponse>, Error> {
         self.send(RefreshRequest::new(
             &self.client_id,
             &self.client_secret,
@@ -387,7 +387,7 @@ where
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-    pub async fn app_access_token(&self) -> Result<Response<ClientCredentialsResponse>, Error> {
+    pub async fn app_access_token(&self) -> Result<Response<AppTokenResponse>, Error> {
         self.send(ClientCredentialsRequest::new(
             &self.client_id,
             &self.client_secret,
@@ -419,7 +419,7 @@ where
     }
 }
 
-impl TwitchOauth<AppOnly> {
+impl TwitchOauth<AppAuth> {
     /// Create OAuth client for app-only authentication
     pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
         Self {
@@ -543,7 +543,7 @@ impl TwitchOauth<UserAuth> {
         &self,
         code: AuthorizationCode,
         state: String,
-    ) -> Result<Response<TokenResponse>, Error> {
+    ) -> Result<Response<UserTokenResponse>, Error> {
         if !csrf::validate(&self.secret_key, &state, Some(&self.client_id), 600) {
             return Err(error::oauth::csrf_token_mismatch());
         }

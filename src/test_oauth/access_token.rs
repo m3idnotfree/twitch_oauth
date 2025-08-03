@@ -8,8 +8,9 @@ use reqwest::Client;
 
 use crate::{
     error,
-    response::TokenResponse,
-    types::{scopes_mut, GrantType, Scope, ScopesMut},
+    response::UserTokenResponse,
+    scope::{scopes_mut, Scope, ScopesMut},
+    types::GrantType,
     Error,
 };
 
@@ -45,7 +46,7 @@ impl<'a> TestAccessToken<'a> {
         scopes_mut(&mut self.scopes)
     }
 
-    pub async fn send(self) -> Result<crate::response::Response<TokenResponse>, crate::Error> {
+    pub async fn send(self) -> Result<crate::response::Response<UserTokenResponse>, crate::Error> {
         let client = preset::testing("twitch-oauth-test/1.0")
             .build_client()
             .unwrap();
