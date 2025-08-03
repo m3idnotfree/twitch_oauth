@@ -293,16 +293,12 @@ where
             let status = resp.status();
             match resp.text().await {
                 Ok(body) => {
-                    return Err(Error::with_message(
-                        error::Kind::OAuthError,
-                        format!("HTTP {status}: {body}"),
-                    ));
+                    return Err(error::oauth::server_error(format!("HTTP {status}: {body}")));
                 }
                 Err(e) => {
-                    return Err(Error::with_message(
-                        error::Kind::OAuthError,
-                        format!("HTTP {status} - Failed to read error response: {e}"),
-                    ))
+                    return Err(error::oauth::server_error(format!(
+                        "HTTP {status} - Failed to read error response: {e}"
+                    )));
                 }
             }
         }

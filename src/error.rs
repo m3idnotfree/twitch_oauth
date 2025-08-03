@@ -23,13 +23,9 @@ pub enum Kind {
     ResponseText,
     ResponseJson,
 
-    MissingRedirectUrl,
     CsrfTokenMismatch,
 
-    UrlParse,
-    UrlEncode,
-    Json,
-
+    FormData,
     OAuthError,
 
     ClientSetup,
@@ -89,16 +85,13 @@ impl Error {
     }
 
     pub fn is_oauth_error(&self) -> bool {
-        matches!(
-            self.inner.kind,
-            |Kind::MissingRedirectUrl| Kind::CsrfTokenMismatch | Kind::OAuthError
-        )
+        matches!(self.inner.kind, |Kind::CsrfTokenMismatch| Kind::OAuthError)
     }
 
     pub fn is_validation_error(&self) -> bool {
         matches!(
             self.inner.kind,
-            Kind::UrlParse | Kind::Json | Kind::ResponseText | Kind::ResponseJson
+            Kind::ResponseText | Kind::ResponseJson | Kind::FormData
         )
     }
 
@@ -149,12 +142,6 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<url::ParseError> for Error {
-    fn from(value: url::ParseError) -> Self {
-        Self::with_source(Kind::UrlParse, value)
-    }
-}
-
 impl From<asknothingx2_util::api::Error> for Error {
     fn from(value: asknothingx2_util::api::Error) -> Self {
         Self::with_source(Kind::Request, value)
@@ -173,11 +160,8 @@ impl Kind {
             Kind::Request => "network request failed",
             Kind::ResponseText => "failed to read response as text",
             Kind::ResponseJson => "failed to parse response as JSON",
-            Kind::MissingRedirectUrl => "missing redirect URL",
             Kind::CsrfTokenMismatch => "CSRF token mismatch",
-            Kind::UrlParse => "failed to parse URL",
-            Kind::UrlEncode => "failed to encoding URL",
-            Kind::Json => "failed to parse JSON",
+            Kind::FormData => "failed to serialize form data",
             Kind::OAuthError => "OAuth error response",
             Kind::ClientSetup => "HTTP client setup failed",
         }
@@ -223,30 +207,23 @@ pub mod oauth {
 
     use super::{Error, Kind};
 
-    pub fn missing_redirect_url() -> Error {
-        Error::with_message(
-            Kind::MissingRedirectUrl,
-            "redirect URL is required for this operation",
-        )
-    }
-
     pub fn csrf_token_mismatch() -> Error {
         Error::with_message(
             Kind::CsrfTokenMismatch,
             "CSRF token validation failed - possible security issue",
         )
     }
+
+    pub fn server_error(message: impl Into<String>) -> Error {
+        Error::with_message(Kind::OAuthError, message)
+    }
 }
 
 pub mod validation {
     use super::{BoxError, Error, Kind};
 
-    pub fn url_encode<E: Into<BoxError>>(source: E) -> Error {
-        Error::with_source(Kind::UrlEncode, source)
-    }
-
-    pub fn json<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::Json, e)
+    pub fn form_data<E: Into<BoxError>>(source: E) -> Error {
+        Error::with_source(Kind::FormData, source)
     }
 }
 
@@ -258,7 +235,7 @@ pub mod response {
     }
 
     pub fn json<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::ResponseText, e)
+        Error::with_source(Kind::ResponseJson, e)
     }
 }
 

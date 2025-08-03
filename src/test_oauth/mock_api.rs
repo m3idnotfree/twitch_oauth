@@ -52,7 +52,7 @@ impl MockApiUnits {
             .map_err(error::network::request)?
             .json()
             .await
-            .map_err(error::validation::json)
+            .map_err(error::response::json)
     }
 }
 

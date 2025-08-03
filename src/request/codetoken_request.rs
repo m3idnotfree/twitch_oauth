@@ -53,7 +53,7 @@ impl IntoRequestBuilder for CodeTokenRequest<'_> {
             (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),
             ("redirect_uri", self.redirect_url.as_str()),
         ])
-        .map_err(error::validation::url_encode)?;
+        .map_err(error::validation::form_data)?;
 
         let client = client
             .request(Method::POST, self.token_url.url().clone())

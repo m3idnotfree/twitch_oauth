@@ -45,7 +45,7 @@ impl IntoRequestBuilder for ClientCredentialsRequest<'_> {
             (CLIENT_SECRET, self.client_secret.secret()),
             (GRANT_TYPE, self.grant_type.as_str()),
         ])
-        .map_err(error::validation::url_encode)?;
+        .map_err(error::validation::form_data)?;
 
         Ok(client
             .request(Method::POST, self.token_url.url().clone())

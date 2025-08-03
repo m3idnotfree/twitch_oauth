@@ -46,7 +46,7 @@ impl IntoRequestBuilder for RefreshRequest<'_> {
             (GRANT_TYPE, GrantType::RefreshToken.as_str()),
             ("refresh_token", self.refresh_token.secret()),
         ])
-        .map_err(error::validation::url_encode)?;
+        .map_err(error::validation::form_data)?;
 
         Ok(client
             .request(Method::POST, self.token_url.url().clone())

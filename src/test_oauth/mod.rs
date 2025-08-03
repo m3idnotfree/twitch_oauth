@@ -113,15 +113,13 @@ impl TestEnv {
         let user_auth_url = if self.user_auth_url.is_some() {
             self.user_auth_url
         } else {
-            Some(Url::parse(&format!(
-                "http://localhost:{port}/auth/authorize"
-            ))?)
+            Some(Url::parse(&format!("http://localhost:{port}/auth/authorize")).unwrap())
         };
 
         let app_auth_url = if self.app_auth_url.is_some() {
             self.app_auth_url
         } else {
-            Some(Url::parse(&format!("http://localhost:{port}/auth/token"))?)
+            Some(Url::parse(&format!("http://localhost:{port}/auth/token")).unwrap())
         };
 
         Ok(TestEnv {

@@ -41,7 +41,7 @@ impl IntoRequestBuilder for RevokeRequest<'_> {
             (CLIENT_ID, self.client_id.as_str()),
             ("token", self.access_token.secret()),
         ])
-        .map_err(error::validation::url_encode)?;
+        .map_err(error::validation::form_data)?;
 
         Ok(client
             .request(Method::POST, self.revoke_url.url().clone())
