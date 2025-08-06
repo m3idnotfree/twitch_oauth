@@ -70,7 +70,7 @@ pub fn validate(
         token,
         user_id,
         current_timestamp(),
-        CsrfConfig::default().with_max_age(max_age_seconds),
+        &CsrfConfig::default().with_max_age(max_age_seconds),
     )
 }
 
@@ -78,7 +78,7 @@ pub fn validate_with_config(
     secret_key: &[u8; 32],
     token: &str,
     user_id: Option<&str>,
-    config: CsrfConfig,
+    config: &CsrfConfig,
 ) -> bool {
     validate_with_time_and_config(secret_key, token, user_id, current_timestamp(), config)
 }
@@ -88,7 +88,7 @@ pub fn validate_with_time_and_config(
     token: &str,
     user_id: Option<&str>,
     validation_time: i64,
-    config: CsrfConfig,
+    config: &CsrfConfig,
 ) -> bool {
     let decoded = match URL_SAFE_NO_PAD.decode(token) {
         Ok(data) => match String::from_utf8(data) {
@@ -203,13 +203,13 @@ mod tests {
             &secret_key,
             &token,
             Some("user123"),
-            CsrfConfig::new(3, 3600)
+            &CsrfConfig::new(3, 3600)
         ));
         assert!(!validate_with_config(
             &secret_key,
             &token,
             Some("user456"),
-            CsrfConfig::new(3, 3600)
+            &CsrfConfig::new(3, 3600)
         ));
 
         tokio::time::sleep(Duration::from_secs(1)).await;
@@ -217,7 +217,7 @@ mod tests {
             &secret_key,
             &token,
             Some("user123"),
-            CsrfConfig::new(3, 0)
+            &CsrfConfig::new(3, 0)
         ));
     }
 

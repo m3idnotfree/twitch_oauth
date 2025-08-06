@@ -14,7 +14,8 @@ use asknothingx2_util::{
 use reqwest::Client;
 
 use crate::{
-    csrf, error,
+    csrf::{self, CsrfConfig},
+    error,
     response::{
         AppTokenResponse, NoContentResponse, Response, ResponseType, UserTokenResponse,
         ValidateTokenResponse,
@@ -262,6 +263,7 @@ where
     auth_url: AuthUrl,
     revoke_url: RevocationUrl,
     validate_url: ValidateUrl,
+    csrf_config: CsrfConfig,
     phanthom: PhantomData<Flow>,
 }
 
@@ -275,6 +277,18 @@ where
     /// For global configuration, use [`client::setup()`] instead.
     pub fn set_client(mut self, client: Client) -> Self {
         self.client = client;
+        self
+    }
+
+    /// Configure CSRF token validation settings
+    ///
+    /// This controls how CSRF tokens are validated during the OAuth flow.
+    ///
+    /// Defaults:
+    /// - max_age: 1800s (30 minutes)
+    /// - clock_skew: None (no tolerance for time differences)
+    pub fn set_csrf_config(mut self, config: CsrfConfig) -> Self {
+        self.csrf_config = config;
         self
     }
 
@@ -428,6 +442,7 @@ impl TwitchOauth<AppAuth> {
             revoke_url: REVOKE_URL.clone(),
             validate_url: VALIDATE_URL.clone(),
             client: client::get().clone(),
+            csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
         }
     }
@@ -444,6 +459,7 @@ impl TwitchOauth<AppAuth> {
             revoke_url: self.revoke_url,
             validate_url: self.validate_url,
             client: self.client,
+            csrf_config: self.csrf_config,
             phanthom: PhantomData,
         }
     }
@@ -462,6 +478,7 @@ impl TwitchOauth<AppAuth> {
             auth_url: AUTH_URL.clone(),
             revoke_url: REVOKE_URL.clone(),
             validate_url: VALIDATE_URL.clone(),
+            csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
         }
     }
@@ -540,7 +557,12 @@ impl TwitchOauth<UserAuth> {
         code: AuthorizationCode,
         state: String,
     ) -> Result<Response<UserTokenResponse>, Error> {
-        if !csrf::validate(&self.secret_key, &state, Some(&self.client_id), 600) {
+        if !csrf::validate_with_config(
+            &self.secret_key,
+            &state,
+            Some(&self.client_id),
+            &self.csrf_config,
+        ) {
             return Err(error::oauth::csrf_token_mismatch());
         }
         self.send(CodeTokenRequest::new(
