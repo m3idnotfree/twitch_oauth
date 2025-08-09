@@ -1,163 +1,114 @@
-use std::{fmt, io, net::SocketAddr, time::Duration};
-
-use asknothingx2_util::oauth::AuthorizationCode;
-use tokio::{
-    io::{AsyncBufReadExt, BufReader},
-    net::{TcpListener, TcpStream},
-    time::timeout,
+use std::{
+    fmt,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
+
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Json, Router,
+};
+use serde::Serialize;
+use tokio::{net::TcpListener, sync::oneshot, time::timeout};
 
 use crate::types::OAuthCallbackQuery;
 
-/// only support localhost
+/// **Temporary OAuth Callback Server**
+///
+/// Creates a lightweight HTTP server that runs temporarily to capture a single OAuth callback
+/// from Twitch's authorization flow. The server automatically shuts down after receiving
+/// the callback or when the timeout is reached.
+///
+/// ## How It Works
+///
+/// 1. **Starts a temporary HTTP server** on the specified address
+/// 2. **Waits for the OAuth callback** from Twitch (GET request with code, state, scope)
+/// 3. **Captures callback parameters** and returns them to your application
+/// 4. **Automatically shuts down** after receiving callback or on timeout
+/// 5. **Handles cancellation** via Ctrl+C signal
+///
+/// ## Server Endpoints
+///
+/// - `GET /` - OAuth callback handler
+/// - Returns JSON response: `{"message": "Authorization successful! You can close this window."}`
+/// - Error responses include details in JSON format
+///
+/// ## Examples
+///
+/// ```rust
+/// // Wait up to 5 minutes for the OAuth callback
+/// let callback = axum_oneshot_server("127.0.0.1:3000", Duration::from_secs(300)).await?;
+/// println!("Received code: {}", callback.code.secret());
+/// ```
 pub async fn oneshot_server(
     addr: &str,
     duration: Duration,
 ) -> Result<OAuthCallbackQuery, ServerError> {
+    let (tx, rx) = oneshot::channel();
+    let tx = Arc::new(Mutex::new(Some(tx)));
+
+    let app = Router::new().route("/", get(oauth_callback)).with_state(tx);
+
     let listener = TcpListener::bind(addr)
         .await
-        .map_err(|source| ServerError::BindFailed {
+        .map_err(|e| ServerError::BindFailed {
             addr: addr.to_string(),
-            source,
+            source: e,
         })?;
 
-    let mut signal = std::pin::pin!(shutdown_signal());
+    let server = axum::serve(listener, app);
 
     tokio::select! {
-        rev = timeout(duration, listener.accept()) => {
-            handle_connection_result(rev).await
-        },
-        _ = &mut signal => {
-            Err(ServerError::Shutdown)
-        },
-    }
-}
-
-async fn handle_connection_result(
-    rev: Result<Result<(TcpStream, SocketAddr), io::Error>, tokio::time::error::Elapsed>,
-) -> Result<OAuthCallbackQuery, ServerError> {
-    match rev {
-        Ok(res) => {
-            let (stream, _addr) = res.map_err(ServerError::RequestReadFailed)?;
-            let (code, state, scope) = code_state_parse(stream).await?;
-            Ok(OAuthCallbackQuery {
-                code: AuthorizationCode::new(code),
-                state,
-                scope,
-            })
-        }
-        Err(_) => Err(ServerError::Timeout),
-    }
-}
-
-/// Wait for the CTRL+C signal
-async fn shutdown_signal() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("failed to install CTRL+C signal handler");
-}
-
-async fn code_state_parse(mut stream: TcpStream) -> Result<(String, String, String), ServerError> {
-    let mut reader = BufReader::new(&mut stream);
-
-    let mut request_line = String::new();
-    reader
-        .read_line(&mut request_line)
-        .await
-        .map_err(ServerError::RequestReadFailed)?;
-
-    let trimmed = request_line.trim();
-    if trimmed.is_empty() {
-        return Err(ServerError::InvalidRequest("empty request".to_string()));
-    }
-
-    // [METHOD] [PATH][?QUERY_PARAMS] [HTTP_VERSION]\r\n
-    // GET /?code=...&scope=...&state=.... HTTP/1.1\r\n
-    let parts: Vec<&str> = trimmed.split_whitespace().collect();
-    if parts.len() != 3 {
-        return Err(ServerError::InvalidRequest(format!(
-            "invalid HTTP request format: expected 'METHOD PATH VERSION', got: '{trimmed}'"
-        )));
-    }
-
-    let method = parts[0];
-    let path = parts[1];
-    let version = parts[2];
-
-    if method != "GET" {
-        return Err(ServerError::InvalidRequest(format!(
-            "OAuth callback must be GET, got {method}",
-        )));
-    }
-
-    if !version.starts_with("HTTP/") {
-        return Err(ServerError::InvalidRequest(format!(
-            "invalid HTTP version: {version}",
-        )));
-    }
-
-    let query_string = path.split_once('?').map(|(_, query)| query).unwrap_or("");
-
-    if query_string.contains("error=") {
-        return Err(ServerError::OAuthError(query_string.to_string()));
-    }
-
-    let mut code = None;
-    let mut state = None;
-    let mut scope = None;
-
-    for pair in query_string.split('&') {
-        if pair.is_empty() {
-            continue;
-        }
-
-        if let Some((key, value)) = pair.split_once('=') {
-            match key {
-                "code" => {
-                    if code.is_none() {
-                        code = Some(value.to_string());
-                    }
-                }
-                "state" => {
-                    if state.is_none() {
-                        state = Some(value.to_string());
-                    }
-                }
-                "scope" => {
-                    if scope.is_none() {
-                        scope = Some(value.to_string());
-                    }
-                }
-                _ => {}
+        result = rx => {
+            match result {
+                Ok(callback) => Ok(callback),
+                Err(_) => Err(ServerError::Shutdown),
             }
         }
+        _ = timeout(duration, server) => {
+            Err(ServerError::Timeout)
+        }
+        _ = tokio::signal::ctrl_c() => {
+            Err(ServerError::Shutdown)
+        }
+    }
+}
+
+async fn oauth_callback(
+    Query(params): Query<OAuthCallbackQuery>,
+    State(tx): State<Arc<Mutex<Option<oneshot::Sender<OAuthCallbackQuery>>>>>,
+) -> Result<Json<CallbackResponse>, ServerError> {
+    if let Some(sender) = tx.lock().unwrap().take() {
+        let _ = sender.send(params);
     }
 
-    let code = code.ok_or_else(|| ServerError::MissingQueryParam {
-        param: "code".to_string(),
-    })?;
+    Ok(Json(CallbackResponse {
+        message: "Authorization successful! You can close this window.".to_string(),
+    }))
+}
 
-    let state = state.ok_or_else(|| ServerError::MissingQueryParam {
-        param: "state".to_string(),
-    })?;
+#[derive(Serialize)]
+struct CallbackResponse {
+    message: String,
+}
 
-    let scope = scope.ok_or_else(|| ServerError::MissingQueryParam {
-        param: "scope".to_string(),
-    })?;
+impl IntoResponse for ServerError {
+    fn into_response(self) -> axum::response::Response {
+        let status = match &self {
+            ServerError::InvalidRequest(_) => StatusCode::BAD_REQUEST,
+            ServerError::OAuthError(_) => StatusCode::BAD_REQUEST,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        };
 
-    if code.is_empty() {
-        return Err(ServerError::InvalidRequest(
-            "OAuth 'code' parameter cannot be empty".to_string(),
-        ));
+        let body = Json(serde_json::json!({
+            "error": self.to_string()
+        }));
+
+        (status, body).into_response()
     }
-
-    if state.is_empty() {
-        return Err(ServerError::InvalidRequest(
-            "OAuth 'state' parameter cannot be empty".to_string(),
-        ));
-    }
-
-    Ok((code, state, scope))
 }
 
 #[derive(Debug)]

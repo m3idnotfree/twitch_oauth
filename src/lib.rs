@@ -5,6 +5,8 @@ pub mod response;
 pub mod scope;
 pub mod types;
 
+#[cfg(feature = "oneshot-server")]
+pub mod oneshot_server;
 mod error;
 mod oauth;
 mod request;
@@ -17,11 +19,6 @@ pub use request::{
     RefreshRequest, RevokeRequest, ValidateRequest,
 };
 pub use tokens::{AppToken, UserToken, ValidateToken};
-
-#[cfg(feature = "oneshot-server")]
-mod oneshot_server;
-#[cfg(feature = "oneshot-server")]
-pub use oneshot_server::{oneshot_server, ServerError};
 
 #[cfg(feature = "test")]
 pub mod test_oauth;
