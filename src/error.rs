@@ -32,17 +32,7 @@ pub(crate) enum Kind {
 }
 
 impl Error {
-    pub fn new(kind: Kind) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: None,
-                source: None,
-            }),
-        }
-    }
-
-    pub fn with_message(kind: Kind, message: impl Into<String>) -> Self {
+    pub(crate) fn with_message(kind: Kind, message: impl Into<String>) -> Self {
         Self {
             inner: Box::new(Inner {
                 kind,
@@ -52,7 +42,7 @@ impl Error {
         }
     }
 
-    pub fn with_source(kind: Kind, source: impl Into<BoxError>) -> Self {
+    pub(crate) fn with_source(kind: Kind, source: impl Into<BoxError>) -> Self {
         Self {
             inner: Box::new(Inner {
                 kind,
@@ -62,7 +52,7 @@ impl Error {
         }
     }
 
-    pub fn with_message_and_source(
+    pub(crate) fn with_message_and_source(
         kind: Kind,
         message: impl Into<String>,
         source: impl Into<BoxError>,
