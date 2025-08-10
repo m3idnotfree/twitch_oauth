@@ -16,13 +16,16 @@ use reqwest::Client;
 use crate::{
     csrf::{self, CsrfConfig},
     error,
+    request::{
+        AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
+        RevokeRequest, ValidateRequest,
+    },
     response::{
         AppTokenResponse, NoContentResponse, Response, ResponseType, UserTokenResponse,
         ValidateTokenResponse,
     },
     types::GrantType,
-    AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, Error, RefreshRequest,
-    RevokeRequest, ValidateRequest,
+    Error,
 };
 
 pub(crate) static AUTH_URL: LazyLock<AuthUrl> =
@@ -168,11 +171,11 @@ mod private {
 }
 
 /// Marker trait for OAuth flow types - prevents external implementations
-pub trait OauthFlow: private::Sealed {
+pub trait OauthFlow: private::Sealed + Debug + Clone + Copy {
     type RedirectUrl: Debug;
 }
 
-/// **App-Only Authentication** (Client Credentials Flow)
+/// **App Authentication** (Client Credentials Flow)
 ///
 /// Use this flow when your application needs to:
 /// - Make API calls on behalf of your app (not users)
@@ -184,6 +187,7 @@ pub trait OauthFlow: private::Sealed {
 /// - Perform actions on behalf of users
 /// - Handle user login flows
 ///
+#[derive(Debug, Clone, Copy)]
 pub struct AppAuth;
 impl private::Sealed for AppAuth {}
 impl OauthFlow for AppAuth {
@@ -202,6 +206,7 @@ impl OauthFlow for AppAuth {
 /// - A redirect URI (where Twitch sends the user after login)
 /// - User interaction (they must visit the auth URL)
 ///
+#[derive(Debug, Clone, Copy)]
 pub struct UserAuth;
 impl private::Sealed for UserAuth {}
 impl OauthFlow for UserAuth {
@@ -211,10 +216,10 @@ impl OauthFlow for UserAuth {
 /// **OAuth client for Twitch API authentication**
 ///
 /// The client supports two authentication flows:
-/// - **AppOnly**: For server-to-server communication (no user interaction)
+/// - **AppAuth**: For server-to-server communication (no user interaction)
 /// - **UserAuth**: For user authentication flows (requires redirect URI)
 ///
-/// **App-only authentication** (most common for backend services):
+/// **App authentication** (most common for backend services):
 /// ```no_run
 /// use twitch_oauth_token::TwitchOauth;
 ///
@@ -223,7 +228,7 @@ impl OauthFlow for UserAuth {
 ///     let oauth = TwitchOauth::new("client_id", "client_secret");
 ///     
 ///     let response = oauth.app_access_token().await?;
-///     let token = response.client_credentials().await?;
+///     let token = response.app_token().await?;
 ///     
 ///     println!("App token: {}", token.access_token.secret());
 ///     Ok(())
@@ -232,12 +237,12 @@ impl OauthFlow for UserAuth {
 ///
 /// **User authentication** (for user login flows):
 /// ```no_run
-/// use twitch_oauth_token::{TwitchOauth, RedirectUrl};
+/// use twitch_oauth_token::{TwitchOauth, oauth_types::RedirectUrl};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
 ///     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-///         .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string())?);
+///         .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
 ///     let auth_request = oauth.authorization_url();
@@ -324,10 +329,10 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, RefreshToken};
+    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::RefreshToken};
     /// # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
     /// let response = oauth.refresh_access_token(refresh_token).await?;
-    /// let new_token = response.token().await?;
+    /// let new_token = response.user_token().await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -356,7 +361,7 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
+    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::AccessToken};
     /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// oauth.revoke_access_token(&access_token).await?;
     /// # Ok(())
@@ -389,7 +394,7 @@ where
     /// let oauth = TwitchOauth::new("client_id", "client_secret");
     ///
     /// let response = oauth.app_access_token().await?;
-    /// let credentials = response.client_credentials().await?;
+    /// let credentials = response.app_token().await?;
     ///
     /// let token = credentials.access_token;
     /// # Ok(())
@@ -411,7 +416,7 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
+    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::AccessToken};
     /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// let response = oauth.validate_access_token(&access_token).await?;
     /// let validation = response.validate_token().await?;
@@ -430,7 +435,7 @@ where
 }
 
 impl TwitchOauth<AppAuth> {
-    /// Create OAuth client for app-only authentication
+    /// Create OAuth client for app authentication
     pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
         Self {
             client_id: ClientId::new(client_id.into()),
@@ -499,10 +504,10 @@ impl TwitchOauth<UserAuth> {
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{types::ChatScopes, TwitchOauth, RedirectUrl};
+    /// # use twitch_oauth_token::{scope::ChatScopes, TwitchOauth, oauth_types::RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret")
-    ///     .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string())?);
+    ///     .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
     /// auth_request.scopes_mut().with_chat_api();
@@ -534,7 +539,8 @@ impl TwitchOauth<UserAuth> {
     /// ```no_run
     /// use twitch_oauth_token::{
     ///     types::OAuthCallbackQuery,
-    ///     AuthorizationCode, TwitchOauth,
+    ///     oauth_types::AuthorizationCode,
+    ///     TwitchOauth,
     ///     UserAuth
     /// };
     ///
@@ -545,7 +551,7 @@ impl TwitchOauth<UserAuth> {
     ///     let response = oauth
     ///         .user_access_token(oauth_callback.code, oauth_callback.state)
     ///         .await?;
-    ///     let token = response.token().await?;
+    ///     let token = response.user_token().await?;
     ///
     ///     Ok(())
     /// }

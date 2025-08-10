@@ -15,20 +15,21 @@ use url::Url;
 
 use crate::{
     oauth::OauthFlow,
+    request::ClientCredentialsRequest,
     response::{AppTokenResponse, Response},
     types::GrantType,
-    ClientCredentialsRequest, Error, TwitchOauth,
+    Error, TwitchOauth,
 };
 
-pub trait OauthTestExt<State: OauthFlow> {
-    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State>;
+pub trait OauthTestExt<Flow: OauthFlow> {
+    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<Flow>;
 }
 
-impl<State> OauthTestExt<State> for TwitchOauth<State>
+impl<Flow> OauthTestExt<Flow> for TwitchOauth<Flow>
 where
-    State: OauthFlow,
+    Flow: OauthFlow,
 {
-    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<State> {
+    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<Flow> {
         let this = self.set_client(
             preset::testing("twitch-oauth-token-test/1.0")
                 .build_client()
@@ -42,19 +43,19 @@ where
 }
 
 #[derive(Debug)]
-pub struct TwitchOauthTest<State>
+pub struct TwitchOauthTest<Flow>
 where
-    State: OauthFlow,
+    Flow: OauthFlow,
 {
-    oauth: TwitchOauth<State>,
+    oauth: TwitchOauth<Flow>,
     test_env: TestEnv,
 }
 
-impl<State> TwitchOauthTest<State>
+impl<Flow> TwitchOauthTest<Flow>
 where
-    State: OauthFlow,
+    Flow: OauthFlow,
 {
-    pub fn oauth(&self) -> &TwitchOauth<State> {
+    pub fn oauth(&self) -> &TwitchOauth<Flow> {
         &self.oauth
     }
 

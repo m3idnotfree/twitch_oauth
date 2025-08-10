@@ -4,6 +4,7 @@ version = "1.1.12"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
+documentation = "https://docs.rs/twitch_oauth_token"
 repository = "https://github.com/m3idnotfree/twitch_oauth.git"
 license = "MIT"
 keywords = ["twitch", "oauth"]
@@ -38,7 +39,10 @@ axum = { version = "0.8.4", optional = true }
 serde_json = { version = "1.0.142", optional = true }
 
 [dev-dependencies]
-dotenv = "0.15.0"
-serde_json = "1.0.141"
-tokio = { version = "1.46.1", features = ["full"] }
-wiremock = "0.6.4"
+actix-web = "4"
+axum = "0.8.4"
+dotenv = "0.15"
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+warp = "0.4"
+wiremock = "0.6"

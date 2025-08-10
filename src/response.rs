@@ -1,5 +1,6 @@
 use std::{fmt, marker::PhantomData};
 
+use asknothingx2_util::api::HeaderMap;
 use reqwest::StatusCode;
 
 use crate::{
@@ -61,7 +62,7 @@ where
         self.inner.status().is_success()
     }
 
-    pub fn headers(&self) -> &reqwest::header::HeaderMap {
+    pub fn headers(&self) -> &HeaderMap {
         self.inner.headers()
     }
 

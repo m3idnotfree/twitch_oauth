@@ -39,9 +39,14 @@ use crate::types::OAuthCallbackQuery;
 /// ## Examples
 ///
 /// ```rust
+/// # use std::time::Duration;
+/// # use twitch_oauth_token::oneshot_server::{oneshot_server, ServerError};
+/// # async fn run() -> Result<(), ServerError> {
 /// // Wait up to 5 minutes for the OAuth callback
-/// let callback = axum_oneshot_server("127.0.0.1:3000", Duration::from_secs(300)).await?;
+/// let callback = oneshot_server("127.0.0.1:3000", Duration::from_secs(300)).await?;
 /// println!("Received code: {}", callback.code.secret());
+/// # Ok(())
+/// # }
 /// ```
 pub async fn oneshot_server(
     addr: &str,

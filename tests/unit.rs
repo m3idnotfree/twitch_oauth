@@ -1,4 +1,7 @@
-use twitch_oauth_token::{AuthorizationCode, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{
+    oauth_types::{AuthorizationCode, RedirectUrl},
+    TwitchOauth,
+};
 
 #[tokio::test]
 async fn csrf_validation_failure() {
@@ -23,9 +26,10 @@ async fn csrf_validation_failure() {
 
 #[cfg(feature = "oneshot-server")]
 mod oneshot_tests {
+    use reqwest::Client;
     use std::time::Duration;
     use tokio::{net::TcpListener, time::sleep};
-    use twitch_oauth_token::{oneshot_server, ServerError};
+    use twitch_oauth_token::oneshot_server::{oneshot_server, ServerError};
 
     #[tokio::test]
     async fn test_oneshot_server_timeout() {
@@ -35,25 +39,32 @@ mod oneshot_tests {
 
     #[tokio::test]
     async fn oauth_callback() {
-        use tokio::io::AsyncWriteExt;
-        use tokio::net::TcpStream;
-
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
         let port = addr.port();
         drop(listener);
 
         let bind_addr = format!("127.0.0.1:{port}");
-        let connect_addr = bind_addr.clone();
 
         let server_future = oneshot_server(&bind_addr, Duration::from_secs(5));
 
+        // Spawn HTTP client to make the OAuth callback request
         tokio::spawn(async move {
             sleep(Duration::from_millis(100)).await;
-            if let Ok(mut stream) = TcpStream::connect(&connect_addr).await {
-                let request =
-                    "GET /?code=test_code&state=test_state&scope=channel:read HTTP/1.1\r\n\r\n";
-                let _ = stream.write_all(request.as_bytes()).await;
+
+            let client = Client::new();
+            let callback_url = format!(
+                "http://127.0.0.1:{port}/?code=test_code&state=test_state&scope=channel:read"
+            );
+
+            if let Ok(response) = client.get(&callback_url).send().await {
+                // Verify the server responds with success message
+                if let Ok(json) = response.json::<serde_json::Value>().await {
+                    assert_eq!(
+                        json["message"],
+                        "Authorization successful! You can close this window."
+                    );
+                }
             }
         });
 

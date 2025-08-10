@@ -17,7 +17,7 @@ struct Inner {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Kind {
+pub(crate) enum Kind {
     Request,
 
     ResponseText,

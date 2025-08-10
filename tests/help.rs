@@ -1,5 +1,7 @@
 pub mod url {
-    use twitch_oauth_token::{AuthUrl, RedirectUrl, RevocationUrl, TokenUrl, ValidateUrl};
+    use twitch_oauth_token::oauth_types::{
+        AuthUrl, RedirectUrl, RevocationUrl, TokenUrl, ValidateUrl,
+    };
 
     pub fn token(url: &str) -> TokenUrl {
         TokenUrl::new(format!("{url}/oauth2/token",)).unwrap()
@@ -23,7 +25,7 @@ pub mod url {
 }
 
 pub mod token {
-    use twitch_oauth_token::{AccessToken, RefreshToken};
+    use twitch_oauth_token::oauth_types::{AccessToken, RefreshToken};
 
     pub fn refresh() -> RefreshToken {
         RefreshToken::new("eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj".to_string())
