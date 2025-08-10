@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "1.1.12"
+version = "2.0.0"
 authors = ["m3id"]
 edition = "2021"
 description = "Twitch oauth"
