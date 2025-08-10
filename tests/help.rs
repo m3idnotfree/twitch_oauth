@@ -40,6 +40,7 @@ pub mod token {
     }
 }
 
+#[cfg(feature = "test")]
 pub mod setup {
     use twitch_oauth_token::{TwitchOauth, UserAuth};
     use wiremock::MockServer;

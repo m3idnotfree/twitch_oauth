@@ -251,6 +251,8 @@
 //! For local development, use the built-in oneshot server to handle OAuth callbacks:
 //!
 //! ```rust,no_run
+//! # #[cfg(feature = "oneshot-server")]
+//! # {
 //! use std::time::Duration;
 //! use twitch_oauth_token::{oneshot_server::oneshot_server, scope::ChatScopes, oauth_types::RedirectUrl, TwitchOauth};
 //!
@@ -282,6 +284,7 @@
 //!
 //!     Ok(())
 //! }
+//! # }
 //! ```
 //!
 //! ## Testing with Mock API
@@ -293,6 +296,8 @@
 //! - App authorization URL: http://localhost:8080/auth/token
 //!
 //! ```rust,no_run
+//! # #[cfg(feature = "test")]
+//! # {
 //!  use twitch_oauth_token::{
 //!      scope::ChatScopes,
 //!      test_oauth::{mock_api::MockApiUnits, OauthTestExt, TestEnv},
@@ -328,6 +333,7 @@
 //!
 //!     Ok(())
 //! }
+//! # }
 //! ```
 //!
 //! ## Security Features
