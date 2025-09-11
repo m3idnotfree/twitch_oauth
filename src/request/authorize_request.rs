@@ -11,6 +11,7 @@ use crate::{
 use super::CLIENT_ID;
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
+#[derive(Debug)]
 pub struct AuthrozationRequest<'a> {
     auth_url: &'a AuthUrl,
     client_id: &'a ClientId,

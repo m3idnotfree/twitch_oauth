@@ -23,21 +23,21 @@ full = ["oneshot-server", "test"]
 
 [dependencies]
 asknothingx2-util = { version = "0.1.7", features = ["api", "oauth"] }
-reqwest = "0.12.22"
-url = "2.5.4"
-serde = { version = "1.0.217", features = ["derive"] }
+reqwest = "0.12.23"
+url = "2.5.7"
+serde = { version = "1.0.219", features = ["derive"] }
 serde_urlencoded = "0.7.1"
 http-serde = "2.1.1"
 base64 = "0.22.1"
 hmac = "0.12.1"
 hex = "0.4.3"
-chrono = { version = "0.4.41", features = ["serde"] }
+chrono = { version = "0.4.42", features = ["serde"] }
 rand = "0.9.2"
 sha2 = "0.10.9"
 
 tokio = { version = "1.47.1", optional = true, features = ["signal", "time", "io-util", "net", "macros", "sync"] }
 axum = { version = "0.8.4", optional = true }
-serde_json = { version = "1.0.142", optional = true }
+serde_json = { version = "1.0.143", optional = true }
 
 [dev-dependencies]
 actix-web = "4"

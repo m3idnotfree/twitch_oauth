@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize, Serializer};
 
 use crate::scope::Scope;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UserToken {
     pub access_token: AccessToken,
     pub expires_in: u64,
@@ -79,7 +79,7 @@ impl<'de> Deserialize<'de> for UserToken {
 }
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidateToken {
     pub client_id: String,
     pub login: String,
@@ -89,7 +89,7 @@ pub struct ValidateToken {
 }
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppToken {
     pub access_token: AccessToken,
     pub expires_in: u64,

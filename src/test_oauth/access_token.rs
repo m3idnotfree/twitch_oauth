@@ -14,6 +14,7 @@ use crate::{
     Error,
 };
 
+#[derive(Debug, Clone)]
 pub struct TestAccessToken<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,

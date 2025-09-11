@@ -6,6 +6,7 @@ use crate::{error, Error};
 
 use super::response::{Client, MockData, User};
 
+#[derive(Debug, Clone)]
 pub struct MockApiUnits {
     port: u16,
     url: Url,

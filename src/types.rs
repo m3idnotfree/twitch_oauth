@@ -3,7 +3,7 @@ use std::fmt;
 use asknothingx2_util::oauth::AuthorizationCode;
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ResponseType {
     Token,
     Code,
@@ -18,7 +18,7 @@ impl ResponseType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GrantType {
     ClientCredentials,
     AuthorizationCode,

@@ -16,7 +16,7 @@ pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scopes_mut::new(scopes)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Scope {
     /// View analytics data for the Twitch Extensions owned by the authenticated account.
     /// API

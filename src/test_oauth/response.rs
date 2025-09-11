@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MockData<T> {
     pub cursor: String,
     pub total: u64,
@@ -11,7 +11,7 @@ pub struct MockData<T> {
 }
 
 #[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Client {
     /// client_id
     pub ID: ClientId,
@@ -21,7 +21,7 @@ pub struct Client {
     pub IsExtension: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub login: String,
