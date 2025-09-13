@@ -52,7 +52,7 @@ fn main() {
         .set_redirect_uri(RedirectUrl::new("http://example.com/auth/callback".to_string()).unwrap());
 
     let mut auth_request = oauth.authorization_url();
-    auth_request.scopes_mut().with_chat_api();
+    auth_request.scopes_mut().chat_api_as_user();
 
     // Create authorization URL for the user to visit
     let auth_url = auth_request.url();

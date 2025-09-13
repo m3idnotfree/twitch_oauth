@@ -510,7 +510,7 @@ impl TwitchOauth<UserAuth> {
     ///     .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
-    /// auth_request.scopes_mut().with_chat_api();
+    /// auth_request.scopes_mut().chat_api_as_user();
     ///
     /// let auth_url = auth_request.url();
     /// println!("{}", auth_url);

@@ -67,9 +67,9 @@
 //!     // Create authorization URL with specific scopes
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut()
-//!         .with_chat_write()
-//!         .with_user_emotes_read()
-//!         .with_channel_info_manage();
+//!         .send_chat_message_as_user()
+//!         .get_channel_emotes()
+//!         .modify_channel_info();
 //!     
 //!     let auth_url = auth_request.url();
 //!     println!("Visit: {}", auth_url);
@@ -137,7 +137,7 @@
 //! ```rust
 //! use twitch_oauth_token::scope::{
 //!     ChannelScopes, ChatScopes, ModerationScopes,
-//!     SubscriptionsScopes, UsersScopes
+//!     SubscriptionScopes, UserScopes
 //! };
 //! # use twitch_oauth_token::{TwitchOauth, UserAuth};
 //!
@@ -146,28 +146,28 @@
 //!
 //! // Chat-related scopes
 //! auth_request.scopes_mut()
-//!     .with_chat_write()           // Send chat messages
-//!     .with_user_emotes_read()     // Read user's emotes
-//!     .with_chatters()             // Read chatters list
-//!     .with_chat_announcement_write(); // Send announcements
+//!     .send_chat_message_as_user()           // Send chat messages
+//!     .get_user_emotes()     // Read user's emotes
+//!     .get_chatters()             // Read chatters list
+//!     .send_chat_announcement(); // Send announcements
 //!
 //! // Channel management scopes  
 //! auth_request.scopes_mut()
-//!     .with_channel_info_manage()  // Update channel info
-//!     .with_channel_followers_read() // Read followers
-//!     .with_channel_ban_unban();   // Ban/unban users
+//!     .modify_channel_info()  // Update channel info
+//!     .get_channel_followers() // Read followers
+//!     .channel_ban_unban();   // Ban/unban users
 //!
 //! // Moderation scopes
 //! auth_request.scopes_mut()
-//!     .with_ban_user()             // Ban users
-//!     .with_chat_messages_delete() // Delete messages
-//!     .with_automod_settings_manage(); // Manage AutoMod
+//!     .ban_user()             // Ban users
+//!     .delete_chat_messages()      // Delete messages
+//!     .update_automod_settings(); // Manage AutoMod
 //!
 //! // Or add entire API categories at once
 //! auth_request.scopes_mut()
-//!     .with_chat_api()             // All chat-related scopes
-//!     .with_moderation_api()       // All moderation scopes
-//!     .with_user_api();            // All user-related scopes
+//!     .chat_api_as_user()             // All chat-related scopes
+//!     .moderation_api()       // All moderation scopes
+//!     .users_api();            // All user-related scopes
 //! # }
 //! ```
 //!
@@ -262,7 +262,7 @@
 //!         .set_redirect_uri(RedirectUrl::new("http://localhost:3000".to_string())?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
-//!     auth_request.scopes_mut().with_chat_api();
+//!     auth_request.scopes_mut().chat_api_as_user();
 //!
 //!     println!("Visit this URL to authorize:");
 //!     println!("{}", auth_request.url());
@@ -323,7 +323,7 @@
 //!     let user = users.data.first().unwrap();
 //!     // Get user token from mock API
 //!     let mut user_token_request = oauth.user_access_token(&user.id);
-//!     user_token_request.scopes_mut().with_chat_write();
+//!     user_token_request.scopes_mut().send_chat_message_as_user();
 //!     
 //!     let user_token = user_token_request
 //!         .send()
