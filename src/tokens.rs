@@ -15,17 +15,6 @@ pub struct UserToken {
 }
 
 impl UserToken {
-    pub fn is_scope_empty(&self) -> bool {
-        if self.scope.is_empty() {
-            return true;
-        }
-        if self.scope.len() > 1 {
-            return false;
-        }
-
-        *self.scope.first().unwrap() == Scope::EmptyString
-    }
-
     pub fn is_expired(&self) -> bool {
         let now = Utc::now().timestamp();
         now >= (self.created_at + self.expires_in as i64)
