@@ -4,12 +4,12 @@ use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::{collections::HashSet, fmt::Display};
 
 pub use scopes_mut::{
-    AdsScopes, AnalyticsScopes, BitsScopes, CCLScopes, ChannelPointsScopes, ChannelScopes,
-    CharityScopes, ChatScopes, ClipsScopes, ConduitsScopes, EntitlementScopes, EventSubScopes,
-    ExtensionsScopes, GamesScopes, GoalsScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
-    ModerationScopes, PollsScopes, PredictionsScopes, RaidsScopes, ScheduleScopes, ScopesMut,
-    SearchScopes, StreamsScopes, SubscriptionsScopes, TagsScopes, TeamsScopes, UsersScopes,
-    VideosScopes, WhispersScopes,
+    AdScopes, AnalyticScopes, BitScopes, CCLScopes, ChannelPointScopes, ChannelScopes,
+    CharityScopes, ChatScopes, ClipScopes, ConduitScopes, EntitlementScopes, EventSubScopes,
+    ExtensionScopes, GameScopes, GoalScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
+    ModerationScopes, PollScopes, PredictionScopes, RaidScopes, ScheduleScopes, ScopesMut,
+    SearchScopes, StreamScopes, SubscriptionScopes, TagScopes, TeamScopes, UserScopes,
+    VideoScopes, WhisperScopes,
 };
 
 pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
