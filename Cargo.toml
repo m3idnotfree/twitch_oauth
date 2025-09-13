@@ -6,7 +6,7 @@ edition = "2021"
 description = "Type-safe Twitch OAuth 2.0 authentication library with CSRF protection and full scope support"
 documentation = "https://docs.rs/twitch_oauth_token"
 repository = "https://github.com/m3idnotfree/twitch_oauth.git"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 keywords = ["twitch", "oauth", "oauth2", "authentication", "api"]
 categories = ["authentication", "api-bindings", "web-programming"]
 
