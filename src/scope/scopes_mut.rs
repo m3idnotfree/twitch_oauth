@@ -367,7 +367,7 @@ pub trait TagScopes {
 }
 
 pub trait TeamScopes {
-    fn with_teams_api(&mut self) -> &mut Self;
+    fn teams_api(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-channel-teams>
     fn get_channel_teams(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-teams>
@@ -1165,7 +1165,7 @@ impl TagScopes for ScopesMut<'_> {
 }
 
 impl TeamScopes for ScopesMut<'_> {
-    fn with_teams_api(&mut self) -> &mut Self {
+    fn teams_api(&mut self) -> &mut Self {
         self.get_channel_teams().get_teams()
     }
     fn get_channel_teams(&mut self) -> &mut Self {
