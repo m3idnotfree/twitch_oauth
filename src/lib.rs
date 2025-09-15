@@ -51,18 +51,18 @@
 //! ### User Authentication Flow
 //!
 //! ```rust
+//! use std::str::FromStr;
 //! use twitch_oauth_token::{
-//!     scope::{ChatScopes, ChannelScopes},
+//!     scope::{ChannelScopes, ChatScopes},
 //!     types::OAuthCallbackQuery,
-//!     oauth_types::RedirectUrl,
-//!     TwitchOauth,
+//!     RedirectUrl, TwitchOauth,
 //! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Setup OAuth client with redirect URI
 //!     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-//!         .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string())?);
+//!         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
 //!     
 //!     // Create authorization URL with specific scopes
 //!     let mut auth_request = oauth.authorization_url();
@@ -175,7 +175,7 @@
 //!
 //! ### Token Refresh
 //! ```rust
-//! # use twitch_oauth_token::{Error, oauth_types::RefreshToken, TwitchOauth};
+//! # use twitch_oauth_token::{Error, RefreshToken, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), Error> {
 //! // Refresh an expired token
 //! let refreshed_response = oauth.refresh_access_token(refresh_token).await?;
@@ -186,7 +186,7 @@
 //!
 //! ### Token Validation
 //! ```rust
-//! # use twitch_oauth_token::{oauth_types::AccessToken, Error, TwitchOauth};
+//! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
 //! // Validate a token and get user info
 //! let validation_response = oauth.validate_access_token(&access_token).await?;
@@ -203,7 +203,7 @@
 //!
 //! ### Token Revocation
 //! ```rust
-//! # use twitch_oauth_token::{oauth_types::AccessToken, Error, TwitchOauth};
+//! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
 //! // Revoke a token (e.g., on user logout)
 //! oauth.revoke_access_token(&access_token).await?;
@@ -253,13 +253,13 @@
 //! ```rust,no_run
 //! # #[cfg(feature = "oneshot-server")]
 //! # {
-//! use std::time::Duration;
-//! use twitch_oauth_token::{oneshot_server::oneshot_server, scope::ChatScopes, oauth_types::RedirectUrl, TwitchOauth};
+//! use std::{str::FromStr, time::Duration};
+//! use twitch_oauth_token::{oneshot_server::oneshot_server, scope::ChatScopes, RedirectUrl, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let oauth = TwitchOauth::new("client_id", "client_secret")
-//!         .set_redirect_uri(RedirectUrl::new("http://localhost:3000".to_string())?);
+//!         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut().chat_api_as_user();
@@ -444,4 +444,7 @@ pub use error::Error;
 pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
 
 // Re-export
-pub use asknothingx2_util::oauth as oauth_types;
+pub use asknothingx2_util::oauth::{
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
+    RevocationUrl, TokenUrl, ValidateUrl,
+};

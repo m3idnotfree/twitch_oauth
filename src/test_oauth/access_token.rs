@@ -1,9 +1,6 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, ops::Deref};
 
-use asknothingx2_util::{
-    api::{preset, IntoRequestBuilder, Method},
-    oauth::{AuthUrl, ClientId, ClientSecret},
-};
+use asknothingx2_util::api::{preset, IntoRequestBuilder, Method};
 use reqwest::Client;
 
 use crate::{
@@ -11,7 +8,7 @@ use crate::{
     response::UserTokenResponse,
     scope::{scopes_mut, Scope, ScopesMut},
     types::GrantType,
-    Error,
+    AuthUrl, ClientId, ClientSecret, Error,
 };
 
 #[derive(Debug, Clone)]
@@ -61,10 +58,10 @@ impl IntoRequestBuilder for TestAccessToken<'_> {
         self,
         client: &reqwest::Client,
     ) -> Result<reqwest::RequestBuilder, Self::Error> {
-        let mut url = self.auth_url.url().clone();
+        let mut url = self.auth_url.to_url();
 
         let mut params = vec![
-            ("client_id", self.client_id.as_str()),
+            ("client_id", self.client_id.deref()),
             ("client_secret", self.client_secret.secret()),
             ("grant_type", self.grant_type.as_str()),
         ];

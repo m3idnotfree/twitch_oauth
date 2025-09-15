@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, ops::Deref};
 
-use asknothingx2_util::oauth::{AuthUrl, ClientId, RedirectUrl};
 use url::Url;
 
 use crate::{
     scope::{scopes_mut, Scope, ScopesMut},
     types::ResponseType,
+    AuthUrl, ClientId, RedirectUrl,
 };
 
 use super::CLIENT_ID;
@@ -48,13 +48,13 @@ impl<'a> AuthrozationRequest<'a> {
     }
 
     pub fn url(self) -> Url {
-        let mut url: Url = self.auth_url.url().to_owned();
+        let mut url: Url = self.auth_url.to_url();
 
         {
             let mut query_pairs = url.query_pairs_mut();
 
             query_pairs.extend_pairs([
-                (CLIENT_ID, self.client_id.as_str()),
+                (CLIENT_ID, self.client_id.deref()),
                 ("redirect_uri", self.redirect_url),
                 ("response_type", ResponseType::Code.as_str()),
                 ("state", &self.state),

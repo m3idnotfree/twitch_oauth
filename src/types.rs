@@ -1,7 +1,8 @@
 use std::fmt;
 
-use asknothingx2_util::oauth::AuthorizationCode;
 use serde::Deserialize;
+
+use crate::AuthorizationCode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ResponseType {

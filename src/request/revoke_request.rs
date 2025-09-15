@@ -1,13 +1,12 @@
-use asknothingx2_util::{
-    api::{mime_type::Application, IntoRequestBuilder, Method},
-    oauth::{AccessToken, ClientId, RevocationUrl},
-};
+use std::ops::Deref;
+
+use asknothingx2_util::api::{mime_type::Application, IntoRequestBuilder, Method};
 use reqwest::{
     header::{ACCEPT, CONTENT_TYPE},
     Client, RequestBuilder,
 };
 
-use crate::{error, Error};
+use crate::{error, AccessToken, ClientId, Error, RevocationUrl};
 
 use super::CLIENT_ID;
 
@@ -38,13 +37,13 @@ impl IntoRequestBuilder for RevokeRequest<'_> {
 
     fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
         let form_string = serde_urlencoded::to_string([
-            (CLIENT_ID, self.client_id.as_str()),
+            (CLIENT_ID, self.client_id.deref()),
             ("token", self.access_token.secret()),
         ])
         .map_err(error::validation::form_data)?;
 
         Ok(client
-            .request(Method::POST, self.revoke_url.url().clone())
+            .request(Method::POST, self.revoke_url.as_str())
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
             .body(form_string))

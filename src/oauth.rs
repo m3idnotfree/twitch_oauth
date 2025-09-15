@@ -1,16 +1,11 @@
 use std::{
     fmt::{self, Debug},
     marker::PhantomData,
+    str::FromStr,
     sync::{LazyLock, OnceLock},
 };
 
-use asknothingx2_util::{
-    api::IntoRequestBuilder,
-    oauth::{
-        AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
-        RevocationUrl, TokenUrl, ValidateUrl,
-    },
-};
+use asknothingx2_util::api::IntoRequestBuilder;
 use reqwest::Client;
 
 use crate::{
@@ -25,20 +20,21 @@ use crate::{
         ValidateTokenResponse,
     },
     types::GrantType,
-    Error,
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, Error, RedirectUrl,
+    RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
 };
 
 pub(crate) static AUTH_URL: LazyLock<AuthUrl> =
-    LazyLock::new(|| AuthUrl::new("https://id.twitch.tv/oauth2/authorize".to_string()).unwrap());
+    LazyLock::new(|| AuthUrl::from_str("https://id.twitch.tv/oauth2/authorize").unwrap());
 
 pub(crate) static TOKEN_URL: LazyLock<TokenUrl> =
-    LazyLock::new(|| TokenUrl::new("https://id.twitch.tv/oauth2/token".to_string()).unwrap());
+    LazyLock::new(|| TokenUrl::from_str("https://id.twitch.tv/oauth2/token").unwrap());
 
 pub(crate) static REVOKE_URL: LazyLock<RevocationUrl> =
-    LazyLock::new(|| RevocationUrl::new("https://id.twitch.tv/oauth2/revoke".to_string()).unwrap());
+    LazyLock::new(|| RevocationUrl::from_str("https://id.twitch.tv/oauth2/revoke").unwrap());
 
 pub(crate) static VALIDATE_URL: LazyLock<ValidateUrl> =
-    LazyLock::new(|| ValidateUrl::new("https://id.twitch.tv/oauth2/validate".to_string()).unwrap());
+    LazyLock::new(|| ValidateUrl::from_str("https://id.twitch.tv/oauth2/validate").unwrap());
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -237,12 +233,13 @@ impl OauthFlow for UserAuth {
 ///
 /// **User authentication** (for user login flows):
 /// ```no_run
-/// use twitch_oauth_token::{TwitchOauth, oauth_types::RedirectUrl};
+/// use std::str::FromStr;
+/// use twitch_oauth_token::{TwitchOauth, RedirectUrl};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
 ///     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-///         .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
+///         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
 ///     let auth_request = oauth.authorization_url();
@@ -329,7 +326,7 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::RefreshToken};
+    /// # use twitch_oauth_token::{TwitchOauth, RefreshToken};
     /// # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
     /// let response = oauth.refresh_access_token(refresh_token).await?;
     /// let new_token = response.user_token().await?;
@@ -361,7 +358,7 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::AccessToken};
+    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
     /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// oauth.revoke_access_token(&access_token).await?;
     /// # Ok(())
@@ -416,7 +413,7 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, oauth_types::AccessToken};
+    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
     /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// let response = oauth.validate_access_token(&access_token).await?;
     /// let validation = response.validate_token().await?;
@@ -438,8 +435,8 @@ impl TwitchOauth<AppAuth> {
     /// Create OAuth client for app authentication
     pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
         Self {
-            client_id: ClientId::new(client_id.into()),
-            client_secret: ClientSecret::new(client_secret.into()),
+            client_id: ClientId::from(client_id.into()),
+            client_secret: ClientSecret::from(client_secret.into()),
             redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
             token_url: TOKEN_URL.clone(),
@@ -504,10 +501,11 @@ impl TwitchOauth<UserAuth> {
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{scope::ChatScopes, TwitchOauth, oauth_types::RedirectUrl};
+    /// # use std::str::FromStr;
+    /// # use twitch_oauth_token::{scope::ChatScopes, TwitchOauth, RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret")
-    ///     .set_redirect_uri(RedirectUrl::new("http://localhost:3000/auth/callback".to_string()).unwrap());
+    ///     .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
     /// auth_request.scopes_mut().chat_api_as_user();
@@ -539,7 +537,7 @@ impl TwitchOauth<UserAuth> {
     /// ```no_run
     /// use twitch_oauth_token::{
     ///     types::OAuthCallbackQuery,
-    ///     oauth_types::AuthorizationCode,
+    ///     AuthorizationCode,
     ///     TwitchOauth,
     ///     UserAuth
     /// };

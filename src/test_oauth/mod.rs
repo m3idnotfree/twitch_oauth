@@ -6,11 +6,9 @@ mod access_token;
 pub use access_token::TestAccessToken;
 
 use std::collections::HashSet;
+use std::str::FromStr;
 
-use asknothingx2_util::{
-    api::preset,
-    oauth::{AuthUrl, TokenUrl},
-};
+use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
@@ -18,7 +16,7 @@ use crate::{
     request::ClientCredentialsRequest,
     response::{AppTokenResponse, Response},
     types::GrantType,
-    Error, TwitchOauth,
+    AuthUrl, Error, TokenUrl, TwitchOauth,
 };
 
 pub trait OauthTestExt<Flow: OauthFlow> {
@@ -66,7 +64,7 @@ where
             GrantType::UserToken,
             Some(user_id),
             HashSet::new(),
-            AuthUrl::new(self.test_env.user_auth_url().to_string()).unwrap(),
+            AuthUrl::from_str(self.test_env.user_auth_url().as_ref()).unwrap(),
         )
     }
 
@@ -76,7 +74,7 @@ where
                 self.oauth.client_id(),
                 self.oauth.client_secret(),
                 GrantType::ClientCredentials,
-                &TokenUrl::new(self.test_env.app_auth_url().to_string()).unwrap(),
+                &TokenUrl::from_str(self.test_env.app_auth_url().as_ref()).unwrap(),
             ))
             .await
     }

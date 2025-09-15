@@ -1,8 +1,7 @@
-use asknothingx2_util::oauth::{AccessToken, RefreshToken};
 use chrono::Utc;
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::scope::Scope;
+use crate::{scope::Scope, AccessToken, RefreshToken};
 
 #[derive(Debug, Clone)]
 pub struct UserToken {

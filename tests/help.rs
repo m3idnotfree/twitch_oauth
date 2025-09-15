@@ -1,38 +1,38 @@
 pub mod url {
-    use twitch_oauth_token::oauth_types::{
-        AuthUrl, RedirectUrl, RevocationUrl, TokenUrl, ValidateUrl,
-    };
+    use twitch_oauth_token::{AuthUrl, RedirectUrl, RevocationUrl, TokenUrl, ValidateUrl};
+
+    use std::str::FromStr;
 
     pub fn token(url: &str) -> TokenUrl {
-        TokenUrl::new(format!("{url}/oauth2/token",)).unwrap()
+        TokenUrl::from_str(&format!("{url}/oauth2/token",)).unwrap()
     }
 
     pub fn auth(url: &str) -> AuthUrl {
-        AuthUrl::new(format!("{url}/oauth2/authorize")).unwrap()
+        AuthUrl::from_str(&format!("{url}/oauth2/authorize")).unwrap()
     }
 
     pub fn redirect() -> RedirectUrl {
-        RedirectUrl::new("http://localhost:3000".to_string()).unwrap()
+        RedirectUrl::from_str("http://localhost:3000").unwrap()
     }
 
     pub fn revoke(url: &str) -> RevocationUrl {
-        RevocationUrl::new(format!("{url}/oauth2/revoke")).unwrap()
+        RevocationUrl::from_str(&format!("{url}/oauth2/revoke")).unwrap()
     }
 
     pub fn validate(url: &str) -> ValidateUrl {
-        ValidateUrl::new(format!("{url}/oauth2/validate")).unwrap()
+        ValidateUrl::from_str(&format!("{url}/oauth2/validate")).unwrap()
     }
 }
 
 pub mod token {
-    use twitch_oauth_token::oauth_types::{AccessToken, RefreshToken};
+    use twitch_oauth_token::{AccessToken, RefreshToken};
 
     pub fn refresh() -> RefreshToken {
-        RefreshToken::new("eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj".to_string())
+        RefreshToken::from("eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj")
     }
 
     pub fn access() -> AccessToken {
-        AccessToken::new("jostpf5q0uzmxmkba9iyug38kjtgh".to_string())
+        AccessToken::from("jostpf5q0uzmxmkba9iyug38kjtgh")
     }
 
     pub fn code() -> String {

@@ -45,11 +45,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### User access token
 
 ```rust
+use std::str::FromStr;
 use twitch_oauth_token::{scope::ChatScopes, RedirectUrl, TwitchOauth};
 
 fn main() {
     let oauth = TwitchOauth::new("client_id", "client_secret")
-        .set_redirect_uri(RedirectUrl::new("http://example.com/auth/callback".to_string()).unwrap());
+        .set_redirect_uri(RedirectUrl::from_str("http://example.com/auth/callback").unwrap());
 
     let mut auth_request = oauth.authorization_url();
     auth_request.scopes_mut().chat_api_as_user();
