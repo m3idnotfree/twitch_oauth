@@ -5,15 +5,15 @@ use serde::Deserialize;
 use crate::AuthorizationCode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ResponseType {
-    Token,
+pub(crate) enum ResponseType {
+    // Token,
     Code,
 }
 
 impl ResponseType {
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Token => "token",
+            // Self::Token => "token",
             Self::Code => "code",
         }
     }

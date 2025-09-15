@@ -2,7 +2,7 @@
 mod help;
 
 use help::{config, server, setup, token};
-use twitch_oauth_token::types::OAuthCallbackQuery;
+use twitch_oauth_token::OAuthCallbackQuery;
 
 #[tokio::test]
 async fn client_credentials_grant_flow() {

@@ -65,7 +65,7 @@ fn main() {
 ### Handling OAuth Callback
 
 ```rust
-use twitch_oauth_token::{TwitchOauth, UserAuth, types::OAuthCallbackQuery};
+use twitch_oauth_token::{OAuthCallbackQuery, TwitchOauth, UserAuth};
 
 async fn handle_callback(
     oauth: &TwitchOauth<UserAuth>,

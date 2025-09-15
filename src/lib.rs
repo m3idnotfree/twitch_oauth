@@ -54,7 +54,7 @@
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
 //!     scope::{ChannelScopes, ChatScopes},
-//!     types::OAuthCallbackQuery,
+//!     OAuthCallbackQuery,
 //!     RedirectUrl, TwitchOauth,
 //! };
 //!
@@ -105,7 +105,7 @@
 //! Regardless of how you extract the parameters, the token exchange process is the same:
 //!
 //! ```rust
-//! use twitch_oauth_token::{types::OAuthCallbackQuery, TwitchOauth, UserAuth};
+//! use twitch_oauth_token::{OAuthCallbackQuery, TwitchOauth, UserAuth};
 //!
 //! async fn handle_oauth_callback(
 //!     oauth: &TwitchOauth<UserAuth>,
@@ -425,11 +425,20 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub mod csrf;
-pub mod request;
-pub mod response;
 pub mod scope;
-pub mod tokens;
-pub mod types;
+
+mod request;
+mod response;
+mod tokens;
+mod types;
+
+pub use request::{validate_access_token, AuthrozationRequest};
+pub use response::{
+    AppTokenResponse, NoContentResponse, Response, UserTokenResponse, ValidateTokenResponse,
+};
+pub use scope::Scope;
+pub use tokens::{AppToken, UserToken, ValidateToken};
+pub use types::OAuthCallbackQuery;
 
 #[cfg(feature = "oneshot-server")]
 pub mod oneshot_server;

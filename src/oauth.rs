@@ -536,8 +536,8 @@ impl TwitchOauth<UserAuth> {
     /// # Example Callback Handler
     /// ```no_run
     /// use twitch_oauth_token::{
-    ///     types::OAuthCallbackQuery,
     ///     AuthorizationCode,
+    ///     OAuthCallbackQuery,
     ///     TwitchOauth,
     ///     UserAuth
     /// };
