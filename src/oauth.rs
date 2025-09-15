@@ -2,7 +2,7 @@ use std::{
     fmt::{self, Debug},
     marker::PhantomData,
     str::FromStr,
-    sync::{LazyLock, OnceLock},
+    sync::OnceLock,
 };
 
 use asknothingx2_util::api::IntoRequestBuilder;
@@ -12,29 +12,19 @@ use crate::{
     csrf::{self, CsrfConfig},
     error,
     request::{
-        AuthrozationRequest, ClientCredentialsRequest, CodeTokenRequest, RefreshRequest,
-        RevokeRequest, ValidateRequest,
+        ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest, ValidateRequest,
     },
-    response::{
-        AppTokenResponse, NoContentResponse, Response, ResponseType, UserTokenResponse,
-        ValidateTokenResponse,
-    },
+    response::ResponseType,
     types::GrantType,
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, Error, RedirectUrl,
-    RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
+    AccessToken, AppTokenResponse, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId,
+    ClientSecret, Error, NoContentResponse, RedirectUrl, RefreshToken, Response, RevocationUrl,
+    TokenUrl, UserTokenResponse, ValidateTokenResponse, ValidateUrl,
 };
 
-pub(crate) static AUTH_URL: LazyLock<AuthUrl> =
-    LazyLock::new(|| AuthUrl::from_str("https://id.twitch.tv/oauth2/authorize").unwrap());
-
-pub(crate) static TOKEN_URL: LazyLock<TokenUrl> =
-    LazyLock::new(|| TokenUrl::from_str("https://id.twitch.tv/oauth2/token").unwrap());
-
-pub(crate) static REVOKE_URL: LazyLock<RevocationUrl> =
-    LazyLock::new(|| RevocationUrl::from_str("https://id.twitch.tv/oauth2/revoke").unwrap());
-
-pub(crate) static VALIDATE_URL: LazyLock<ValidateUrl> =
-    LazyLock::new(|| ValidateUrl::from_str("https://id.twitch.tv/oauth2/validate").unwrap());
+pub const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
+pub const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
+pub const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
+pub const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -439,10 +429,10 @@ impl TwitchOauth<AppAuth> {
             client_secret: ClientSecret::from(client_secret.into()),
             redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
-            token_url: TOKEN_URL.clone(),
-            auth_url: AUTH_URL.clone(),
-            revoke_url: REVOKE_URL.clone(),
-            validate_url: VALIDATE_URL.clone(),
+            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
+            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
+            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
+            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
             client: client::get().clone(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
@@ -476,10 +466,10 @@ impl TwitchOauth<AppAuth> {
             redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
             client: client::get().clone(),
-            token_url: TOKEN_URL.clone(),
-            auth_url: AUTH_URL.clone(),
-            revoke_url: REVOKE_URL.clone(),
-            validate_url: VALIDATE_URL.clone(),
+            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
+            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
+            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
+            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
         }

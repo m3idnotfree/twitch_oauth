@@ -427,11 +427,15 @@
 pub mod csrf;
 pub mod scope;
 
+mod error;
+mod oauth;
 mod request;
 mod response;
 mod tokens;
 mod types;
 
+pub use error::Error;
+pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
 pub use response::{
     AppTokenResponse, NoContentResponse, Response, UserTokenResponse, ValidateTokenResponse,
@@ -445,12 +449,6 @@ pub mod oneshot_server;
 
 #[cfg(feature = "test")]
 pub mod test_oauth;
-
-mod error;
-mod oauth;
-
-pub use error::Error;
-pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
 
 // Re-export
 pub use asknothingx2_util::oauth::{
