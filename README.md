@@ -93,4 +93,7 @@ async fn handle_callback(
 
 ## License
 
-Licensed under the MIT license.
+Licensed under either of:
+
+- Apache License, Version 2.0
+- MIT license
