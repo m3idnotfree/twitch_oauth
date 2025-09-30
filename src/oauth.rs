@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self, Debug},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     marker::PhantomData,
     str::FromStr,
     sync::OnceLock,
@@ -604,11 +604,27 @@ where
     }
 }
 
-impl<State> Debug for TwitchOauth<State>
+impl Display for TwitchOauth<AppAuth> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "TwitchOauth(client_id: {})", self.client_id)
+    }
+}
+
+impl Display for TwitchOauth<UserAuth> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(
+            f,
+            "TwitchOauth(client_id: {}, redirect_uri: {})",
+            self.client_id, self.redirect_uri
+        )
+    }
+}
+
+impl<Flow> Debug for TwitchOauth<Flow>
 where
-    State: OauthFlow,
+    Flow: OauthFlow,
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("TwitchOauth")
             .field("client_id", &self.client_id)
             .field("client_secret", &self.client_secret)
