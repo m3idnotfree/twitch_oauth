@@ -19,27 +19,6 @@ use crate::{
     AuthUrl, Error, TokenUrl, TwitchOauth,
 };
 
-pub trait OauthTestExt<Flow: OauthFlow> {
-    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<Flow>;
-}
-
-impl<Flow> OauthTestExt<Flow> for TwitchOauth<Flow>
-where
-    Flow: OauthFlow,
-{
-    fn with_test_env(self, env: TestEnv) -> TwitchOauthTest<Flow> {
-        let this = self.set_client(
-            preset::testing("twitch-oauth-token-test/1.0")
-                .build_client()
-                .unwrap(),
-        );
-        TwitchOauthTest {
-            oauth: this,
-            test_env: env,
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct TwitchOauthTest<Flow>
 where
@@ -53,6 +32,24 @@ impl<Flow> TwitchOauthTest<Flow>
 where
     Flow: OauthFlow,
 {
+    pub fn new(oauth: TwitchOauth<Flow>) -> Self {
+        let this = oauth.set_client(
+            preset::testing("twitch-oauth-token-test/1.0")
+                .build_client()
+                .unwrap(),
+        );
+
+        Self {
+            oauth: this,
+            test_env: TestEnv::default(),
+        }
+    }
+
+    pub fn with_env(mut self, test_env: TestEnv) -> Self {
+        self.test_env = test_env;
+        self
+    }
+
     pub fn oauth(&self) -> &TwitchOauth<Flow> {
         &self.oauth
     }

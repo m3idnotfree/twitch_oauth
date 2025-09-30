@@ -300,7 +300,7 @@
 //! # {
 //!  use twitch_oauth_token::{
 //!      scope::ChatScopes,
-//!      test_oauth::{mock_api::MockApiUnits, OauthTestExt, TestEnv},
+//!      test_oauth::mock_api::MockApiUnits,
 //!      TwitchOauth,
 //!  };
 //!
@@ -311,7 +311,7 @@
 //!      let client = clients.data.first().unwrap();
 //!     
 //!     let oauth = TwitchOauth::from_credentials(client.ID.clone(), client.Secret.clone())
-//!         .with_test_env(TestEnv::new());
+//!         .with_test();
 //!
 //!     // Get app token from mock API
 //!     let app_token = oauth.app_access_token()

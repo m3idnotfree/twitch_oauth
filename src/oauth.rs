@@ -602,6 +602,10 @@ where
         self.validate_url = validate_url;
         self
     }
+
+    pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
+        crate::test_oauth::TwitchOauthTest::new(self)
+    }
 }
 
 impl Display for TwitchOauth<AppAuth> {
