@@ -1,8 +1,5 @@
 use std::fmt;
 
-use reqwest::StatusCode;
-use serde::{Deserialize, Serialize};
-
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
 pub struct Error {
@@ -163,27 +160,6 @@ impl fmt::Display for Kind {
         f.write_str(self.as_str())
     }
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TokenError {
-    #[serde(with = "http_serde::status_code")]
-    pub status: StatusCode,
-    pub message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
-impl fmt::Display for TokenError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "OAuth error {}: {}", self.status, self.message)?;
-        if let Some(ref error) = self.error {
-            write!(f, " ({error})")?;
-        }
-        Ok(())
-    }
-}
-
-impl std::error::Error for TokenError {}
 
 pub mod network {
     use super::{BoxError, Error, Kind};
