@@ -70,7 +70,7 @@ pub async fn validate_access_token() {
     assert_eq!(200, token.status());
 
     let token = token.validate_token().await.unwrap();
-    assert_eq!(config::client_id(), token.client_id);
+    assert_eq!(config::client_id(), token.client_id.to_string());
 }
 
 #[tokio::test]
