@@ -41,7 +41,7 @@ serde_json = { version = "1.0.145", optional = true }
 
 [dev-dependencies]
 axum = "0.8.4"
-dotenv = "0.15"
+dotenvy = "0.15.7"
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
 wiremock = "0.6"
