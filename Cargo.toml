@@ -45,4 +45,10 @@ axum = "0.8.4"
 dotenvy = "0.15.7"
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
+tracing = "0.1.43"
+tracing-subscriber = "0.3.22"
 wiremock = "0.6"
+
+[[example]]
+name = "app-token"
+path = "examples/app_token.rs"
