@@ -47,6 +47,7 @@ impl<'a> AuthrozationRequest<'a> {
         self
     }
 
+    /// Generate authorization URL (stateless CSRF protection)
     pub fn url(self) -> Url {
         let mut url: Url = self.auth_url.to_url();
 
@@ -75,5 +76,13 @@ impl<'a> AuthrozationRequest<'a> {
         }
 
         url
+    }
+
+    /// Generate authorization URL with state
+    pub fn url_with_state(self) -> (Url, String) {
+        let state = self.state.clone();
+        let url = self.url();
+
+        (url, state)
     }
 }
