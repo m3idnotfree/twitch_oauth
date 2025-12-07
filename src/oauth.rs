@@ -568,6 +568,14 @@ impl TwitchOauth<UserAuth> {
         ))
         .await
     }
+
+    /// Set custom secret key for CSRF token generation
+    ///
+    /// By default, a random secret key is generated automatically.
+    pub fn set_secret_key(mut self, secret_key: [u8; 32]) -> Self {
+        self.secret_key = secret_key;
+        self
+    }
 }
 
 #[cfg(feature = "test")]
