@@ -124,7 +124,7 @@ pub trait ConduitScopes {
     /// <https://dev.twitch.tv/docs/api/reference/#get-conduit-shards>
     fn get_conduit_shards(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#update-conduit-shards>
-    fn update_conduit_shards(&mut self)->&mut Self;
+    fn update_conduit_shards(&mut self) -> &mut Self;
 }
 
 pub trait CCLScopes {
@@ -430,11 +430,10 @@ pub trait ChatbotScopes {
     /// Scopes: user:read:chat, user:write:chat
     fn chat_client(&mut self) -> &mut Self;
 }
+
 impl AdScopes for ScopesMut<'_> {
     fn ads_api(&mut self) -> &mut Self {
-        self.start_commercial()
-            .get_ad_schedule()
-            .snooze_next_ad()
+        self.start_commercial().get_ad_schedule().snooze_next_ad()
     }
     fn start_commercial(&mut self) -> &mut Self {
         self.push(Scope::ChannelEditCommercial);
@@ -452,8 +451,7 @@ impl AdScopes for ScopesMut<'_> {
 
 impl AnalyticScopes for ScopesMut<'_> {
     fn analytics_api(&mut self) -> &mut Self {
-        self.get_extension_analytics()
-            .get_game_analytics()
+        self.get_extension_analytics().get_game_analytics()
     }
     fn get_extension_analytics(&mut self) -> &mut Self {
         self.push(Scope::AnalyticsReadExtensions);
@@ -553,8 +551,7 @@ impl ChannelPointScopes for ScopesMut<'_> {
 
 impl CharityScopes for ScopesMut<'_> {
     fn charity_api(&mut self) -> &mut Self {
-        self.get_charity_campaign()
-            .get_charity_campaign_donations()
+        self.get_charity_campaign().get_charity_campaign_donations()
     }
     fn get_charity_campaign(&mut self) -> &mut Self {
         self.push(Scope::ChannelReadCharity);
@@ -673,7 +670,7 @@ impl ConduitScopes for ScopesMut<'_> {
     fn get_conduit_shards(&mut self) -> &mut Self {
         self
     }
-    fn update_conduit_shards(&mut self)->&mut Self{
+    fn update_conduit_shards(&mut self) -> &mut Self {
         self
     }
 }
@@ -689,8 +686,7 @@ impl CCLScopes for ScopesMut<'_> {
 
 impl EntitlementScopes for ScopesMut<'_> {
     fn entitlements_api(&mut self) -> &mut Self {
-        self.get_drops_entitlements()
-            .update_drops_entitlements()
+        self.get_drops_entitlements().update_drops_entitlements()
     }
     fn get_drops_entitlements(&mut self) -> &mut Self {
         self
@@ -755,9 +751,7 @@ impl ExtensionScopes for ScopesMut<'_> {
 
 impl EventSubScopes for ScopesMut<'_> {
     fn eventsub_api(&mut self) -> &mut Self {
-        self.create_eventsub()
-            .delete_eventsub()
-            .get_eventsub()
+        self.create_eventsub().delete_eventsub().get_eventsub()
     }
     fn create_eventsub(&mut self) -> &mut Self {
         self
@@ -871,14 +865,13 @@ impl GuestStarScopes for ScopesMut<'_> {
 
 impl HypeTrainScopes for ScopesMut<'_> {
     fn hype_train_api(&mut self) -> &mut Self {
-        self.get_hype_train_events()
-            .get_hype_train_status()
+        self.get_hype_train_events().get_hype_train_status()
     }
     fn get_hype_train_events(&mut self) -> &mut Self {
         self.push(Scope::ChannelReadHypeTrain);
         self
     }
-    fn get_hype_train_status(&mut self) -> &mut Self{
+    fn get_hype_train_status(&mut self) -> &mut Self {
         self.push(Scope::ChannelReadHypeTrain);
         self
     }
@@ -1024,9 +1017,7 @@ impl PollScopes for ScopesMut<'_> {
 
 impl PredictionScopes for ScopesMut<'_> {
     fn predictions_api(&mut self) -> &mut Self {
-        self.get_predictions()
-            .create_prediction()
-            .end_prediction()
+        self.get_predictions().create_prediction().end_prediction()
     }
     fn get_predictions(&mut self) -> &mut Self {
         self.push(Scope::ChannelReadPredictions);
@@ -1259,6 +1250,7 @@ impl ChatbotScopes for ScopesMut<'_> {
         self
     }
 }
+
 /// inspired PathSegmentsMut
 /// <https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42>
 #[derive(Debug)]
