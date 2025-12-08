@@ -344,7 +344,12 @@
 //! - Tokens are cryptographically signed with a random secret key
 //! - Automatic validation prevents CSRF attacks
 //! - Configurable expiration and clock skew tolerance
-//! - No server-side storage required (stateless)
+//! - Self-contained validation without database storage
+//!
+//! **Important for multi-server deployments:**
+//! - By default, each [`TwitchOauth`] instance generates a random secret key
+//! - For load-balanced or clustered environments, use [`TwitchOauth<UserAuth>::set_secret_key`] to share the same secret across all instances
+//! - Without a shared secret key, tokens generated on one server will fail validation on another
 //!
 //! #### CSRF Configuration
 //!
@@ -368,7 +373,7 @@
 //! **When to customize:**
 //! - **High-security apps**: Shorter expiry times (300-900 seconds)
 //! - **Mobile apps**: Clock skew tolerance (30-60 seconds) for device time differences
-//! - **Server clusters**: Clock skew tolerance for distributed systems
+//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`TwitchOauth<UserAuth>::set_secret_key`]
 //!
 //! ### Secure Defaults
 //!

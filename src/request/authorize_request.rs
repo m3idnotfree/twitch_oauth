@@ -47,7 +47,7 @@ impl<'a> AuthrozationRequest<'a> {
         self
     }
 
-    /// Generate authorization URL (stateless CSRF protection)
+    /// Generate authorization URL with HMAC-based CSRF protection
     pub fn url(self) -> Url {
         let mut url: Url = self.auth_url.to_url();
 

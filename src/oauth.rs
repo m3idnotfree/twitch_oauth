@@ -275,10 +275,14 @@ where
     /// Configure CSRF token validation settings
     ///
     /// This controls how CSRF tokens are validated during the OAuth flow.
+    /// Tokens use HMAC-SHA256 signatures with timestamp validation.
     ///
     /// Defaults:
     /// - max_age: 1800s (30 minutes)
     /// - clock_skew: None (no tolerance for time differences)
+    ///
+    /// Note: For multi-server deployments, also use [`TwitchOauth<UserAuth>::set_secret_key`] to share
+    /// the same secret across all instances.
     pub fn set_csrf_config(mut self, config: CsrfConfig) -> Self {
         self.csrf_config = config;
         self
@@ -487,7 +491,7 @@ impl TwitchOauth<UserAuth> {
     /// The URL includes:
     /// - Your client ID and redirect URI
     /// - Requested scopes (permissions)
-    /// - CSRF protection (state parameter)
+    /// - CSRF protection via HMAC-SHA256 signed state parameter with timestamp
     ///
     /// # Example
     /// ```no_run
@@ -571,7 +575,25 @@ impl TwitchOauth<UserAuth> {
 
     /// Set custom secret key for CSRF token generation
     ///
-    /// By default, a random secret key is generated automatically.
+    /// By default, a random secret key is generated automatically for each `TwitchOauth` instance.
+    /// Set custom secret key for CSRF token generation and validation
+    ///
+    /// # Example
+    /// ```rust
+    /// use std::str::FromStr;
+    /// use twitch_oauth_token::{csrf, RedirectUrl, TwitchOauth};
+    ///
+    /// # fn run() -> Result<(), Box<dyn std::error::Error>> {
+    ///
+    /// let shared_secret = csrf::generate_secret_key();
+    ///
+    /// let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
+    ///     .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
+    ///     .set_secret_key(shared_secret);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn set_secret_key(mut self, secret_key: [u8; 32]) -> Self {
         self.secret_key = secret_key;
         self
