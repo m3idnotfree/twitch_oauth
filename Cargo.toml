@@ -1,6 +1,6 @@
 [package]
 name = "twitch_oauth_token"
-version = "2.0.9"
+version = "3.0.0"
 authors = ["m3id"]
 edition = "2021"
 description = "Type-safe Twitch OAuth 2.0 authentication library with CSRF protection and full scope support"
