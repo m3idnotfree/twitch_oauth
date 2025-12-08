@@ -80,7 +80,7 @@ async fn twitch_auth(State(client): State<TwitchOauth<UserAuth>>) -> impl IntoRe
     let mut auth_url = client.authorization_url();
     auth_url
         .scopes_mut()
-        .send_chat_message_as_user()
+        .send_chat_message()
         .get_channel_emotes()
         .modify_channel_info();
 

@@ -67,7 +67,7 @@
 //!     // Create authorization URL with specific scopes
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut()
-//!         .send_chat_message_as_user()
+//!         .send_chat_message()
 //!         .get_channel_emotes()
 //!         .modify_channel_info();
 //!     
@@ -146,28 +146,28 @@
 //!
 //! // Chat-related scopes
 //! auth_request.scopes_mut()
-//!     .send_chat_message_as_user()           // Send chat messages
-//!     .get_user_emotes()     // Read user's emotes
+//!     .send_chat_message()        // Send chat messages
+//!     .get_user_emotes()          // Read user's emotes
 //!     .get_chatters()             // Read chatters list
-//!     .send_chat_announcement(); // Send announcements
+//!     .send_chat_announcement();  // Send announcements
 //!
 //! // Channel management scopes  
 //! auth_request.scopes_mut()
-//!     .modify_channel_info()  // Update channel info
-//!     .get_channel_followers() // Read followers
-//!     .channel_ban_unban();   // Ban/unban users
+//!     .modify_channel_info()      // Update channel info
+//!     .get_channel_followers()    // Read followers
+//!     .channel_ban_unban();       // Ban/unban users
 //!
 //! // Moderation scopes
 //! auth_request.scopes_mut()
-//!     .ban_user()             // Ban users
-//!     .delete_chat_messages()      // Delete messages
+//!     .ban_user()                 // Ban users
+//!     .delete_chat_messages()     // Delete messages
 //!     .update_automod_settings(); // Manage AutoMod
 //!
 //! // Or add entire API categories at once
 //! auth_request.scopes_mut()
-//!     .chat_api_as_user()             // All chat-related scopes
-//!     .moderation_api()       // All moderation scopes
-//!     .users_api();            // All user-related scopes
+//!     .chat_api()                 // All chat-related scopes
+//!     .moderation_api()           // All moderation scopes
+//!     .users_api();               // All user-related scopes
 //! # }
 //! ```
 //!
@@ -262,7 +262,7 @@
 //!         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
-//!     auth_request.scopes_mut().chat_api_as_user();
+//!     auth_request.scopes_mut().chat_api();
 //!
 //!     println!("Visit this URL to authorize:");
 //!     println!("{}", auth_request.url());
@@ -323,7 +323,7 @@
 //!     let user = users.data.first().unwrap();
 //!     // Get user token from mock API
 //!     let mut user_token_request = oauth.user_access_token(&user.id);
-//!     user_token_request.scopes_mut().send_chat_message_as_user();
+//!     user_token_request.scopes_mut().send_chat_message();
 //!     
 //!     let user_token = user_token_request
 //!         .send()
