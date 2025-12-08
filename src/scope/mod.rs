@@ -7,11 +7,11 @@ use std::{collections::HashSet, fmt::Display};
 
 pub use scopes_mut::{
     AdScopes, AnalyticScopes, BitScopes, CCLScopes, ChannelPointScopes, ChannelScopes,
-    CharityScopes, ChatScopes, ClipScopes, ConduitScopes, EntitlementScopes, EventSubScopes,
-    ExtensionScopes, GameScopes, GoalScopes, GuestStarScopes, HypeTrainScopes, IRCScopes,
-    ModerationScopes, PollScopes, PredictionScopes, RaidScopes, ScheduleScopes, ScopesMut,
-    SearchScopes, StreamScopes, SubscriptionScopes, TagScopes, TeamScopes, UserScopes, VideoScopes,
-    WhisperScopes,
+    CharityScopes, ChatScopes, ChatbotScopes, ClipScopes, ConduitScopes, EntitlementScopes,
+    EventSubScopes, ExtensionScopes, GameScopes, GoalScopes, GuestStarScopes, HypeTrainScopes,
+    IRCScopes, ModerationScopes, PollScopes, PredictionScopes, RaidScopes, ScheduleScopes,
+    ScopesMut, SearchScopes, StreamScopes, SubscriptionScopes, TagScopes, TeamScopes, UserScopes,
+    VideoScopes, WhisperScopes,
 };
 
 pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {

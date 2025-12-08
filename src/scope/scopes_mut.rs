@@ -417,6 +417,24 @@ pub trait IRCScopes {
     fn irc_chat_read(&mut self) -> &mut Self;
 }
 
+pub trait ChatbotScopes {
+    /// Scopes required for the bot account in cloud chatbots
+    ///
+    /// Scopes: user:read:chat, user:write:chat, user:bot
+    fn cloud_chatbot_account(&mut self) -> &mut Self;
+    /// Scopes required for the broadcaster in cloud chatbots
+    ///
+    /// Scopes: channel:bot
+    fn cloud_chatbot_broadcaster(&mut self) -> &mut Self;
+    /// Scopes for installed chatbots
+    ///
+    /// Scopes: user:read:chat, user:write:chat
+    fn installed_chatbot(&mut self) -> &mut Self;
+    /// Scopes for chat clients
+    ///
+    /// Scopes: user:read:chat, user:write:chat
+    fn chat_client(&mut self) -> &mut Self;
+}
 impl AdScopes for ScopesMut<'_> {
     fn ads_api(&mut self) -> &mut Self {
         self.start_commercial()
@@ -1248,6 +1266,24 @@ impl IRCScopes for ScopesMut<'_> {
     }
 }
 
+impl ChatbotScopes for ScopesMut<'_> {
+    fn cloud_chatbot_account(&mut self) -> &mut Self {
+        self.extend([Scope::UserReadChat, Scope::UserWriteChat, Scope::UserBot]);
+        self
+    }
+    fn cloud_chatbot_broadcaster(&mut self) -> &mut Self {
+        self.push(Scope::ChannelBot);
+        self
+    }
+    fn installed_chatbot(&mut self) -> &mut Self {
+        self.extend([Scope::UserReadChat, Scope::UserWriteChat]);
+        self
+    }
+    fn chat_client(&mut self) -> &mut Self {
+        self.extend([Scope::UserReadChat, Scope::UserWriteChat]);
+        self
+    }
+}
 /// inspired PathSegmentsMut
 /// <https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42>
 #[derive(Debug)]
