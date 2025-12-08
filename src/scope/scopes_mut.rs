@@ -70,8 +70,7 @@ pub trait CharityScopes {
 }
 
 pub trait ChatScopes {
-    fn chat_api_as_user(&mut self) -> &mut Self;
-    fn chat_api_as_app(&mut self) -> &mut Self;
+    fn chat_api(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-chatters>
     fn get_chatters(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-channel-emotes>
@@ -96,12 +95,8 @@ pub trait ChatScopes {
     fn send_chat_announcement(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#send-a-shoutout>
     fn send_shoutout(&mut self) -> &mut Self;
-    /// user:write:chat
     /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
-    fn send_chat_message_as_user(&mut self) -> &mut Self;
-    /// user:write:chat user:bot channel:bot
-    /// <https://dev.twitch.tv/docs/api/reference/#send-chat-message>
-    fn send_chat_message_as_app(&mut self) -> &mut Self;
+    fn send_chat_message(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#get-user-chat-color>
     fn get_user_chat_color(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#update-user-chat-color>
@@ -572,7 +567,7 @@ impl CharityScopes for ScopesMut<'_> {
 }
 
 impl ChatScopes for ScopesMut<'_> {
-    fn chat_api_as_user(&mut self) -> &mut Self {
+    fn chat_api(&mut self) -> &mut Self {
         self.get_chatters()
             .get_channel_emotes()
             .get_global_emotes()
@@ -584,23 +579,7 @@ impl ChatScopes for ScopesMut<'_> {
             .update_chat_settings()
             .send_chat_announcement()
             .send_shoutout()
-            .send_chat_message_as_user()
-            .get_user_chat_color()
-            .update_user_chat_color()
-    }
-    fn chat_api_as_app(&mut self) -> &mut Self {
-        self.get_chatters()
-            .get_channel_emotes()
-            .get_global_emotes()
-            .get_channel_chat_badges()
-            .get_global_chat_badges()
-            .get_chat_settings()
-            .get_shard_chat_session()
-            .get_user_emotes()
-            .update_chat_settings()
-            .send_chat_announcement()
-            .send_shoutout()
-            .send_chat_message_as_app()
+            .send_chat_message()
             .get_user_chat_color()
             .update_user_chat_color()
     }
@@ -644,12 +623,8 @@ impl ChatScopes for ScopesMut<'_> {
     fn send_shoutout(&mut self) -> &mut Self {
         self
     }
-    fn send_chat_message_as_user(&mut self) -> &mut Self {
+    fn send_chat_message(&mut self) -> &mut Self {
         self.push(Scope::UserWriteChat);
-        self
-    }
-    fn send_chat_message_as_app(&mut self) -> &mut Self {
-        self.extend([Scope::UserWriteChat, Scope::UserBot, Scope::ChannelBot]);
         self
     }
     fn get_user_chat_color(&mut self) -> &mut Self {
