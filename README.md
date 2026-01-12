@@ -1,5 +1,6 @@
 # twitch_oauth_token
 
+[![CI](https://github.com/m3idnotfree/twitch_oauth/workflows/CI/badge.svg)](https://github.com/m3idnotfree/twitch_oauth/actions)
 [![crates.io](https://img.shields.io/crates/v/twitch_oauth_token.svg)](https://crates.io/crates/twitch_oauth_token)
 [![Documentation](https://docs.rs/twitch_oauth_token/badge.svg)](https://docs.rs/twitch_oauth_token)
 [![license: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/m3idnotfree/twitch_oauth/blob/main/LICENSE-MIT)
