@@ -22,20 +22,20 @@ name = "user-token"
 path = "examples/user_token.rs"
 
 [dependencies]
-asknothingx2-util = { version = "0.1.10", features = ["api", "oauth"] }
-axum = { version = "0.8.6", optional = true }
+asknothingx2-util = { version = "0.1.11", features = ["api", "oauth"] }
+axum = { version = "0.8.8", optional = true }
 base64 = "0.22.1"
 chrono = { version = "0.4.42", features = ["serde"] }
 hex = "0.4.3"
 hmac = "0.12.1"
 http-serde = "2.1.1"
 rand = "0.9.2"
-reqwest = "0.12.23"
+reqwest = "0.13.1"
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = { version = "1.0.145", optional = true }
+serde_json = { version = "1.0.149", optional = true }
 serde_urlencoded = "0.7.1"
 sha2 = "0.10.9"
-tokio = { version = "1.47.1", features = [
+tokio = { version = "1.49.0", features = [
   "io-util",
   "macros",
   "net",
@@ -43,18 +43,18 @@ tokio = { version = "1.47.1", features = [
   "sync",
   "time"
 ], optional = true }
-url = "2.5.7"
+url = "2.5.8"
 
 [dev-dependencies]
 anyhow = "1.0.100"
-axum = "0.8.4"
-axum-extra = { version = "0.12.2", features = ["typed-header"] }
+axum = "0.8.8"
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
 dotenvy = "0.15.7"
-serde_json = "1"
-tokio = { version = "1", features = ["full"] }
-tracing = "0.1.43"
+serde_json = "1.0.149"
+tokio = { version = "1.49.0", features = ["full"] }
+tracing = "0.1.44"
 tracing-subscriber = "0.3.22"
-wiremock = "0.6"
+wiremock = "0.6.5"
 
 [features]
 default = []
