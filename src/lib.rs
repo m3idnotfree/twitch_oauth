@@ -429,7 +429,6 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-pub mod csrf;
 pub mod scope;
 
 mod error;
@@ -460,3 +459,11 @@ pub use asknothingx2_util::oauth::{
     AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
     RevocationUrl, TokenUrl, ValidateUrl,
 };
+
+pub mod csrf {
+    pub use asknothingx2_util::oauth::signed_token::{
+        current_timestamp, extract_datetime, extract_timestamp, generate, generate_at_time,
+        generate_secret_key, is_expired, token_age, verify, verify_at_time, verify_with_config,
+        TokenConfig as CsrfConfig, TokenError,
+    };
+}

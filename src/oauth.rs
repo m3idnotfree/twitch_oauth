@@ -555,12 +555,14 @@ impl TwitchOauth<UserAuth> {
         code: AuthorizationCode,
         state: String,
     ) -> Result<Response<UserTokenResponse>, Error> {
-        if !csrf::validate_with_config(
+        if csrf::verify_with_config(
             &self.secret_key,
             &state,
             Some(&self.client_id),
             &self.csrf_config,
-        ) {
+        )
+        .is_err()
+        {
             return Err(error::oauth::csrf_token_mismatch());
         }
         self.send(CodeTokenRequest::new(
