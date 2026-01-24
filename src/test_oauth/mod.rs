@@ -54,6 +54,7 @@ where
         &self.oauth
     }
 
+    #[allow(deprecated)]
     pub fn user_access_token<'a>(&'a self, user_id: &'a str) -> TestAccessToken<'a> {
         TestAccessToken::new(
             self.oauth.client_id(),
@@ -65,6 +66,7 @@ where
         )
     }
 
+    #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<Response<AppTokenResponse>, crate::Error> {
         self.oauth
             .send(ClientCredentialsRequest::new(

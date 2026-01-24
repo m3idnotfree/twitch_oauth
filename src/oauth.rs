@@ -263,6 +263,17 @@ impl<Flow> TwitchOauth<Flow>
 where
     Flow: OauthFlow,
 {
+    /// Get the client ID
+    pub fn client_id(&self) -> &ClientId {
+        &self.client_id
+    }
+
+    /// Get the client secret
+    #[deprecated(note = "accessing client_secret is discouraged for security reasons")]
+    pub fn client_secret(&self) -> &ClientSecret {
+        &self.client_secret
+    }
+
     /// Override the HTTP client
     ///
     /// Note: This only affects this OAuth instance, not the global client.
@@ -290,6 +301,38 @@ where
     /// the same secret across all instances.
     pub fn with_csrf_config(mut self, config: CsrfConfig) -> Self {
         self.csrf_config = config;
+        self
+    }
+
+    /// Override the authorization URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/authorize`
+    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
+        self.auth_url = auth_url;
+        self
+    }
+
+    /// Override the token URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/token`
+    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
+        self.token_url = token_url;
+        self
+    }
+
+    /// Override the revocation URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/revoke`
+    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+        self.revoke_url = revoke_url;
+        self
+    }
+
+    /// Override the token validation URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/validate`
+    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
+        self.validate_url = validate_url;
         self
     }
 
@@ -622,27 +665,9 @@ impl<Flow> TwitchOauth<Flow>
 where
     Flow: OauthFlow,
 {
-    pub(crate) fn client_id(&self) -> &ClientId {
-        &self.client_id
-    }
-
-    pub(crate) fn client_secret(&self) -> &ClientSecret {
-        &self.client_secret
-    }
-
-    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
-        self.auth_url = auth_url;
-        self
-    }
-
     #[deprecated(since = "3.1.0", note = "use `with_auth_url` instead")]
     pub fn set_auth_url(self, auth_url: AuthUrl) -> Self {
         self.with_auth_url(auth_url)
-    }
-
-    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
-        self
     }
 
     #[deprecated(since = "3.1.0", note = "use `with_token_url` instead")]
@@ -650,19 +675,9 @@ where
         self.with_token_url(token_url)
     }
 
-    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
-        self.revoke_url = revoke_url;
-        self
-    }
-
     #[deprecated(since = "3.1.0", note = "use `with_revoke_url` instead")]
     pub fn set_revoke_url(self, revoke_url: RevocationUrl) -> Self {
         self.with_revoke_url(revoke_url)
-    }
-
-    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
-        self.validate_url = validate_url;
-        self
     }
 
     #[deprecated(since = "3.1.0", note = "use `with_validate_url` instead")]
