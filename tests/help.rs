@@ -51,11 +51,11 @@ pub mod setup {
         let server = MockServer::start().await;
 
         let oauth = TwitchOauth::new(config::client_id(), config::client_secret())
-            .set_client(config::client())
-            .set_token_url(url::token(&server.uri()))
-            .set_auth_url(url::auth(&server.uri()))
-            .set_validate_url(url::validate(&server.uri()))
-            .set_revoke_url(url::revoke(&server.uri()))
+            .with_client(config::client())
+            .with_token_url(url::token(&server.uri()))
+            .with_auth_url(url::auth(&server.uri()))
+            .with_validate_url(url::validate(&server.uri()))
+            .with_revoke_url(url::revoke(&server.uri()))
             .set_redirect_uri(url::redirect());
 
         (server, oauth)

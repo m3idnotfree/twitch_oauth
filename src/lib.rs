@@ -348,7 +348,7 @@
 //!
 //! **Important for multi-server deployments:**
 //! - By default, each [`TwitchOauth`] instance generates a random secret key
-//! - For load-balanced or clustered environments, use [`TwitchOauth<UserAuth>::set_secret_key`] to share the same secret across all instances
+//! - For load-balanced or clustered environments, use [`TwitchOauth<UserAuth>::with_secret_key`] to share the same secret across all instances
 //! - Without a shared secret key, tokens generated on one server will fail validation on another
 //!
 //! #### CSRF Configuration
@@ -363,17 +363,17 @@
 //!
 //! // Custom: 10 minutes expiry, 60 seconds clock skew tolerance
 //! let oauth = TwitchOauth::new("client_id", "client_secret")
-//!     .set_csrf_config(CsrfConfig::new(60, 600));
+//!     .with_csrf_config(CsrfConfig::new(60, 600));
 //!
 //! // Strict: 5 minutes expiry, no clock skew tolerance
 //! let oauth = TwitchOauth::new("client_id", "client_secret")
-//!     .set_csrf_config(CsrfConfig::default().with_max_age(300));
+//!     .with_csrf_config(CsrfConfig::default().with_max_age(300));
 //! ```
 //!
 //! **When to customize:**
 //! - **High-security apps**: Shorter expiry times (300-900 seconds)
 //! - **Mobile apps**: Clock skew tolerance (30-60 seconds) for device time differences
-//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`TwitchOauth<UserAuth>::set_secret_key`]
+//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`TwitchOauth<UserAuth>::with_secret_key`]
 //!
 //! ### Secure Defaults
 //!

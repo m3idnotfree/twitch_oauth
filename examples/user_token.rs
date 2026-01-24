@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
 
     let oauth = TwitchOauth::new(client_id, client_secret)
         .set_redirect_uri(RedirectUrl::from_str(&redirect_uri)?)
-        .set_csrf_config(CsrfConfig::new(0, 180));
+        .with_csrf_config(CsrfConfig::new(0, 180));
 
     let state = AppState {
         oauth,

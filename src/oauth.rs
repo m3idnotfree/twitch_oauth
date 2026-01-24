@@ -267,9 +267,14 @@ where
     ///
     /// Note: This only affects this OAuth instance, not the global client.
     /// For global configuration, use [`client::setup()`] instead.
-    pub fn set_client(mut self, client: Client) -> Self {
+    pub fn with_client(mut self, client: Client) -> Self {
         self.client = client;
         self
+    }
+
+    #[deprecated(since = "3.1.0", note = "use `with_client` instead")]
+    pub fn set_client(self, client: Client) -> Self {
+        self.with_client(client)
     }
 
     /// Configure CSRF token validation settings
@@ -281,11 +286,16 @@ where
     /// - max_age: 1800s (30 minutes)
     /// - clock_skew: None (no tolerance for time differences)
     ///
-    /// Note: For multi-server deployments, also use [`TwitchOauth<UserAuth>::set_secret_key`] to share
+    /// Note: For multi-server deployments, also use [`TwitchOauth<UserAuth>::with_secret_key`] to share
     /// the same secret across all instances.
-    pub fn set_csrf_config(mut self, config: CsrfConfig) -> Self {
+    pub fn with_csrf_config(mut self, config: CsrfConfig) -> Self {
         self.csrf_config = config;
         self
+    }
+
+    #[deprecated(since = "3.1.0", note = "use `with_csrf_config` instead")]
+    pub fn set_csrf_config(self, config: CsrfConfig) -> Self {
+        self.with_csrf_config(config)
     }
 
     pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
@@ -591,14 +601,19 @@ impl TwitchOauth<UserAuth> {
     ///
     /// let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
     ///     .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
-    ///     .set_secret_key(shared_secret);
+    ///     .with_secret_key(shared_secret);
     ///
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_secret_key(mut self, secret_key: [u8; 32]) -> Self {
+    pub fn with_secret_key(mut self, secret_key: [u8; 32]) -> Self {
         self.secret_key = secret_key;
         self
+    }
+
+    #[deprecated(since = "3.1.0", note = "use `with_secret_key` instead")]
+    pub fn set_secret_key(self, secret_key: [u8; 32]) -> Self {
+        self.with_secret_key(secret_key)
     }
 }
 
@@ -615,24 +630,44 @@ where
         &self.client_secret
     }
 
-    pub fn set_auth_url(mut self, auth_url: AuthUrl) -> Self {
+    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
         self.auth_url = auth_url;
         self
     }
 
-    pub fn set_token_url(mut self, token_url: TokenUrl) -> Self {
+    #[deprecated(since = "3.1.0", note = "use `with_auth_url` instead")]
+    pub fn set_auth_url(self, auth_url: AuthUrl) -> Self {
+        self.with_auth_url(auth_url)
+    }
+
+    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
         self.token_url = token_url;
         self
     }
 
-    pub fn set_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+    #[deprecated(since = "3.1.0", note = "use `with_token_url` instead")]
+    pub fn set_token_url(self, token_url: TokenUrl) -> Self {
+        self.with_token_url(token_url)
+    }
+
+    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
         self.revoke_url = revoke_url;
         self
     }
 
-    pub fn set_validate_url(mut self, validate_url: ValidateUrl) -> Self {
+    #[deprecated(since = "3.1.0", note = "use `with_revoke_url` instead")]
+    pub fn set_revoke_url(self, revoke_url: RevocationUrl) -> Self {
+        self.with_revoke_url(revoke_url)
+    }
+
+    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
         self.validate_url = validate_url;
         self
+    }
+
+    #[deprecated(since = "3.1.0", note = "use `with_validate_url` instead")]
+    pub fn set_validate_url(self, validate_url: ValidateUrl) -> Self {
+        self.with_validate_url(validate_url)
     }
 
     pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
