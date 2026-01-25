@@ -18,7 +18,7 @@ A Rust library for Twitch OAuth 2.0 authentication with compile-time safety and 
 
 ```toml
 [dependencies]
-twitch_oauth_token = "2"
+twitch_oauth_token = "3"
 tokio = { version = "1", features = ["full"] }
 ```
 
