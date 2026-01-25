@@ -331,6 +331,26 @@ where
         self
     }
 
+    /// Update the client secret at runtime
+    ///
+    /// Use this when you need to rotate credentials in a running application,
+    /// especially in `Arc<RwLock<TwitchOauth>>` patterns.
+    ///
+    /// For initial configuration during construction, use [`TwitchOauth::new`] instead.
+    pub fn set_client_secret(&mut self, client_secret: ClientSecret) {
+        self.client_secret = client_secret;
+    }
+
+    /// Update CSRF token validation settings at runtime
+    ///
+    /// Use this to adjust CSRF validation behavior in a running application,
+    /// especially in `Arc<RwLock<TwitchOauth>>` patterns.
+    ///
+    /// For initial configuration during construction, use [`TwitchOauth::with_csrf_config`] instead.
+    pub fn set_csrf_config(&mut self, config: CsrfConfig) {
+        self.csrf_config = config;
+    }
+
     pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
     where
         T: IntoRequestBuilder<Error = Error>,
@@ -642,6 +662,16 @@ impl TwitchOauth<UserAuth> {
     pub fn with_secret_key(mut self, secret_key: [u8; 32]) -> Self {
         self.secret_key = secret_key;
         self
+    }
+
+    /// Update the CSRF secret key at runtime
+    ///
+    /// Use this to rotate CSRF secret keys in a running application,
+    /// especially in `Arc<RwLock<TwitchOauth>>` patterns or multi-server deployments.
+    ///
+    /// For initial configuration during construction, use [`TwitchOauth::with_secret_key`] instead.
+    pub fn set_secret_key(&mut self, secret_key: [u8; 32]) {
+        self.secret_key = secret_key;
     }
 }
 
