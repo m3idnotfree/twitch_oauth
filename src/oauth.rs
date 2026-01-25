@@ -283,11 +283,6 @@ where
         self
     }
 
-    #[deprecated(since = "3.1.0", note = "use `with_client` instead")]
-    pub fn set_client(self, client: Client) -> Self {
-        self.with_client(client)
-    }
-
     /// Configure CSRF token validation settings
     ///
     /// This controls how CSRF tokens are validated during the OAuth flow.
@@ -334,11 +329,6 @@ where
     pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
         self.validate_url = validate_url;
         self
-    }
-
-    #[deprecated(since = "3.1.0", note = "use `with_csrf_config` instead")]
-    pub fn set_csrf_config(self, config: CsrfConfig) -> Self {
-        self.with_csrf_config(config)
     }
 
     pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
@@ -653,11 +643,6 @@ impl TwitchOauth<UserAuth> {
         self.secret_key = secret_key;
         self
     }
-
-    #[deprecated(since = "3.1.0", note = "use `with_secret_key` instead")]
-    pub fn set_secret_key(self, secret_key: [u8; 32]) -> Self {
-        self.with_secret_key(secret_key)
-    }
 }
 
 #[cfg(feature = "test")]
@@ -665,26 +650,6 @@ impl<Flow> TwitchOauth<Flow>
 where
     Flow: OauthFlow,
 {
-    #[deprecated(since = "3.1.0", note = "use `with_auth_url` instead")]
-    pub fn set_auth_url(self, auth_url: AuthUrl) -> Self {
-        self.with_auth_url(auth_url)
-    }
-
-    #[deprecated(since = "3.1.0", note = "use `with_token_url` instead")]
-    pub fn set_token_url(self, token_url: TokenUrl) -> Self {
-        self.with_token_url(token_url)
-    }
-
-    #[deprecated(since = "3.1.0", note = "use `with_revoke_url` instead")]
-    pub fn set_revoke_url(self, revoke_url: RevocationUrl) -> Self {
-        self.with_revoke_url(revoke_url)
-    }
-
-    #[deprecated(since = "3.1.0", note = "use `with_validate_url` instead")]
-    pub fn set_validate_url(self, validate_url: ValidateUrl) -> Self {
-        self.with_validate_url(validate_url)
-    }
-
     pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
         crate::test_oauth::TwitchOauthTest::new(self)
     }
