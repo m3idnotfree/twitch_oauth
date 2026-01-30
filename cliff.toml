@@ -1,0 +1,101 @@
+[changelog]
+body = """
+{% if version %}\
+    {% if previous.version %}\
+        ## [{{ version | trim_start_matches(pat="v") }}]($REPO/compare/{{ previous.version }}..{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% else %}\
+        ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+    {% endif %}\
+{% else %}\
+    ## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | striptags | trim | upper_first }}
+    {% for commit in commits
+    | filter(attribute="scope") %}
+        - **({{commit.scope}})**{% if commit.breaking %} [**breaking**] {% endif %} \
+            {{ commit.message }} ([{{ commit.id | truncate(length=7, end="") }}]($REPO/commit/{{ commit.id }}))
+    {%- endfor -%}
+    {% raw %}\n{% endraw %}\
+    {%- for commit in commits %}
+        {%- if commit.scope -%}
+        {% else -%}
+            - {% if commit.breaking %} [**breaking**] {% endif %}\
+                {{ commit.message }} ([{{ commit.id | truncate(length=7, end="") }}]($REPO/commit/{{ commit.id }}))
+        {% endif -%}
+    {% endfor -%}
+{% endfor %}\n
+"""
+trim = true
+render_always = true
+postprocessors = [
+  { pattern = '\$REPO', replace = "https://github.com/m3idnotfree/twitch_oauth" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+require_conventional = false
+split_commits = false
+commit_preprocessors = [
+  { pattern = "^Chore: Remove 0.3.2", replace = "chore(release): 0.3.2" },
+  { pattern = '^feat\(main\): release', replace = "feat: initialize project" },
+  { pattern = "^ Improve: Change return type json -> OauthResponse", replace = "feat!: wrap API responses in OauthResponse type" },
+  { pattern = "^Chore: Release ", replace = "chore(release): " },
+  # ac5dc14
+  { pattern = '^refactor\(oneshot-server\): migrate from manual HTTP parsing to Axum\nframework', replace = "refactor(oneshot-server): migrate from manual HTTP parsing to Axum framework" },
+  # 558b3c6
+  { pattern = '^feat: add stateless CSRF token generation and validation\n- Implement HMAC-SHA256 based token generation with timestamps\n- Add configurable clock skew tolerance and max age validation', replace = "feat: add stateless CSRF token generation and validation" },
+  # b361d07
+  { pattern = '^docs\(example\):', replace = "docs(example): add examples" },
+  # adf997b
+  { pattern = '^feature\(request\): expose request module\n- AuthrozationRequest\n- ClientCredentialsRequest\n- CodeTokenRequest\n- RefreshRequest\n- RevokeRequest\n- ValidateRequest', replace = "feat(request): expose request module" },
+  # fe4fe19
+  { pattern = '^chroe\(release\): 1.1.2', replace = "chore(release): 1.1.2" },
+  # 1c3cf7d
+  { pattern = '^refactor\(oneshot_server\):', replace = "refactor(oneshot_server): extract helper functions" },
+  # b48df65
+  { pattern = '^Update: scopes use Hashset from Vec\nremove duplicate\nadd method by api type', replace = "refactor!: change scopes storage from Vec to HashSet" },
+  # 46cd156, 14a0342, eda91d5
+  { pattern = '^(?i)style:\s*$', replace = "style: run cargo fmt" },
+  # 5324a36, 6d0acb9
+  { pattern = '^test\(\): update', replace = "test: update" },
+  # 1ea0e14
+  { pattern = '^chore\(\): update gitignore, lib', replace = "chore: update gitignore, lib.rs" },
+  # 2e29721
+  { pattern = "^Breaking Changes: mistake v1", replace = "refactor!: migrate to v2 API architecture" },
+  # 8d16245
+  { pattern = "^chore:", replace = "docs: add ignore" },
+  # 93a996c, ca33be1
+  { pattern = "^Create LICENSE-", replace = "chore(license): add LICENSE-" },
+  # 967cf43, d6bcc60, e82dc46, eaa1b09, d79abe1, b2512ae, 100eff6, 609bc8b
+  # 04d2624, 56edad1, cb55cff
+  { pattern = '^(?i)release[:\s]+', replace = "chore(release): " },
+]
+protect_breaking_commits = false
+commit_parsers = [
+  { message = '^chore\(release\)', skip = true },
+  { message = "^Merge pull request", skip = true },
+  { message = "^feat", group = "<!-- 00 -->Features" },
+  { message = "^fix", group = "<!-- 01 -->Bug Fixes" },
+  { message = "^doc", group = "<!-- 03 -->Documentation" },
+  { message = "^perf", group = "<!-- 04 -->Performance" },
+  { message = "^refactor", group = "<!-- 02 -->Refactoring" },
+  { message = "^style", group = "<!-- 05 -->Style" },
+  { message = "^test", group = "<!-- 06 -->Tests" },
+  { message = '^chore\(release\): prepare for', skip = true },
+  { message = '^chore\(pr\)', skip = true },
+  { message = '^chore\(pull\)', skip = true },
+  { message = "^chore|^ci", group = "<!-- 07 -->Miscellaneous" },
+  { body = ".*security", group = "<!-- 08 -->Security" },
+  { message = "^revert", group = "<!-- 09 -->Revert" },
+  { message = ".*", group = "<!-- 99 -->Other" },
+]
+filter_commits = false
+fail_on_unmatched_commit = false
+link_parsers = []
+use_branch_tags = false
+topo_order = false
+topo_order_commits = true
+sort_commits = "oldest"
+recurse_submodules = false
