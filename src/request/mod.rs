@@ -1,13 +1,13 @@
 mod authorize_request;
 mod client_credentials;
-mod codetoken_request;
+mod exchange_code;
 mod refresh_request;
 mod revoke_request;
 mod validate_request;
 
 pub use authorize_request::AuthrozationRequest;
 pub use client_credentials::ClientCredentialsRequest;
-pub use codetoken_request::CodeTokenRequest;
+pub use exchange_code::ExchangeCodeRequest;
 pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
 pub use validate_request::{validate_access_token, ValidateRequest};

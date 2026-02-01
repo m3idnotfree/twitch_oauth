@@ -15,7 +15,7 @@ use crate::{
 use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 #[derive(Debug)]
-pub struct CodeTokenRequest<'a> {
+pub struct ExchangeCodeRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
     code: AuthorizationCode,
@@ -23,7 +23,7 @@ pub struct CodeTokenRequest<'a> {
     token_url: &'a TokenUrl,
 }
 
-impl<'a> CodeTokenRequest<'a> {
+impl<'a> ExchangeCodeRequest<'a> {
     pub fn new(
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
@@ -41,7 +41,7 @@ impl<'a> CodeTokenRequest<'a> {
     }
 }
 
-impl IntoRequestBuilder for CodeTokenRequest<'_> {
+impl IntoRequestBuilder for ExchangeCodeRequest<'_> {
     type Error = Error;
 
     fn into_request_builder(self, client: &Client) -> Result<reqwest::RequestBuilder, Self::Error> {

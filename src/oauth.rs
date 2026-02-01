@@ -12,7 +12,8 @@ use crate::{
     csrf::{self, CsrfConfig},
     error,
     request::{
-        ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest, ValidateRequest,
+        ClientCredentialsRequest, ExchangeCodeRequest, RefreshRequest, RevokeRequest,
+        ValidateRequest,
     },
     types::GrantType,
     AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
@@ -629,7 +630,7 @@ impl TwitchOauth<UserAuth> {
         }
 
         let resp = self
-            .send(CodeTokenRequest::new(
+            .send(ExchangeCodeRequest::new(
                 &self.client_id,
                 &self.client_secret,
                 code,
