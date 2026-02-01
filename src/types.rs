@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::Deserialize;
 
@@ -28,15 +28,9 @@ pub enum GrantType {
     UserToken,
 }
 
-impl fmt::Display for GrantType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::ClientCredentials => write!(f, "client_credentials"),
-            Self::AuthorizationCode => write!(f, "authorization_code"),
-            Self::RefreshToken => write!(f, "refresh_token"),
-            #[cfg(feature = "test")]
-            Self::UserToken => write!(f, "user_token"),
-        }
+impl Display for GrantType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.as_str())
     }
 }
 
