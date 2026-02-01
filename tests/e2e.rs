@@ -11,9 +11,6 @@ async fn client_credentials_grant_flow() {
     server::client_credentials(&server).await;
 
     let token = oauth.app_access_token().await.unwrap();
-    assert_eq!(200, token.status());
-
-    let token = token.app_token().await.unwrap();
     assert_eq!(token::access().secret(), token.access_token.secret());
 }
 
@@ -41,9 +38,6 @@ async fn authorization_code_grant_flow() {
         .await
         .unwrap();
 
-    assert_eq!(200, token.status());
-
-    let token = token.user_token().await.unwrap();
     assert_eq!(token::access().secret(), token.access_token.secret());
 }
 
@@ -54,9 +48,6 @@ async fn refresh_access_token() {
     server::refresh_access_token(&server).await;
 
     let token = oauth.refresh_access_token(token::refresh()).await.unwrap();
-    assert_eq!(200, token.status());
-
-    let token = token.user_token().await.unwrap();
     assert_eq!(token.access_token.secret(), token::access().secret());
 }
 
@@ -67,9 +58,6 @@ pub async fn validate_access_token() {
     server::validate_access_token(&server).await;
 
     let token = oauth.validate_access_token(&token::access()).await.unwrap();
-    assert_eq!(200, token.status());
-
-    let token = token.validate_token().await.unwrap();
     assert_eq!(config::client_id(), token.client_id.to_string());
 }
 
@@ -79,7 +67,5 @@ pub async fn revoke_access_token() {
 
     server::revoke_access_token(&server).await;
 
-    let token = oauth.revoke_access_token(&token::access()).await.unwrap();
-
-    assert_eq!(204, token.status());
+    oauth.revoke_access_token(&token::access()).await.unwrap();
 }

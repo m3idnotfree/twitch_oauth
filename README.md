@@ -33,8 +33,7 @@ use twitch_oauth_token::TwitchOauth;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let oauth = TwitchOauth::new("client_id", "client_secret");
 
-    let resp = oauth.app_access_token().await?;
-    let token = resp.app_token().await?;
+    let token = oauth.app_access_token().await?;
 
     println!("App token: {}", token.access_token.secret());
     println!("Expires in: {} seconds", token.expires_in);
@@ -72,11 +71,9 @@ async fn handle_callback(
     oauth: &TwitchOauth<UserAuth>,
     oauth_callback: OAuthCallbackQuery,
 ) -> Result<(), twitch_oauth_token::Error> {
-    let response = oauth
+    let token = oauth
         .user_access_token(oauth_callback.code, oauth_callback.state)
         .await?;
-
-    let token = response.user_token().await?;
 
     println!("Access token: {}", token.access_token.secret());
     println!("Refresh token: {}", token.refresh_token.secret());

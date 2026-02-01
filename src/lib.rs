@@ -38,8 +38,7 @@
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let oauth = TwitchOauth::new("client_id", "client_secret");
 //!     
-//!     let resp = oauth.app_access_token().await?;
-//!     let token = resp.app_token().await?;
+//!     let token = oauth.app_access_token().await?;
 //!     
 //!     println!("App token: {}", token.access_token.secret());
 //!     println!("Expires in: {} seconds", token.expires_in);
@@ -76,8 +75,7 @@
 //!     
 //!     // In your callback handler:
 //!     // let callback: OAuthCallbackQuery = /* parse from URL */;
-//!     // let response = oauth.user_access_token(callback.code, callback.state).await?;
-//!     // let token = response.user_token().await?;
+//!     // let token = oauth.user_access_token(callback.code, callback.state).await?;
 //!     
 //!     Ok(())
 //! }
@@ -112,11 +110,9 @@
 //!     query_params: OAuthCallbackQuery,
 //! ) -> Result<(), twitch_oauth_token::Error> {
 //!     // Exchange authorization code for access token
-//!     let response = oauth
+//!     let token = oauth
 //!         .user_access_token(query_params.code, query_params.state)
 //!         .await?;
-//!     
-//!     let token = response.user_token().await?;
 //!     
 //!     println!("Access token: {}", token.access_token.secret());
 //!     println!("Refresh token: {}", token.refresh_token.secret());
@@ -178,8 +174,7 @@
 //! # use twitch_oauth_token::{Error, RefreshToken, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), Error> {
 //! // Refresh an expired token
-//! let refreshed_response = oauth.refresh_access_token(refresh_token).await?;
-//! let new_token = refreshed_response.user_token().await?;
+//! let new_token = oauth.refresh_access_token(refresh_token).await?;
 //! # Ok(())
 //! # }
 //! ```
@@ -189,8 +184,7 @@
 //! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
 //! // Validate a token and get user info
-//! let validation_response = oauth.validate_access_token(&access_token).await?;
-//! let user_info = validation_response.validate_token().await?;
+//! let user_info = oauth.validate_access_token(&access_token).await?;
 //!
 //! println!("Token belongs to user: {}", user_info.login);
 //! println!("User ID: {}", user_info.user_id);
@@ -271,10 +265,9 @@
 //!     // Wait up to 2 minutes for the user to complete OAuth flow
 //!     match oneshot_server("127.0.0.1:3000", Duration::from_secs(120)).await {
 //!         Ok(callback) => {
-//!             let response = oauth
+//!             let token = oauth
 //!                 .user_access_token(callback.code, callback.state)
 //!                 .await?;
-//!             let token = response.user_token().await?;
 //!             println!("Successfully got user token!");
 //!         }
 //!         Err(e) => {
@@ -315,8 +308,6 @@
 //!
 //!     // Get app token from mock API
 //!     let app_token = oauth.app_access_token()
-//!         .await?
-//!         .app_token()
 //!         .await?;
 //!
 //!     let users = mock_api.get_users().await?;
@@ -327,8 +318,6 @@
 //!     
 //!     let user_token = user_token_request
 //!         .send()
-//!         .await?
-//!         .user_token()
 //!         .await?;
 //!
 //!     Ok(())
@@ -412,15 +401,18 @@
 //!             // - CSRF token validation failed
 //!             // - Authorization code expired or invalid
 //!             // - Redirect URI mismatch
-//!         }
 //!
-//!         // Response parsing errors (malformed JSON, unexpected format)
-//!         else if e.is_validation_error() {
-//!             eprintln!("Validation error: {}", e);
+//!         // JSON deserialization errors (response doesn't match expected structure)
+//!         } else if e.is_decode() {
+//!             eprintln!("Deserialization error: {}", e);
+//!             if let Some(raw) = e.raw() {
+//!                 eprintln!("Raw response body: {}", raw);
+//!             }
 //!             // Common causes:
-//!             // - Twitch API returned unexpected response format
-//!             // - Network corruption
-//!             // - API version mismatch
+//!             // - Twitch API response schema changed
+//!             // - Missing or unexpected fields in JSON
+//!             // - Type mismatch (expected number, got string)
+//!             // - Invalid data format
 //!         }
 //!     }
 //! }
@@ -434,16 +426,12 @@ pub mod scope;
 mod error;
 mod oauth;
 mod request;
-mod response;
 mod tokens;
 mod types;
 
 pub use error::Error;
 pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
-pub use response::{
-    AppTokenResponse, NoContentResponse, Response, UserTokenResponse, ValidateTokenResponse,
-};
 pub use scope::Scope;
 pub use tokens::{AppToken, UserToken, ValidateToken};
 pub use types::OAuthCallbackQuery;

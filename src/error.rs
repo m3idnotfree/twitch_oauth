@@ -11,6 +11,7 @@ struct Inner {
     kind: Kind,
     message: Option<String>,
     source: Option<BoxError>,
+    raw: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,6 +20,7 @@ pub(crate) enum Kind {
 
     ResponseText,
     ResponseJson,
+    Decode,
 
     CsrfTokenMismatch,
 
@@ -35,6 +37,7 @@ impl Error {
                 kind,
                 message: Some(message.into()),
                 source: None,
+                raw: None,
             }),
         }
     }
@@ -45,6 +48,7 @@ impl Error {
                 kind,
                 message: None,
                 source: Some(source.into()),
+                raw: None,
             }),
         }
     }
@@ -59,12 +63,32 @@ impl Error {
                 kind,
                 message: Some(message.into()),
                 source: Some(source.into()),
+                raw: None,
+            }),
+        }
+    }
+
+    pub(crate) fn with_decode(
+        kind: Kind,
+        source: impl Into<BoxError>,
+        raw: impl Into<String>,
+    ) -> Self {
+        Self {
+            inner: Box::new(Inner {
+                kind,
+                message: None,
+                source: Some(source.into()),
+                raw: Some(raw.into()),
             }),
         }
     }
 
     pub fn message(&self) -> Option<&str> {
         self.inner.message.as_deref()
+    }
+
+    pub fn raw(&self) -> Option<&str> {
+        self.inner.raw.as_deref()
     }
 
     pub fn is_network_error(&self) -> bool {
@@ -93,6 +117,10 @@ impl Error {
     pub fn is_client_setup_error(&self) -> bool {
         matches!(self.inner.kind, Kind::ClientSetup)
     }
+
+    pub fn is_decode(&self) -> bool {
+        matches!(self.inner.kind, Kind::Decode)
+    }
 }
 
 impl fmt::Debug for Error {
@@ -107,6 +135,10 @@ impl fmt::Debug for Error {
 
         if let Some(ref source) = self.inner.source {
             builder.field("source", source);
+        }
+
+        if let Some(ref raw) = self.inner.raw {
+            builder.field("raw", raw);
         }
 
         builder.finish()
@@ -151,6 +183,7 @@ impl Kind {
             Kind::FormData => "failed to serialize form data",
             Kind::OAuthError => "OAuth error response",
             Kind::ClientSetup => "HTTP client setup failed",
+            Kind::Decode => "failed to deserialize response",
         }
     }
 }
@@ -202,6 +235,10 @@ pub mod response {
 
     pub fn json<E: Into<BoxError>>(e: E) -> Error {
         Error::with_source(Kind::ResponseJson, e)
+    }
+
+    pub fn decode<E: Into<BoxError>>(e: E, raw: impl Into<String>) -> Error {
+        Error::with_decode(Kind::Decode, e, raw)
     }
 }
 

@@ -46,14 +46,14 @@ impl MockApiUnits {
     }
 
     async fn send_json<T: DeserializeOwned>(&self, url: Url) -> Result<MockData<T>, Error> {
-        self.client
+        let resp = self
+            .client
             .get(url)
             .send()
             .await
-            .map_err(error::network::request)?
-            .json()
-            .await
-            .map_err(error::response::json)
+            .map_err(error::network::request)?;
+
+        crate::oauth::decode_response(resp).await
     }
 }
 

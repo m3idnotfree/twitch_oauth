@@ -170,10 +170,7 @@ async fn process_callback(callback: OAuthCallbackQuery, state: AppState) -> Resu
         .oauth
         .user_access_token(callback.code, callback.state)
         .await
-        .context("Failed to exchange authorization code for access token")?
-        .user_token()
-        .await
-        .context("Failed to parse user token response")?;
+        .context("Failed to exchange authorization code for access token")?;
 
     info!(
         service = "twitch_oauth",
@@ -218,10 +215,7 @@ async fn validate_and_get_user_info(
 
             e
         })
-        .context("Failed to validate access token")?
-        .validate_token()
-        .await
-        .context("Failed to parse token validation response")?;
+        .context("Failed to validate access token")?;
 
     info!(
         service = "twitch_oauth",

@@ -30,7 +30,7 @@ async fn main() -> Result<()> {
         "Calling Twitch API"
     );
 
-    let resp = oauth
+    let token = oauth
         .app_access_token()
         .await
         .map_err(|e| {
@@ -56,23 +56,6 @@ async fn main() -> Result<()> {
         "Received API response"
     );
 
-    let token = resp
-        .app_token()
-        .await
-        .map_err(|e| {
-            error!(
-                service = "twitch_oauth",
-                action = "parse_app_token",
-                error_type = "parsing",
-                error_message = %e,
-                duration_ms = start_time.elapsed().as_millis(),
-                "Failed to parse token response"
-            );
-
-            e
-        })
-        .context("Failed to parse token from response")?;
-
     info!(
         service = "twitch_oauth",
         action = "get_app_token",
@@ -90,6 +73,8 @@ fn classify_error(e: &twitch_oauth_token::Error) -> &str {
         "network"
     } else if e.is_oauth_error() {
         "oauth"
+    } else if e.is_decode() {
+        "decode"
     } else {
         "unknown"
     }

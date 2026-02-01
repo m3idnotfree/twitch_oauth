@@ -9,14 +9,13 @@ pub async fn validate_access_token(
     client: &Client,
     validate_url: &ValidateUrl,
 ) -> Result<ValidateToken, Error> {
-    ValidateRequest::new(access_token, validate_url)
+    let resp = ValidateRequest::new(access_token, validate_url)
         .into_request_builder(client)?
         .send()
         .await
-        .map_err(error::network::request)?
-        .json::<ValidateToken>()
-        .await
-        .map_err(error::response::json)
+        .map_err(error::network::request)?;
+
+    crate::oauth::decode_response(resp).await
 }
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>

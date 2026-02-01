@@ -14,11 +14,9 @@ use crate::{
     request::{
         ClientCredentialsRequest, CodeTokenRequest, RefreshRequest, RevokeRequest, ValidateRequest,
     },
-    response::ResponseType,
     types::GrantType,
-    AccessToken, AppTokenResponse, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId,
-    ClientSecret, Error, NoContentResponse, RedirectUrl, RefreshToken, Response, RevocationUrl,
-    TokenUrl, UserTokenResponse, ValidateTokenResponse, ValidateUrl,
+    AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
+    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
 };
 
 pub const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
@@ -213,8 +211,7 @@ impl OauthFlow for UserAuth {
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let oauth = TwitchOauth::new("client_id", "client_secret");
 ///     
-///     let response = oauth.app_access_token().await?;
-///     let token = response.app_token().await?;
+///     let token = oauth.app_access_token().await?;
 ///     
 ///     println!("App token: {}", token.access_token.secret());
 ///     Ok(())
@@ -351,10 +348,9 @@ where
         self.csrf_config = config;
     }
 
-    pub async fn send<T, R>(&self, request: T) -> Result<Response<R>, T::Error>
+    pub async fn send<T>(&self, request: T) -> Result<reqwest::Response, T::Error>
     where
         T: IntoRequestBuilder<Error = Error>,
-        R: ResponseType,
     {
         let resp = request
             .into_request_builder(&self.client)?
@@ -376,7 +372,7 @@ where
             }
         }
 
-        Ok(Response::new(resp))
+        Ok(resp)
     }
 
     /// **Refresh an access token** using a refresh token
@@ -385,8 +381,7 @@ where
     /// ```no_run
     /// # use twitch_oauth_token::{TwitchOauth, RefreshToken};
     /// # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
-    /// let response = oauth.refresh_access_token(refresh_token).await?;
-    /// let new_token = response.user_token().await?;
+    /// let new_token = oauth.refresh_access_token(refresh_token).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -395,14 +390,17 @@ where
     pub async fn refresh_access_token(
         &self,
         refresh_token: RefreshToken,
-    ) -> Result<Response<UserTokenResponse>, Error> {
-        self.send(RefreshRequest::new(
-            &self.client_id,
-            &self.client_secret,
-            refresh_token,
-            &self.token_url,
-        ))
-        .await
+    ) -> Result<crate::UserToken, Error> {
+        let resp = self
+            .send(RefreshRequest::new(
+                &self.client_id,
+                &self.client_secret,
+                refresh_token,
+                &self.token_url,
+            ))
+            .await?;
+
+        decode_response(resp).await
     }
 
     /// **Revoke/invalidate an access token**
@@ -423,16 +421,16 @@ where
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
-    pub async fn revoke_access_token(
-        &self,
-        access_token: &AccessToken,
-    ) -> Result<Response<NoContentResponse>, Error> {
-        self.send(RevokeRequest::new(
-            access_token,
-            &self.client_id,
-            &self.revoke_url,
-        ))
-        .await
+    pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
+        let _resp = self
+            .send(RevokeRequest::new(
+                access_token,
+                &self.client_id,
+                &self.revoke_url,
+            ))
+            .await?;
+
+        Ok(())
     }
 
     /// **Get an app access token** (Client Credentials Flow)
@@ -447,23 +445,23 @@ where
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret");
     ///
-    /// let response = oauth.app_access_token().await?;
-    /// let credentials = response.app_token().await?;
-    ///
-    /// let token = credentials.access_token;
+    /// let token = oauth.app_access_token().await?;
     /// # Ok(())
     /// # }
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
-    pub async fn app_access_token(&self) -> Result<Response<AppTokenResponse>, Error> {
-        self.send(ClientCredentialsRequest::new(
-            &self.client_id,
-            &self.client_secret,
-            GrantType::ClientCredentials,
-            &self.token_url,
-        ))
-        .await
+    pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
+        let resp = self
+            .send(ClientCredentialsRequest::new(
+                &self.client_id,
+                &self.client_secret,
+                GrantType::ClientCredentials,
+                &self.token_url,
+            ))
+            .await?;
+
+        decode_response(resp).await
     }
 
     /// **Validate access token**
@@ -472,8 +470,7 @@ where
     /// ```no_run
     /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
     /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
-    /// let response = oauth.validate_access_token(&access_token).await?;
-    /// let validation = response.validate_token().await?;
+    /// let user_info = oauth.validate_access_token(&access_token).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -482,9 +479,12 @@ where
     pub async fn validate_access_token(
         &self,
         access_token: &AccessToken,
-    ) -> Result<Response<ValidateTokenResponse>, Error> {
-        self.send(ValidateRequest::new(access_token, &self.validate_url))
-            .await
+    ) -> Result<crate::ValidateToken, Error> {
+        let resp = self
+            .send(ValidateRequest::new(access_token, &self.validate_url))
+            .await?;
+
+        decode_response(resp).await
     }
 }
 
@@ -525,7 +525,7 @@ impl TwitchOauth<AppAuth> {
 
     /// Create OAuth client from existing credentials (advanced usage)
     ///
-    /// Most users should use `TwitchOauth::new()` instead.
+    /// Most users should use [`TwitchOauth::new()`] instead.
     pub fn from_credentials(client_id: ClientId, client_secret: ClientSecret) -> Self {
         Self {
             client_id,
@@ -603,10 +603,9 @@ impl TwitchOauth<UserAuth> {
     ///     oauth: &TwitchOauth<UserAuth>,
     ///     oauth_callback: OAuthCallbackQuery,
     /// ) -> Result<(), twitch_oauth_token::Error> {
-    ///     let response = oauth
+    ///     let token = oauth
     ///         .user_access_token(oauth_callback.code, oauth_callback.state)
     ///         .await?;
-    ///     let token = response.user_token().await?;
     ///
     ///     Ok(())
     /// }
@@ -617,7 +616,7 @@ impl TwitchOauth<UserAuth> {
         &self,
         code: AuthorizationCode,
         state: String,
-    ) -> Result<Response<UserTokenResponse>, Error> {
+    ) -> Result<crate::UserToken, Error> {
         if csrf::verify_with_config(
             &self.secret_key,
             &state,
@@ -628,14 +627,18 @@ impl TwitchOauth<UserAuth> {
         {
             return Err(error::oauth::csrf_token_mismatch());
         }
-        self.send(CodeTokenRequest::new(
-            &self.client_id,
-            &self.client_secret,
-            code,
-            &self.redirect_uri,
-            &self.token_url,
-        ))
-        .await
+
+        let resp = self
+            .send(CodeTokenRequest::new(
+                &self.client_id,
+                &self.client_secret,
+                code,
+                &self.redirect_uri,
+                &self.token_url,
+            ))
+            .await?;
+
+        decode_response(resp).await
     }
 
     /// Set custom secret key for CSRF token generation
@@ -715,4 +718,12 @@ where
             .field("revoke_url", &self.revoke_url)
             .finish()
     }
+}
+
+pub(crate) async fn decode_response<T>(resp: reqwest::Response) -> Result<T, Error>
+where
+    T: serde::de::DeserializeOwned,
+{
+    let v = resp.bytes().await?;
+    serde_json::from_slice(&v).map_err(|e| error::response::decode(e, String::from_utf8_lossy(&v)))
 }

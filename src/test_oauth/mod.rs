@@ -12,11 +12,8 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    oauth::OauthFlow,
-    request::ClientCredentialsRequest,
-    response::{AppTokenResponse, Response},
-    types::GrantType,
-    AuthUrl, Error, TokenUrl, TwitchOauth,
+    oauth::OauthFlow, request::ClientCredentialsRequest, types::GrantType, AuthUrl, Error,
+    TokenUrl, TwitchOauth,
 };
 
 #[derive(Debug)]
@@ -67,15 +64,18 @@ where
     }
 
     #[allow(deprecated)]
-    pub async fn app_access_token(&self) -> Result<Response<AppTokenResponse>, crate::Error> {
-        self.oauth
+    pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
+        let resp = self
+            .oauth
             .send(ClientCredentialsRequest::new(
                 self.oauth.client_id(),
                 self.oauth.client_secret(),
                 GrantType::ClientCredentials,
                 &TokenUrl::from_str(self.test_env.app_auth_url().as_ref()).unwrap(),
             ))
-            .await
+            .await?;
+
+        crate::oauth::decode_response(resp).await
     }
 }
 
