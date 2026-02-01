@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -18,8 +18,6 @@ struct Inner {
 pub(crate) enum Kind {
     Request,
 
-    ResponseText,
-    ResponseJson,
     Decode,
 
     CsrfTokenMismatch,
@@ -96,22 +94,11 @@ impl Error {
     }
 
     pub fn is_oauth_error(&self) -> bool {
-        matches!(self.inner.kind, |Kind::CsrfTokenMismatch| Kind::OAuthError)
-    }
-
-    pub fn is_validation_error(&self) -> bool {
-        matches!(
-            self.inner.kind,
-            Kind::ResponseText | Kind::ResponseJson | Kind::FormData
-        )
+        matches!(self.inner.kind, Kind::CsrfTokenMismatch | Kind::OAuthError)
     }
 
     pub fn is_retryable(&self) -> bool {
-        matches!(self.inner.kind, Kind::Request)
-    }
-
-    pub fn is_response_parsing_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::ResponseText | Kind::ResponseJson)
+        self.is_network_error()
     }
 
     pub fn is_client_setup_error(&self) -> bool {
@@ -123,8 +110,8 @@ impl Error {
     }
 }
 
-impl fmt::Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Debug for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut builder = f.debug_struct("twitch_oauth_token::Error");
 
         builder.field("kind", &self.inner.kind);
@@ -145,12 +132,11 @@ impl fmt::Debug for Error {
     }
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(ref message) = self.inner.message {
-            write!(f, "{message}")
-        } else {
-            write!(f, "{}", self.inner.kind)
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.inner.message {
+            Some(msg) => f.write_str(msg),
+            None => f.write_str(self.inner.kind.as_str()),
         }
     }
 }
@@ -177,8 +163,6 @@ impl Kind {
     pub fn as_str(&self) -> &'static str {
         match self {
             Kind::Request => "network request failed",
-            Kind::ResponseText => "failed to read response as text",
-            Kind::ResponseJson => "failed to parse response as JSON",
             Kind::CsrfTokenMismatch => "CSRF token mismatch",
             Kind::FormData => "failed to serialize form data",
             Kind::OAuthError => "OAuth error response",
@@ -188,8 +172,8 @@ impl Kind {
     }
 }
 
-impl fmt::Display for Kind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Kind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_str())
     }
 }
@@ -203,7 +187,6 @@ pub mod network {
 }
 
 pub mod oauth {
-
     use super::{Error, Kind};
 
     pub fn csrf_token_mismatch() -> Error {
@@ -228,14 +211,6 @@ pub mod validation {
 
 pub mod response {
     use super::{BoxError, Error, Kind};
-
-    pub fn text<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::ResponseText, e)
-    }
-
-    pub fn json<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::ResponseJson, e)
-    }
 
     pub fn decode<E: Into<BoxError>>(e: E, raw: impl Into<String>) -> Error {
         Error::with_decode(Kind::Decode, e, raw)
