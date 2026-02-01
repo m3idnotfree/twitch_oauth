@@ -56,7 +56,7 @@ pub mod setup {
             .with_auth_url(url::auth(&server.uri()))
             .with_validate_url(url::validate(&server.uri()))
             .with_revoke_url(url::revoke(&server.uri()))
-            .set_redirect_uri(url::redirect());
+            .with_redirect_uri(url::redirect());
 
         (server, oauth)
     }

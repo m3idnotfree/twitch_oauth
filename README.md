@@ -50,7 +50,7 @@ use twitch_oauth_token::{scope::ChatScopes, RedirectUrl, TwitchOauth};
 
 fn main() {
     let oauth = TwitchOauth::new("client_id", "client_secret")
-        .set_redirect_uri(RedirectUrl::from_str("http://example.com/auth/callback").unwrap());
+        .with_redirect_uri(RedirectUrl::from_str("http://example.com/auth/callback").unwrap());
 
     let mut auth_request = oauth.authorization_url();
     auth_request.scopes_mut().chat_api_as_user();

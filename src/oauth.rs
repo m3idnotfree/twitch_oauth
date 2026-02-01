@@ -226,7 +226,7 @@ impl OauthFlow for UserAuth {
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
 ///     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-///         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
+///         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
 ///     let auth_request = oauth.authorization_url();
@@ -507,7 +507,7 @@ impl TwitchOauth<AppAuth> {
     }
 
     /// Upgrade to user authentication by adding redirect URI
-    pub fn set_redirect_uri(self, redirect_uri: RedirectUrl) -> TwitchOauth<UserAuth> {
+    pub fn with_redirect_uri(self, redirect_uri: RedirectUrl) -> TwitchOauth<UserAuth> {
         TwitchOauth {
             client_id: self.client_id,
             client_secret: self.client_secret,
@@ -562,7 +562,7 @@ impl TwitchOauth<UserAuth> {
     /// # use twitch_oauth_token::{scope::ChatScopes, TwitchOauth, RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret")
-    ///     .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
+    ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
     /// auth_request.scopes_mut().chat_api();
@@ -656,7 +656,7 @@ impl TwitchOauth<UserAuth> {
     /// let shared_secret = csrf::generate_secret_key();
     ///
     /// let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-    ///     .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
+    ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
     ///     .with_secret_key(shared_secret);
     ///
     /// # Ok(())

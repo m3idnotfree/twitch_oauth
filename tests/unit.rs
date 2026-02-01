@@ -5,7 +5,7 @@ use twitch_oauth_token::{AuthorizationCode, RedirectUrl, TwitchOauth};
 #[tokio::test]
 async fn csrf_validation_failure() {
     let oauth = TwitchOauth::new("client_id", "client_secret")
-        .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000").unwrap());
+        .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000").unwrap());
 
     let result = oauth
         .user_access_token(AuthorizationCode::from("code"), "state".to_string())

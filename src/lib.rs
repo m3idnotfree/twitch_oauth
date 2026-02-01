@@ -61,7 +61,7 @@
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // Setup OAuth client with redirect URI
 //!     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
-//!         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
+//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
 //!     
 //!     // Create authorization URL with specific scopes
 //!     let mut auth_request = oauth.authorization_url();
@@ -253,7 +253,7 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let oauth = TwitchOauth::new("client_id", "client_secret")
-//!         .set_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
+//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut().chat_api();
