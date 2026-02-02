@@ -234,7 +234,7 @@ impl OauthFlow for UserAuth {
 ///     println!("Visit: {}", auth_request.url());
 ///     
 ///     // Step 2: After user authorizes, exchange code for token
-///     // let token = oauth.user_access_token(code, state).await?;
+///     // let token = oauth.exchange_code(code, state).await?;
 ///     
 ///     Ok(())
 /// }
@@ -605,7 +605,7 @@ impl TwitchOauth<UserAuth> {
     ///     oauth_callback: OAuthCallbackQuery,
     /// ) -> Result<(), twitch_oauth_token::Error> {
     ///     let token = oauth
-    ///         .user_access_token(oauth_callback.code, oauth_callback.state)
+    ///         .exchange_code(oauth_callback.code, oauth_callback.state)
     ///         .await?;
     ///
     ///     Ok(())
@@ -613,7 +613,7 @@ impl TwitchOauth<UserAuth> {
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub async fn user_access_token(
+    pub async fn exchange_code(
         &self,
         code: AuthorizationCode,
         state: String,

@@ -168,7 +168,7 @@ async fn process_callback(callback: OAuthCallbackQuery, state: AppState) -> Resu
 
     let token = state
         .oauth
-        .user_access_token(callback.code, callback.state)
+        .exchange_code(callback.code, callback.state)
         .await
         .context("Failed to exchange authorization code for access token")?;
 

@@ -18,7 +18,7 @@
 //! - For applications that need to act on behalf of users
 //! - Access user-specific data (follows, subscriptions, chat)
 //! - Requires redirect URI and user consent flow
-//! - Use [`TwitchOauth::authorization_url()`] and [`TwitchOauth::user_access_token()`]
+//! - Use [`TwitchOauth::authorization_url()`] and [`TwitchOauth::exchange_code()`]
 //!
 //! ### Type Safety
 //!
@@ -75,7 +75,7 @@
 //!     
 //!     // In your callback handler:
 //!     // let callback: OAuthCallbackQuery = /* parse from URL */;
-//!     // let token = oauth.user_access_token(callback.code, callback.state).await?;
+//!     // let token = oauth.exchange_code(callback.code, callback.state).await?;
 //!     
 //!     Ok(())
 //! }
@@ -111,7 +111,7 @@
 //! ) -> Result<(), twitch_oauth_token::Error> {
 //!     // Exchange authorization code for access token
 //!     let token = oauth
-//!         .user_access_token(query_params.code, query_params.state)
+//!         .exchange_code(query_params.code, query_params.state)
 //!         .await?;
 //!     
 //!     println!("Access token: {}", token.access_token.secret());
@@ -266,7 +266,7 @@
 //!     match oneshot_server("127.0.0.1:3000", Duration::from_secs(120)).await {
 //!         Ok(callback) => {
 //!             let token = oauth
-//!                 .user_access_token(callback.code, callback.state)
+//!                 .exchange_code(callback.code, callback.state)
 //!                 .await?;
 //!             println!("Successfully got user token!");
 //!         }
@@ -313,7 +313,7 @@
 //!     let users = mock_api.get_users().await?;
 //!     let user = users.data.first().unwrap();
 //!     // Get user token from mock API
-//!     let mut user_token_request = oauth.user_access_token(&user.id);
+//!     let mut user_token_request = oauth.exchange_code(&user.id);
 //!     user_token_request.scopes_mut().send_chat_message();
 //!     
 //!     let user_token = user_token_request

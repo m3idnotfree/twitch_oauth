@@ -33,10 +33,7 @@ async fn authorization_code_grant_flow() {
     assert_eq!(&token::code(), resp.code.secret());
     assert_eq!(state, resp.state);
 
-    let token = oauth
-        .user_access_token(resp.code, resp.state)
-        .await
-        .unwrap();
+    let token = oauth.exchange_code(resp.code, resp.state).await.unwrap();
 
     assert_eq!(token::access().secret(), token.access_token.secret());
 }

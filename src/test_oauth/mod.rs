@@ -52,7 +52,7 @@ where
     }
 
     #[allow(deprecated)]
-    pub fn user_access_token<'a>(&'a self, user_id: &'a str) -> TestAccessToken<'a> {
+    pub fn exchange_code<'a>(&'a self, user_id: &'a str) -> TestAccessToken<'a> {
         TestAccessToken::new(
             self.oauth.client_id(),
             self.oauth.client_secret(),
