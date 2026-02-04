@@ -97,8 +97,6 @@
 //! - `state`: CSRF protection token (must match what you sent)
 //! - `scope`: Space-separated scopes that were actually granted
 //!
-//! See the `oauth_callback` function in [`oneshot_server`](oneshot_server::oneshot_server) for a complete parsing example.
-//!
 //! #### Processing the Callback
 //! Regardless of how you extract the parameters, the token exchange process is the same:
 //!
@@ -245,10 +243,10 @@
 //! For local development, use the built-in oneshot server to handle OAuth callbacks:
 //!
 //! ```rust,no_run
-//! # #[cfg(feature = "oneshot-server")]
+//! # #[cfg(feature = "oneshot")]
 //! # {
 //! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot_server::oneshot_server, scope::ChatScopes, RedirectUrl, TwitchOauth};
+//! use twitch_oauth_token::{oneshot, scope::ChatScopes, OAuthCallbackQuery, RedirectUrl, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -262,8 +260,12 @@
 //!     println!("{}", auth_request.url());
 //!     println!("Waiting for callback...");
 //!
+//!     let config = oneshot::Config::new()
+//!         .with_port(3000)
+//!         .with_duration(Duration::from_secs(120));
+//!
 //!     // Wait up to 2 minutes for the user to complete OAuth flow
-//!     match oneshot_server("127.0.0.1:3000", Duration::from_secs(120)).await {
+//!     match oneshot::listen::<OAuthCallbackQuery>(config).await {
 //!         Ok(callback) => {
 //!             let token = oauth
 //!                 .exchange_code(callback.code, callback.state)
@@ -436,8 +438,8 @@ pub use scope::Scope;
 pub use tokens::{AppToken, UserToken, ValidateToken};
 pub use types::OAuthCallbackQuery;
 
-#[cfg(feature = "oneshot-server")]
-pub mod oneshot_server;
+#[cfg(feature = "oneshot")]
+pub use asknothingx2_util::oauth::oneshot;
 
 #[cfg(feature = "test")]
 pub mod test_oauth;

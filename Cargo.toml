@@ -21,9 +21,16 @@ path = "examples/app_token.rs"
 name = "user-token"
 path = "examples/user_token.rs"
 
+[[example]]
+name = "oneshot"
+path = "examples/oneshot.rs"
+required-features = ["oneshot"]
+
 [dependencies]
-asknothingx2-util = { version = "0.2.1", features = ["api", "oauth"] }
-axum = { version = "0.8.8", optional = true }
+asknothingx2-util = { version = "0.3.0", features = [
+  "api",
+  "oauth",
+] }
 base64 = "0.22.1"
 chrono = { version = "0.4.42", features = ["serde"] }
 hex = "0.4.3"
@@ -35,14 +42,6 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_urlencoded = "0.7.1"
 sha2 = "0.10.9"
-tokio = { version = "1.49.0", features = [
-  "io-util",
-  "macros",
-  "net",
-  "signal",
-  "sync",
-  "time"
-], optional = true }
 url = "2.5.8"
 
 [dev-dependencies]
@@ -58,6 +57,6 @@ wiremock = "0.6.5"
 
 [features]
 default = []
-full = ["oneshot-server", "test"]
-oneshot-server = ["axum", "tokio"]
+full = ["oneshot", "test"]
+oneshot = ["asknothingx2-util/oauth-server"]
 test = []

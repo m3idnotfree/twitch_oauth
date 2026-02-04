@@ -86,7 +86,7 @@ async fn handle_callback(
 
 ## Feature Flags
 
-- **`oneshot-server`** - Built-in development server for handling OAuth callbacks
+- **`oneshot`** - Built-in development server for handling OAuth callbacks
 - **`test`** - Testing utilities and mock server support
 
 ## License
