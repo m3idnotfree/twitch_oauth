@@ -15,6 +15,13 @@ pub async fn validate_access_token(
         .await
         .map_err(error::network::request)?;
 
+    if !resp.status().is_success() {
+        let status = resp.status().as_u16();
+        let v = resp.bytes().await?;
+        let body = String::from_utf8_lossy(&v).to_string();
+        return Err(error::oauth::http_error(status, body));
+    }
+
     crate::oauth::decode_response(resp).await
 }
 
