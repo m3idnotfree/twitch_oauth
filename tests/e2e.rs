@@ -2,7 +2,7 @@
 mod help;
 
 use help::{config, server, setup, token};
-use twitch_oauth_token::OAuthCallbackQuery;
+use twitch_oauth_token::AuthCallback;
 
 #[tokio::test]
 async fn client_credentials_grant_flow() {
@@ -21,7 +21,7 @@ async fn authorization_code_grant_flow() {
     let state = server::authorization_code_grant_flow(&server, &oauth, "").await;
 
     let auth_url = oauth.authorization_url().url();
-    let resp: OAuthCallbackQuery = config::client()
+    let resp: AuthCallback = config::client()
         .get(auth_url)
         .send()
         .await

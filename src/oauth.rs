@@ -595,14 +595,14 @@ impl TwitchOauth<UserAuth> {
     /// ```no_run
     /// use twitch_oauth_token::{
     ///     AuthorizationCode,
-    ///     OAuthCallbackQuery,
+    ///     AuthCallback,
     ///     TwitchOauth,
     ///     UserAuth
     /// };
     ///
     /// async fn handle_callback(
     ///     oauth: &TwitchOauth<UserAuth>,
-    ///     oauth_callback: OAuthCallbackQuery,
+    ///     oauth_callback: AuthCallback,
     /// ) -> Result<(), twitch_oauth_token::Error> {
     ///     let token = oauth
     ///         .exchange_code(oauth_callback.code, oauth_callback.state)

@@ -47,7 +47,7 @@ impl GrantType {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct OAuthCallbackQuery {
+pub struct AuthCallback {
     pub code: AuthorizationCode,
     pub scope: String,
     pub state: String,

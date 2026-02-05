@@ -1,7 +1,7 @@
 use std::{env, str::FromStr, time::Duration};
 
 use anyhow::{Context, Result};
-use twitch_oauth_token::{oneshot, OAuthCallbackQuery, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, TwitchOauth};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
         .with_callback_path("/auth/callback")
         .with_duration(Duration::from_secs(10));
 
-    let callback: OAuthCallbackQuery = oneshot::listen(config).await?;
+    let callback: AuthCallback = oneshot::listen(config).await?;
 
     let token = oauth.exchange_code(callback.code, callback.state).await?;
 

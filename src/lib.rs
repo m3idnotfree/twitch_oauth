@@ -53,7 +53,7 @@
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
 //!     scope::{ChannelScopes, ChatScopes},
-//!     OAuthCallbackQuery,
+//!     AuthCallback,
 //!     RedirectUrl, TwitchOauth,
 //! };
 //!
@@ -74,7 +74,7 @@
 //!     println!("Visit: {}", auth_url);
 //!     
 //!     // In your callback handler:
-//!     // let callback: OAuthCallbackQuery = /* parse from URL */;
+//!     // let callback: AuthCallback = /* parse from URL */;
 //!     // let token = oauth.exchange_code(callback.code, callback.state).await?;
 //!     
 //!     Ok(())
@@ -101,11 +101,11 @@
 //! Regardless of how you extract the parameters, the token exchange process is the same:
 //!
 //! ```rust
-//! use twitch_oauth_token::{OAuthCallbackQuery, TwitchOauth, UserAuth};
+//! use twitch_oauth_token::{AuthCallback, TwitchOauth, UserAuth};
 //!
 //! async fn handle_oauth_callback(
 //!     oauth: &TwitchOauth<UserAuth>,
-//!     query_params: OAuthCallbackQuery,
+//!     query_params: AuthCallback,
 //! ) -> Result<(), twitch_oauth_token::Error> {
 //!     // Exchange authorization code for access token
 //!     let token = oauth
@@ -246,7 +246,7 @@
 //! # #[cfg(feature = "oneshot")]
 //! # {
 //! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot, scope::ChatScopes, OAuthCallbackQuery, RedirectUrl, TwitchOauth};
+//! use twitch_oauth_token::{oneshot, scope::ChatScopes, AuthCallback, RedirectUrl, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -265,7 +265,7 @@
 //!         .with_duration(Duration::from_secs(120));
 //!
 //!     // Wait up to 2 minutes for the user to complete OAuth flow
-//!     match oneshot::listen::<OAuthCallbackQuery>(config).await {
+//!     match oneshot::listen::<AuthCallback>(config).await {
 //!         Ok(callback) => {
 //!             let token = oauth
 //!                 .exchange_code(callback.code, callback.state)
@@ -436,7 +436,7 @@ pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
 pub use scope::Scope;
 pub use tokens::{AppToken, UserToken, ValidateToken};
-pub use types::OAuthCallbackQuery;
+pub use types::AuthCallback;
 
 #[cfg(feature = "oneshot")]
 pub use asknothingx2_util::oauth::oneshot;
