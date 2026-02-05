@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
 }
 
 fn classify_error(e: &twitch_oauth_token::Error) -> &str {
-    if e.is_network_error() {
+    if e.is_request_error() {
         "network"
     } else if e.is_oauth_error() {
         "oauth"

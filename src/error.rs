@@ -110,16 +110,12 @@ impl Error {
         self.inner.status_code
     }
 
-    pub fn is_network_error(&self) -> bool {
+    pub fn is_request_error(&self) -> bool {
         matches!(self.inner.kind, Kind::Request)
     }
 
     pub fn is_oauth_error(&self) -> bool {
         matches!(self.inner.kind, Kind::CsrfTokenMismatch | Kind::OAuthError)
-    }
-
-    pub fn is_retryable(&self) -> bool {
-        self.is_network_error()
     }
 
     pub fn is_client_setup_error(&self) -> bool {

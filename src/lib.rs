@@ -387,7 +387,7 @@
 //!     Ok(response) => { /* success */ }
 //!     Err(e) => {
 //!         // Network/HTTP errors (connection issues, timeouts, DNS failures)
-//!         if e.is_network_error() {
+//!         if e.is_request_error() {
 //!             eprintln!("Network error: {}", e);
 //!             // Common causes:
 //!             // - No internet connection
