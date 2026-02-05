@@ -11,6 +11,7 @@ struct Inner {
     kind: Kind,
     message: Option<String>,
     source: Option<BoxError>,
+    status_code: Option<u16>,
     raw: Option<String>,
 }
 
@@ -35,6 +36,7 @@ impl Error {
                 kind,
                 message: Some(message.into()),
                 source: None,
+                status_code: None,
                 raw: None,
             }),
         }
@@ -46,6 +48,7 @@ impl Error {
                 kind,
                 message: None,
                 source: Some(source.into()),
+                status_code: None,
                 raw: None,
             }),
         }
@@ -61,6 +64,7 @@ impl Error {
                 kind,
                 message: Some(message.into()),
                 source: Some(source.into()),
+                status_code: None,
                 raw: None,
             }),
         }
@@ -76,7 +80,20 @@ impl Error {
                 kind,
                 message: None,
                 source: Some(source.into()),
+                status_code: None,
                 raw: Some(raw.into()),
+            }),
+        }
+    }
+
+    pub(crate) fn with_http_error(kind: Kind, status: u16, body: impl Into<String>) -> Self {
+        Self {
+            inner: Box::new(Inner {
+                kind,
+                message: Some(format!("HTTP {status} error")),
+                source: None,
+                status_code: Some(status),
+                raw: Some(body.into()),
             }),
         }
     }
@@ -87,6 +104,10 @@ impl Error {
 
     pub fn raw(&self) -> Option<&str> {
         self.inner.raw.as_deref()
+    }
+
+    pub fn status_code(&self) -> Option<u16> {
+        self.inner.status_code
     }
 
     pub fn is_network_error(&self) -> bool {
@@ -196,8 +217,8 @@ pub mod oauth {
         )
     }
 
-    pub fn server_error(message: impl Into<String>) -> Error {
-        Error::with_message(Kind::OAuthError, message)
+    pub fn http_error(status: u16, body: impl Into<String>) -> Error {
+        Error::with_http_error(Kind::OAuthError, status, body)
     }
 }
 

@@ -360,17 +360,10 @@ where
             .map_err(error::network::request)?;
 
         if !resp.status().is_success() {
-            let status = resp.status();
-            match resp.text().await {
-                Ok(body) => {
-                    return Err(error::oauth::server_error(format!("HTTP {status}: {body}")));
-                }
-                Err(e) => {
-                    return Err(error::oauth::server_error(format!(
-                        "HTTP {status} - Failed to read error response: {e}"
-                    )));
-                }
-            }
+            let status = resp.status().as_u16();
+            let v = resp.bytes().await?;
+            let body = String::from_utf8_lossy(&v).to_string();
+            return Err(error::oauth::http_error(status, body));
         }
 
         Ok(resp)
