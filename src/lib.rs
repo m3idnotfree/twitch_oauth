@@ -209,31 +209,16 @@
 //! ⚠️ **Warning:** Most users don't need custom HTTP client configuration.
 //!
 //! The library uses a global HTTP client with sensible defaults optimized for Twitch API usage.
-//! For custom requirements, configure it once at application startup:
+//! For custom requirements, configure it once at application startup.
 //!
-//! See the [`Preset documentation`](https://docs.rs/asknothingx2-util/latest/asknothingx2_util/api/preset/struct.Preset.html)
+//! See the [client] module.
 //!
 //! ```rust
-//! use std::{str::FromStr, time::Duration};
-//! use asknothingx2_util::api::{preset, HeaderName};
-//! use twitch_oauth_token::{client, TwitchOauth};
+//! use asknothingx2_util::api::preset;
+//! use twitch_oauth_token::client;
 //!
-//! let mut preset = preset::authentication("MyApp/1.0");
-//! preset
-//!     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
-//!     .connections(10, Duration::from_secs(90));
-//!
-//! preset
-//!     .default_headers_mut()
-//!     .accept_json()
-//!     .content_type_json()
-//!     .header_str(HeaderName::from_str("Custom-Header")?, "value")?;
-//!
-//! // Configure once at startup
+//! let preset = preset::authentication("MyApp/1.0");
 //! client::setup(preset.build()?)?;
-//!
-//! // Now all OAuth instances use your custom configuration
-//! let oauth = TwitchOauth::new("client_id", "client_secret");
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
@@ -422,6 +407,7 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+pub mod client;
 pub mod scope;
 
 mod error;
@@ -431,7 +417,7 @@ mod tokens;
 mod types;
 
 pub use error::Error;
-pub use oauth::{client, AppAuth, TwitchOauth, UserAuth};
+pub use oauth::{AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
 pub use scope::Scope;
 pub use tokens::{AppToken, UserToken, ValidateToken};
