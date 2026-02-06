@@ -27,7 +27,7 @@ path = "examples/oneshot.rs"
 required-features = ["oneshot"]
 
 [dependencies]
-asknothingx2-util = { version = "0.3.0", features = [
+asknothingx2-util = { version = "0.4.0", features = [
   "api",
   "oauth",
 ] }

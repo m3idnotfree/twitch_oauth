@@ -215,23 +215,22 @@
 //!
 //! ```rust
 //! use std::{str::FromStr, time::Duration};
-//! use asknothingx2_util::api::HeaderName;
+//! use asknothingx2_util::api::{preset, HeaderName};
 //! use twitch_oauth_token::{client, TwitchOauth};
 //!
+//! let mut preset = preset::authentication("MyApp/1.0");
+//! preset
+//!     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
+//!     .connections(10, Duration::from_secs(90));
+//!
+//! preset
+//!     .default_headers_mut()
+//!     .accept_json()
+//!     .content_type_json()
+//!     .header_str(HeaderName::from_str("Custom-Header")?, "value")?;
+//!
 //! // Configure once at startup
-//! client::setup(|preset| {
-//!     Ok(preset
-//!         .timeouts(Duration::from_secs(60), Duration::from_secs(30))
-//!         .connections(10, Duration::from_secs(90))
-//!         .default_headers(|headers| {
-//!             headers
-//!                 .accept_json()
-//!                 .content_type_json()
-//!                 .header_str(HeaderName::from_str("Custom-Header")?, "value")?;
-//!             Ok(())
-//!         })?
-//!         .user_agent("MyApp/1.0"))
-//! })?;
+//! client::setup(preset.build()?)?;
 //!
 //! // Now all OAuth instances use your custom configuration
 //! let oauth = TwitchOauth::new("client_id", "client_secret");

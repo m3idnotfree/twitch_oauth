@@ -44,9 +44,7 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
-        let client = preset::testing("twitch-oauth-test/1.0")
-            .build_client()
-            .unwrap();
+        let client = preset::testing("twitch-oauth-test/1.0").build().unwrap();
         let resp = send(self, &client).await?;
 
         crate::oauth::decode_response(resp).await

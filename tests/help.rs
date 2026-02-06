@@ -75,7 +75,7 @@ pub mod config {
     }
 
     pub fn client() -> Client {
-        preset::testing("test/1.0").build_client().unwrap()
+        preset::testing("test/1.0").build().unwrap()
     }
 }
 

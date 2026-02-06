@@ -54,22 +54,6 @@ impl Error {
         }
     }
 
-    pub(crate) fn with_message_and_source(
-        kind: Kind,
-        message: impl Into<String>,
-        source: impl Into<BoxError>,
-    ) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: Some(message.into()),
-                source: Some(source.into()),
-                status_code: None,
-                raw: None,
-            }),
-        }
-    }
-
     pub(crate) fn with_decode(
         kind: Kind,
         source: impl Into<BoxError>,
@@ -235,27 +219,12 @@ pub mod response {
 }
 
 pub mod client_setup {
-    use super::{BoxError, Error, Kind};
+    use super::{Error, Kind};
 
     pub fn already_initialized() -> Error {
         Error::with_message(
             Kind::ClientSetup,
             "HTTP client has already been initialized and cannot be reconfigured",
         )
-    }
-
-    pub fn build_failed<E: Into<BoxError>>(source: E) -> Error {
-        Error::with_message_and_source(
-            Kind::ClientSetup,
-            "failed to build HTTP client from preset configuration",
-            source,
-        )
-    }
-
-    pub fn from_preset_error<M: Into<String>>(
-        message: M,
-        source: asknothingx2_util::api::Error,
-    ) -> Error {
-        Error::with_message_and_source(Kind::ClientSetup, message, source)
     }
 }

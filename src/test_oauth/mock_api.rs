@@ -63,7 +63,7 @@ impl Default for MockApiUnits {
             port: 8080,
             url: Url::parse("http://localhost:8080/units").unwrap(),
             client: api::preset::testing("twitch-oauth-test/1.0")
-                .build_client()
+                .build()
                 .unwrap(),
         }
     }

@@ -64,22 +64,24 @@ static CLIENT: OnceLock<Client> = OnceLock::new();
 ///
 /// # Custom Configuration
 /// ```no_run
-/// # use twitch_oauth_token::client;
-/// # use twitch_oauth_token::TwitchOauth;
-/// # use std::time::Duration;
+/// use std::time::Duration;
+///
+/// use asknothingx2_util::api::preset;
+/// use twitch_oauth_token::{client, TwitchOauth};
 ///
 /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
+/// let mut preset = preset::authentication("MyApp/1.0");
+/// preset
+///     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
+///     .connections(10, Duration::from_secs(90));
+///
+/// preset
+///     .default_headers_mut()
+///     .accept_json()
+///     .content_type_json();
+///
 /// // Configure once at startup
-/// client::setup(|preset| {
-///     Ok(preset
-///         .timeouts(Duration::from_secs(60), Duration::from_secs(30))
-///         .connections(10, Duration::from_secs(90))
-///         .default_headers(|headers| {
-///             headers.accept_json().content_type_json();
-///             Ok(())
-///         })?
-///         .user_agent("user-agent/1.0"))
-/// })?;
+/// client::setup(preset.build()?)?;
 ///
 /// // Now all OAuth instances use your custom client
 /// let oauth = TwitchOauth::new("client_id", "client_secret");
@@ -87,7 +89,7 @@ static CLIENT: OnceLock<Client> = OnceLock::new();
 /// # }
 /// ```
 pub mod client {
-    use asknothingx2_util::api::preset::{self, Preset};
+    use asknothingx2_util::api::preset;
     use reqwest::Client;
 
     use crate::{error, Error};
@@ -101,38 +103,30 @@ pub mod client {
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::client;
-    /// # use std::time::Duration;
+    /// use std::time::Duration;
+    ///
+    /// use asknothingx2_util::api::preset;
+    /// use twitch_oauth_token::client;
+    ///
     /// # fn run() -> Result<(), twitch_oauth_token::Error> {
-    ///  client::setup(|preset| {
-    ///      Ok(preset
-    ///          .timeouts(Duration::from_secs(60), Duration::from_secs(30))
-    ///          .connections(10, Duration::from_secs(90))
-    ///          .default_headers(|headers| {
-    ///              headers.accept_json().content_type_json();
-    ///              Ok(())
-    ///          })?
-    ///          .user_agent("user-agent/1.0"))
-    ///  })?;
+    /// let mut preset = preset::authentication("MyApp/1.0");
+    /// preset
+    ///     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
+    ///     .connections(10, Duration::from_secs(90));
+    ///
+    /// preset
+    ///     .default_headers_mut()
+    ///     .accept_json()
+    ///     .content_type_json();
+    ///
+    /// client::setup(preset.build()?)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn setup<F>(f: F) -> Result<(), Error>
-    where
-        F: FnOnce(Preset) -> Result<Preset, asknothingx2_util::api::Error>,
-    {
+    pub fn setup(client: reqwest::Client) -> Result<(), Error> {
         if CLIENT.get().is_some() {
             return Err(error::client_setup::already_initialized());
         }
-        let preset = preset::authentication("twitch-oauth/1.0");
-
-        let preset = f(preset).map_err(|e| {
-            error::client_setup::from_preset_error("preset configuration failed", e)
-        })?;
-
-        let client = preset
-            .build_client()
-            .map_err(error::client_setup::build_failed)?;
 
         CLIENT
             .set(client)
@@ -144,9 +138,13 @@ pub mod client {
     /// Get the global HTTP client (creates default if not configured)
     pub fn get() -> &'static Client {
         CLIENT.get_or_init(|| {
-            preset::authentication("twitch-oauth/1.0")
-                .build_client()
-                .expect("failed to build default http client")
+            preset::authentication(concat!(
+                env!("CARGO_PKG_NAME"),
+                "/",
+                env!("CARGO_PKG_VERSION")
+            ))
+            .build()
+            .expect("failed to build default http client")
         })
     }
 }

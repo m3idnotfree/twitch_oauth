@@ -32,7 +32,7 @@ where
     pub fn new(oauth: TwitchOauth<Flow>) -> Self {
         let this = oauth.with_client(
             preset::testing("twitch-oauth-token-test/1.0")
-                .build_client()
+                .build()
                 .unwrap(),
         );
 
