@@ -1,3 +1,47 @@
+//! Testing with Mock API
+//!
+//! Defaults:
+//! - port: 8080
+//! - User authorization URL: http://localhost:8080/auth/authorize
+//! - App authorization URL: http://localhost:8080/auth/token
+//!
+//! ```rust,no_run
+//! # #[cfg(feature = "test")]
+//! # {
+//!  use twitch_oauth_token::{
+//!      scope::ChatScopes,
+//!      test_oauth::mock_api::MockApiUnits,
+//!      TwitchOauth,
+//!  };
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!      let mock_api = MockApiUnits::new();
+//!      let clients = mock_api.get_clients().await.unwrap();
+//!      let client = clients.data.first().unwrap();
+//!     
+//!     let oauth = TwitchOauth::from_credentials(client.ID.clone(), client.Secret.clone())
+//!         .with_test();
+//!
+//!     // Get app token from mock API
+//!     let app_token = oauth.app_access_token()
+//!         .await?;
+//!
+//!     let users = mock_api.get_users().await?;
+//!     let user = users.data.first().unwrap();
+//!     // Get user token from mock API
+//!     let mut user_token_request = oauth.exchange_code(&user.id);
+//!     user_token_request.scopes_mut().send_chat_message();
+//!     
+//!     let user_token = user_token_request
+//!         .send()
+//!         .await?;
+//!
+//!     Ok(())
+//! }
+//! # }
+//! ```
+
 pub mod mock_api;
 pub mod response;
 

@@ -1,4 +1,4 @@
-//! # Twitch OAuth Token Library
+//! Twitch OAuth Token Library
 //!
 //! This library provides a comprehensive solution for Twitch OAuth 2.0 authentication,
 //! supporting both **app authentication** and **user authentication** flows with built-in
@@ -98,7 +98,10 @@
 //! - `scope`: Space-separated scopes that were actually granted
 //!
 //! #### Processing the Callback
-//! Regardless of how you extract the parameters, the token exchange process is the same:
+//!
+//! Regardless of how you extract the parameters, the token exchange process is the same.
+//! The library provides [`AuthCallback`] to parse OAuth callback parameters.
+//! Use it to extract the authorization code and state
 //!
 //! ```rust
 //! use twitch_oauth_token::{AuthCallback, TwitchOauth, UserAuth};
@@ -107,15 +110,9 @@
 //!     oauth: &TwitchOauth<UserAuth>,
 //!     query_params: AuthCallback,
 //! ) -> Result<(), twitch_oauth_token::Error> {
-//!     // Exchange authorization code for access token
 //!     let token = oauth
 //!         .exchange_code(query_params.code, query_params.state)
 //!         .await?;
-//!     
-//!     println!("Access token: {}", token.access_token.secret());
-//!     println!("Refresh token: {}", token.refresh_token.secret());
-//!     println!("Granted scopes: {:?}", token.scope);
-//!     println!("Expires in: {} seconds", token.expires_in);
 //!     
 //!     // Store the tokens securely for future API calls
 //!     // store_user_tokens(user_id, &token).await?;
@@ -167,147 +164,37 @@
 //!
 //! ## Token Management
 //!
-//! ### Token Refresh
+//! ### Refresh
+//!
+//! Returns [`UserToken`].
+//!
 //! ```rust
 //! # use twitch_oauth_token::{Error, RefreshToken, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), Error> {
-//! // Refresh an expired token
 //! let new_token = oauth.refresh_access_token(refresh_token).await?;
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! ### Token Validation
+//! ### Validation
+//!
+//! Returns [`TokenInfo`].
+//!
 //! ```rust
 //! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
-//! // Validate a token and get user info
-//! let user_info = oauth.validate_access_token(&access_token).await?;
-//!
-//! println!("Token belongs to user: {}", user_info.login);
-//! println!("User ID: {}", user_info.user_id);
-//! println!("Client ID: {}", user_info.client_id);
-//! println!("Scopes: {:?}", user_info.scopes);
-//! println!("Expires in: {} seconds", user_info.expires_in);
+//! let token_info = oauth.validate_access_token(&access_token).await?;
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! ### Token Revocation
+//! ### Revocation
+//!
 //! ```rust
 //! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
-//! // Revoke a token (e.g., on user logout)
 //! oauth.revoke_access_token(&access_token).await?;
-//! println!("Token revoked successfully");
 //! # Ok(())
-//! # }
-//! ```
-//!
-//! ## HTTP Client Configuration
-//!
-//! ⚠️ **Warning:** Most users don't need custom HTTP client configuration.
-//!
-//! The library uses a global HTTP client with sensible defaults optimized for Twitch API usage.
-//! For custom requirements, configure it once at application startup.
-//!
-//! See the [client] module.
-//!
-//! ```rust
-//! use asknothingx2_util::api::preset;
-//! use twitch_oauth_token::client;
-//!
-//! let preset = preset::authentication("MyApp/1.0");
-//! client::setup(preset.build()?)?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
-//! ```
-//!
-//! ## Development Server
-//!
-//! For local development, use the built-in oneshot server to handle OAuth callbacks:
-//!
-//! ```rust,no_run
-//! # #[cfg(feature = "oneshot")]
-//! # {
-//! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot, scope::ChatScopes, AuthCallback, RedirectUrl, TwitchOauth};
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = TwitchOauth::new("client_id", "client_secret")
-//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
-//!
-//!     let mut auth_request = oauth.authorization_url();
-//!     auth_request.scopes_mut().chat_api();
-//!
-//!     println!("Visit this URL to authorize:");
-//!     println!("{}", auth_request.url());
-//!     println!("Waiting for callback...");
-//!
-//!     let config = oneshot::Config::new()
-//!         .with_port(3000)
-//!         .with_duration(Duration::from_secs(120));
-//!
-//!     // Wait up to 2 minutes for the user to complete OAuth flow
-//!     match oneshot::listen::<AuthCallback>(config).await {
-//!         Ok(callback) => {
-//!             let token = oauth
-//!                 .exchange_code(callback.code, callback.state)
-//!                 .await?;
-//!             println!("Successfully got user token!");
-//!         }
-//!         Err(e) => {
-//!             eprintln!("OAuth flow failed: {}", e);
-//!         }
-//!     }
-//!
-//!     Ok(())
-//! }
-//! # }
-//! ```
-//!
-//! ## Testing with Mock API
-//!
-//! When the `test` feature is enabled, you can use Twitch's mock API for testing:
-//!
-//! - Default port: 8080
-//! - User authorization URL: http://localhost:8080/auth/authorize
-//! - App authorization URL: http://localhost:8080/auth/token
-//!
-//! ```rust,no_run
-//! # #[cfg(feature = "test")]
-//! # {
-//!  use twitch_oauth_token::{
-//!      scope::ChatScopes,
-//!      test_oauth::mock_api::MockApiUnits,
-//!      TwitchOauth,
-//!  };
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!      let mock_api = MockApiUnits::new();
-//!      let clients = mock_api.get_clients().await.unwrap();
-//!      let client = clients.data.first().unwrap();
-//!     
-//!     let oauth = TwitchOauth::from_credentials(client.ID.clone(), client.Secret.clone())
-//!         .with_test();
-//!
-//!     // Get app token from mock API
-//!     let app_token = oauth.app_access_token()
-//!         .await?;
-//!
-//!     let users = mock_api.get_users().await?;
-//!     let user = users.data.first().unwrap();
-//!     // Get user token from mock API
-//!     let mut user_token_request = oauth.exchange_code(&user.id);
-//!     user_token_request.scopes_mut().send_chat_message();
-//!     
-//!     let user_token = user_token_request
-//!         .send()
-//!         .await?;
-//!
-//!     Ok(())
-//! }
 //! # }
 //! ```
 //!
@@ -404,6 +291,59 @@
 //! }
 //! # }
 //! ```
+//!
+//! ## Development Server
+//!
+//! For local development, use the built-in oneshot server to handle OAuth callbacks:
+//!
+//! ```rust,no_run
+//! # #[cfg(feature = "oneshot")]
+//! # {
+//! use std::{str::FromStr, time::Duration};
+//! use twitch_oauth_token::{oneshot, scope::ChatScopes, AuthCallback, RedirectUrl, TwitchOauth};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let oauth = TwitchOauth::new("client_id", "client_secret")
+//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
+//!
+//!     let mut auth_request = oauth.authorization_url();
+//!     auth_request.scopes_mut().chat_api();
+//!
+//!     println!("Visit this URL to authorize:");
+//!     println!("{}", auth_request.url());
+//!     println!("Waiting for callback...");
+//!
+//!     let config = oneshot::Config::new()
+//!         .with_port(3000)
+//!         .with_duration(Duration::from_secs(120));
+//!
+//!     // Wait up to 2 minutes for the user to complete OAuth flow
+//!     match oneshot::listen::<AuthCallback>(config).await {
+//!         Ok(callback) => {
+//!             let token = oauth
+//!                 .exchange_code(callback.code, callback.state)
+//!                 .await?;
+//!             println!("Successfully got user token!");
+//!         }
+//!         Err(e) => {
+//!             eprintln!("OAuth flow failed: {}", e);
+//!         }
+//!     }
+//!
+//!     Ok(())
+//! }
+//! # }
+//! ```
+//!
+//! ## HTTP Client Configuration
+//!
+//! The default HTTP client works for most applications.
+//! For custom configuration, see [`client`].
+//!
+//! ## Testing
+//!
+//! For local testing with Twitch Mock API, see [`test_oauth`] (requires `test` feature).
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
