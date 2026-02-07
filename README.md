@@ -18,7 +18,7 @@ A Rust library for Twitch OAuth 2.0 authentication with compile-time safety and 
 
 ```toml
 [dependencies]
-twitch_oauth_token = "3"
+twitch_oauth_token = "4"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -65,11 +65,11 @@ fn main() {
 ### Handling OAuth Callback
 
 ```rust
-use twitch_oauth_token::{OAuthCallbackQuery, TwitchOauth, UserAuth};
+use twitch_oauth_token::{AuthCallback, TwitchOauth, UserAuth};
 
 async fn handle_callback(
     oauth: &TwitchOauth<UserAuth>,
-    oauth_callback: OAuthCallbackQuery,
+    oauth_callback: AuthCallback,
 ) -> Result<(), twitch_oauth_token::Error> {
     let token = oauth
         .exchange_code(oauth_callback.code, oauth_callback.state)

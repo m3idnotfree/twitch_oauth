@@ -1,15 +1,40 @@
-## [unreleased]
+## [4.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v3.1.0..v4.0.0) - 2026-02-07
+
+### Bug Fixes
+
+- **(request)** check HTTP status in validate_access_token ([e6301ec](https://github.com/m3idnotfree/twitch_oauth/commit/e6301ecbda5a9b99cc6b6916017eae473370e2c9))
+
+### Refactoring
+
+- [**breaking**] remove Response wrapper and return deserialized types directly ([12093e2](https://github.com/m3idnotfree/twitch_oauth/commit/12093e276c92667be811ec343dc60672973cc886))
+- **(error)** [**breaking**] consolidate response parsing errors into decode error type ([55a863a](https://github.com/m3idnotfree/twitch_oauth/commit/55a863a0ca01c3578e34055e21eab6873d8c4212))
+- **(oauth)** [**breaking**] rename set_redirect_uri to with_redirect_uri ([77f10d7](https://github.com/m3idnotfree/twitch_oauth/commit/77f10d780b620819e4ae5e760a8a01a6f5e349bc))
+- **(types)** simplify GrantType Display implementation ([41959c9](https://github.com/m3idnotfree/twitch_oauth/commit/41959c9fea5b78e15d089dac233eb2b46b3581a9))
+- **(request)** [**breaking**] rename CodeTokenRequest to ExchangeCodeRequest ([4ee7a05](https://github.com/m3idnotfree/twitch_oauth/commit/4ee7a05c6d325cc29b249c1638ba771d52d047eb))
+- **(oauth)** [**breaking**] rename user_access_token to exchange_code ([0857485](https://github.com/m3idnotfree/twitch_oauth/commit/0857485c026db3d2604304d8738f7881f8ea193a))
+- **(oneshot)** [**breaking**] migrate to asknothingx2-util/oauth-server ([0e0de6f](https://github.com/m3idnotfree/twitch_oauth/commit/0e0de6f32df25bd19381d024ef487490b3f1c091))
+- **(types)** [**breaking**] rename OAuthCallbackQuery to AuthCallback ([52c981c](https://github.com/m3idnotfree/twitch_oauth/commit/52c981c2f09d61a7ed8f26baf5d9117c5b7b1c11))
+- **(error)** add HTTP status and response body to errors ([77f99f3](https://github.com/m3idnotfree/twitch_oauth/commit/77f99f3730c07e0186757f0bd533bded4509fef5))
+- **(error)** [**breaking**] rename is_network_error to is_request_error ([bd6d2c5](https://github.com/m3idnotfree/twitch_oauth/commit/bd6d2c5211a6074e90c32304d019759b5dbc5084))
+- **(client)** [**breaking**] simplify setup API and migrate to asknothingx2-util 0.4.0 ([58a90fa](https://github.com/m3idnotfree/twitch_oauth/commit/58a90faef10113f3f966fad85cc3ab7b1264bd6b))
+- **(client)** extract client to client.rs ([cbf8414](https://github.com/m3idnotfree/twitch_oauth/commit/cbf8414d6836689831f803ce2758c26f4e22e9a4))
+- **(tokens)** [**breaking**] rename ValidateToken to TokenInfo ([dc27aca](https://github.com/m3idnotfree/twitch_oauth/commit/dc27aca6510ec922d42fb142a0fd949163e8c73b))
 
 ### Documentation
 
 - **(readme)** update version to 3 ([59e4075](https://github.com/m3idnotfree/twitch_oauth/commit/59e4075377aa45cbcb745bd6ecfd6c5a36f9357c))
+- update ([1f39975](https://github.com/m3idnotfree/twitch_oauth/commit/1f399758f4ac39d118635b3543bbedc521ff464b))
 
+### Miscellaneous
+
+- add cliff.toml and CHANGELOG.md ([c9eb153](https://github.com/m3idnotfree/twitch_oauth/commit/c9eb1531ed2b228ad3cd33bb754b6405d0799465))
+- **(cliff.toml)** switch from scope-based grouping to chronological order ([df6acf9](https://github.com/m3idnotfree/twitch_oauth/commit/df6acf9aa7f35fd95606f64cfa6d052d4b1a5dfb))
 ## [3.1.0](https://github.com/m3idnotfree/twitch_oauth/compare/v3.0.3..v3.1.0) - 2026-01-25
 
 ### Features
 
-- **(oauth)** add mutable set\_\* methods for runtime configuration ([5399a3a](https://github.com/m3idnotfree/twitch_oauth/commit/5399a3a07dee85e8f809dc7db33745020890210f))
 - [**breaking**] remove deprecated set\_\* builder methods ([aa32388](https://github.com/m3idnotfree/twitch_oauth/commit/aa32388ebe0272f876a3a2d5adca137258e056dc))
+- **(oauth)** add mutable set\_\* methods for runtime configuration ([5399a3a](https://github.com/m3idnotfree/twitch_oauth/commit/5399a3a07dee85e8f809dc7db33745020890210f))
 
 ## [3.0.3](https://github.com/m3idnotfree/twitch_oauth/compare/v3.0.2..v3.0.3) - 2026-01-24
 
@@ -29,12 +54,9 @@
 
 ## [3.0.1](https://github.com/m3idnotfree/twitch_oauth/compare/v3.0.0..v3.0.1) - 2026-01-12
 
-### Documentation
-
-- add ignore migrate from taplo to tombi for TOML formatting ([348bf43](https://github.com/m3idnotfree/twitch_oauth/commit/348bf436402b6afe09e17dda045ae3434a9048af))
-
 ### Miscellaneous
 
+- migrate from taplo to tombi for TOML formatting ([348bf43](https://github.com/m3idnotfree/twitch_oauth/commit/348bf436402b6afe09e17dda045ae3434a9048af))
 - **(deps)** update dependencies ([665fe23](https://github.com/m3idnotfree/twitch_oauth/commit/665fe23e364f39f306817b3c9e5e3e72562b5a4e))
 - add GitHub Actions workflow ([0402f80](https://github.com/m3idnotfree/twitch_oauth/commit/0402f803be263722f67cace99ee05916d0793715))
 
@@ -104,9 +126,9 @@
 
 ### Refactoring
 
+- migrate to asknothingx2-util 0.1.9 ([356d7e5](https://github.com/m3idnotfree/twitch_oauth/commit/356d7e56713942312c24141107d2410bd402e6c9))
 - **(lib)** reorganize public API with explicit exports ([80320a1](https://github.com/m3idnotfree/twitch_oauth/commit/80320a18bd3d2b5d64b68edfbbdf6d936aa1c37c))
 - **(oauth)** simplify URL handling ([0f9bca4](https://github.com/m3idnotfree/twitch_oauth/commit/0f9bca43907e9cf6017871fc6ae8086e2f0483fa))
-- migrate to asknothingx2-util 0.1.9 ([356d7e5](https://github.com/m3idnotfree/twitch_oauth/commit/356d7e56713942312c24141107d2410bd402e6c9))
 
 ## [2.0.5](https://github.com/m3idnotfree/twitch_oauth/compare/v2.0.4..v2.0.5) - 2025-09-13
 
@@ -130,9 +152,9 @@
 
 - **(scope)** [**breaking**] redesign scope API to match Twitch endpoint names ([7aabff1](https://github.com/m3idnotfree/twitch_oauth/commit/7aabff16016977ef4571f07981dc539b4545001f))
 
-### Documentation
+### Miscellaneous
 
-- add ignore adopt dual license (MIT OR Apache-2.0) ([07e468c](https://github.com/m3idnotfree/twitch_oauth/commit/07e468c1a6b3f8d3ee747e6cc2c49607b0b6ed56))
+- adopt dual license (MIT OR Apache-2.0) ([07e468c](https://github.com/m3idnotfree/twitch_oauth/commit/07e468c1a6b3f8d3ee747e6cc2c49607b0b6ed56))
 
 ## [2.0.2](https://github.com/m3idnotfree/twitch_oauth/compare/v2.0.1..v2.0.2) - 2025-09-11
 
@@ -150,9 +172,9 @@
 
 - **(error)** make error creation methods private ([4262ffa](https://github.com/m3idnotfree/twitch_oauth/commit/4262ffa8e8165e2e7ae3dd7bcbc3719d5fecaed1))
 
-### Documentation
+### Miscellaneous
 
-- add ignore improve package metadata and visibility ([eb361d6](https://github.com/m3idnotfree/twitch_oauth/commit/eb361d69bcda02dab15d4e5b7242a81613c7574b))
+- improve package metadata and visibility ([eb361d6](https://github.com/m3idnotfree/twitch_oauth/commit/eb361d69bcda02dab15d4e5b7242a81613c7574b))
 
 ## [2.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v1.1.12..v2.0.0) - 2025-08-10
 
@@ -179,16 +201,16 @@
 ### Refactoring
 
 - **(oauth)** [**breaking**] rename methods consistently ([6ddb1b0](https://github.com/m3idnotfree/twitch_oauth/commit/6ddb1b026a58eca1438516b7fb0af743e1d8546b))
+- move IntoRequestBuilder to asknothingx2_util ([017c848](https://github.com/m3idnotfree/twitch_oauth/commit/017c84829585c87dd13f9af71af9b70a41829a0a))
+- remove unnecessary step in OAuth flow ([49272dc](https://github.com/m3idnotfree/twitch_oauth/commit/49272dcd60236750f6576e69170d95a2a345040e))
 - **(oauth)** authentication error handling to send method ([3b2e358](https://github.com/m3idnotfree/twitch_oauth/commit/3b2e358eb92445b1eb5d8be6ecc71e4a11893f4c))
+- improve OAuth flow types and add documentation ([09748f3](https://github.com/m3idnotfree/twitch_oauth/commit/09748f3354492e7006f58f3a908e95058081e83c))
 - **(response)** rename ResponseState to ResponseType ([b6d7ee6](https://github.com/m3idnotfree/twitch_oauth/commit/b6d7ee603719ad0b9ab82d009a76d1002496febb))
 - **(oauth)** remove unused getters and extract test-only methods ([de801dd](https://github.com/m3idnotfree/twitch_oauth/commit/de801dd890bcf8b638d1e691aecce79be5c1b8df))
 - **(client_credentials)** add grant_type field for mock api ([ccc4d82](https://github.com/m3idnotfree/twitch_oauth/commit/ccc4d820f4ac2b75d697f598384e91402090bb91))
+- improve naming consistency and module organization ([e7cf22d](https://github.com/m3idnotfree/twitch_oauth/commit/e7cf22d047a5b900e592c32f786a9e2dc646500f))
 - **(error)** add FormData type, remove unused kinds ([ab90052](https://github.com/m3idnotfree/twitch_oauth/commit/ab9005277d3c0f911441a7cfe8987d4c59de5add))
 - **(oneshot-server)** migrate from manual HTTP parsing to Axum framework ([ac5dc14](https://github.com/m3idnotfree/twitch_oauth/commit/ac5dc143c3eb9532b045b430ba3a171d389c1d9e))
-- move IntoRequestBuilder to asknothingx2_util ([017c848](https://github.com/m3idnotfree/twitch_oauth/commit/017c84829585c87dd13f9af71af9b70a41829a0a))
-- remove unnecessary step in OAuth flow ([49272dc](https://github.com/m3idnotfree/twitch_oauth/commit/49272dcd60236750f6576e69170d95a2a345040e))
-- improve OAuth flow types and add documentation ([09748f3](https://github.com/m3idnotfree/twitch_oauth/commit/09748f3354492e7006f58f3a908e95058081e83c))
-- improve naming consistency and module organization ([e7cf22d](https://github.com/m3idnotfree/twitch_oauth/commit/e7cf22d047a5b900e592c32f786a9e2dc646500f))
 
 ### Documentation
 
@@ -213,9 +235,9 @@
 
 ### Features
 
-- **(oauth)** add authorization client ([280e2c8](https://github.com/m3idnotfree/twitch_oauth/commit/280e2c896f87c8902ea8b824891012c39c23448d))
 - add APPTYPE constant for asknothingx2_util::api ([25fb082](https://github.com/m3idnotfree/twitch_oauth/commit/25fb0829a5365a7104b0c78d7c3adb9453f6eff6))
 - add stateless CSRF token generation and validation ([558b3c6](https://github.com/m3idnotfree/twitch_oauth/commit/558b3c6e25dc7abfc41b91aa2b36c6b61aa5b976))
+- **(oauth)** add authorization client ([280e2c8](https://github.com/m3idnotfree/twitch_oauth/commit/280e2c896f87c8902ea8b824891012c39c23448d))
 
 ### Bug Fixes
 
@@ -223,13 +245,13 @@
 
 ### Refactoring
 
+- redesign error ([136c62a](https://github.com/m3idnotfree/twitch_oauth/commit/136c62a4c342dd128eaa9393084ea68ca7476943))
+- [**breaking**] migrate to new asknothingx2_util API patterns ([04ddf30](https://github.com/m3idnotfree/twitch_oauth/commit/04ddf305ef2cd8d1f87d20a1d350a7c1e8736877))
 - **(oauth)** implement typestate pattern for redirect URI ([556da2c](https://github.com/m3idnotfree/twitch_oauth/commit/556da2c94c0e975b0b1e457018653745dffe75ea))
 - **(test)** [**breaking**] extract test oauth functionality into separate module ([51a6b50](https://github.com/m3idnotfree/twitch_oauth/commit/51a6b50af8c590dcdf133ee3ca348faf0aae7089))
 - **(oneshot_server)** [**breaking**] restructure API and error handling ([e62653d](https://github.com/m3idnotfree/twitch_oauth/commit/e62653d1c1fd8e58eddfcb21e7cb09b365d7de45))
 - **(TwitchOauth)** [**breaking**] simplefy API and add convenience methods ([25403a8](https://github.com/m3idnotfree/twitch_oauth/commit/25403a89e623bba8a6ea0e3945d8f00da68abd26))
 - **(error)** remove unnecessary error kinds ([0b4c61b](https://github.com/m3idnotfree/twitch_oauth/commit/0b4c61b3db0d3957a7da7a0d932521c88894d10e))
-- redesign error ([136c62a](https://github.com/m3idnotfree/twitch_oauth/commit/136c62a4c342dd128eaa9393084ea68ca7476943))
-- [**breaking**] migrate to new asknothingx2_util API patterns ([04ddf30](https://github.com/m3idnotfree/twitch_oauth/commit/04ddf305ef2cd8d1f87d20a1d350a7c1e8736877))
 
 ### Documentation
 
@@ -449,9 +471,9 @@
 
 ### Other
 
-- **(lib)** update example ([d326dfb](https://github.com/m3idnotfree/twitch_oauth/commit/d326dfbd26612a043933630e63daa4ca9ffa41a6))
 - Update crates version ([e325f0b](https://github.com/m3idnotfree/twitch_oauth/commit/e325f0b4954462c1e4936c9167cbbcaabf0cfbed))
 - Fix example ([300e94e](https://github.com/m3idnotfree/twitch_oauth/commit/300e94e40b5073bff870a6eef86e9f63208bd2fe))
+- **(lib)** update example ([d326dfb](https://github.com/m3idnotfree/twitch_oauth/commit/d326dfbd26612a043933630e63daa4ca9ffa41a6))
 
 ## [0.3.9](https://github.com/m3idnotfree/twitch_oauth/compare/v0.3.8..v0.3.9) - 2024-11-12
 
@@ -642,17 +664,14 @@
 
 ### Refactoring
 
+- [**breaking**] migrate to v2 API architecture ([2e29721](https://github.com/m3idnotfree/twitch_oauth/commit/2e29721d7d9c14ef6ee4424c5e0d0a0935f9bc5a))
 - **(v2)** move server ([6a8db7e](https://github.com/m3idnotfree/twitch_oauth/commit/6a8db7eceea1ea3e2aec6002f85e293e0b0ff8c7))
 - **(auth_url)** scopes -> Vec<String> ([d7a7db2](https://github.com/m3idnotfree/twitch_oauth/commit/d7a7db21f1a2967fe1cdf62b9c86285fd1dad009))
 - **(TwitchOauth)** remove all parameter pkce_challenge ([d7c2426](https://github.com/m3idnotfree/twitch_oauth/commit/d7c2426c6640db39fb2bf2429584c292a2a41235))
-- [**breaking**] migrate to v2 API architecture ([2e29721](https://github.com/m3idnotfree/twitch_oauth/commit/2e29721d7d9c14ef6ee4424c5e0d0a0935f9bc5a))
 
 ### Documentation
 
 - **(lib)** example update ([5956942](https://github.com/m3idnotfree/twitch_oauth/commit/59569421f7c38156d38db2faea91171850380896))
-- add ignore update gitignore, lib.rs ([1ea0e14](https://github.com/m3idnotfree/twitch_oauth/commit/1ea0e1422544e07786a39dafcdd96e2ca4095b3e))
-- add ignore remove pkce, util files ([f4d56d4](https://github.com/m3idnotfree/twitch_oauth/commit/f4d56d4029fc19bfc9a45e30e1f103e4a3284f30))
-- add ignore update ([3f53e0e](https://github.com/m3idnotfree/twitch_oauth/commit/3f53e0efc6282e15c29ca4f6ea16d91eaddb177b))
 
 ### Style
 
@@ -665,9 +684,12 @@
 
 ### Miscellaneous
 
+- update gitignore, lib.rs ([1ea0e14](https://github.com/m3idnotfree/twitch_oauth/commit/1ea0e1422544e07786a39dafcdd96e2ca4095b3e))
 - **(lib)** remove comment ([dfbdecc](https://github.com/m3idnotfree/twitch_oauth/commit/dfbdecc4bd1db4fde4b1f95bd0fb1f086d5cdb10))
+- remove pkce, util files ([f4d56d4](https://github.com/m3idnotfree/twitch_oauth/commit/f4d56d4029fc19bfc9a45e30e1f103e4a3284f30))
 - **(cago.toml)** update ([9d8dc79](https://github.com/m3idnotfree/twitch_oauth/commit/9d8dc79677afa720c11c0fa969ab903b1c33e4fc))
 - **(gitignore)** update ([f74f19c](https://github.com/m3idnotfree/twitch_oauth/commit/f74f19c21995c417074196c918516b890c91827e))
+- update ([3f53e0e](https://github.com/m3idnotfree/twitch_oauth/commit/3f53e0efc6282e15c29ca4f6ea16d91eaddb177b))
 - **(cargo)** update ([9fc94bb](https://github.com/m3idnotfree/twitch_oauth/commit/9fc94bb161e848f316c58e9278acee68b69526ad))
 - **(delete)** some file ([576ec81](https://github.com/m3idnotfree/twitch_oauth/commit/576ec81d59705b8797bf31e0a4e27bb94d9fcbc9))
 - **(all)** format, rename, remove comment ([da94fce](https://github.com/m3idnotfree/twitch_oauth/commit/da94fce0d8366bb31032664769c7878c29b8c711))
@@ -702,7 +724,10 @@
 ### Documentation
 
 - add ignore ([8d16245](https://github.com/m3idnotfree/twitch_oauth/commit/8d1624557d0fd6894ac8ea544412db08af2b0f14))
-- add ignore rename crate ([2be523a](https://github.com/m3idnotfree/twitch_oauth/commit/2be523abca4cd590008e054f3a859e6dd6605222))
+
+### Miscellaneous
+
+- rename crate ([2be523a](https://github.com/m3idnotfree/twitch_oauth/commit/2be523abca4cd590008e054f3a859e6dd6605222))
 
 ## [0.0.1] - 2024-02-29
 
