@@ -42,7 +42,7 @@ impl Serialize for UserToken {
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateToken {
+pub struct TokenInfo {
     pub client_id: ClientId,
     pub login: String,
     #[serde(default, deserialize_with = "deserialize_scopes")]
@@ -78,7 +78,7 @@ where
 mod tests {
     use serde_json::json;
 
-    use crate::{UserToken, ValidateToken};
+    use crate::{TokenInfo, UserToken};
 
     #[test]
     fn user_token_deserialize_custom_scope() {
@@ -115,7 +115,7 @@ mod tests {
           "expires_in": 5520838
         });
 
-        let token: ValidateToken = serde_json::from_value(json).unwrap();
+        let token: TokenInfo = serde_json::from_value(json).unwrap();
         assert_eq!(token.scopes.len(), 0);
 
         let json = json!({
@@ -126,7 +126,7 @@ mod tests {
           "expires_in": 5520838
         });
 
-        let token: ValidateToken = serde_json::from_value(json).unwrap();
+        let token: TokenInfo = serde_json::from_value(json).unwrap();
         assert_eq!(token.scopes.len(), 0);
     }
 }

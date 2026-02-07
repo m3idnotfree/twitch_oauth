@@ -346,7 +346,7 @@ where
     pub async fn validate_access_token(
         &self,
         access_token: &AccessToken,
-    ) -> Result<crate::ValidateToken, Error> {
+    ) -> Result<crate::TokenInfo, Error> {
         let resp = self
             .send(ValidateRequest::new(access_token, &self.validate_url))
             .await?;

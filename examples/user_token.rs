@@ -14,7 +14,7 @@ use tracing::{error, info, warn};
 use twitch_oauth_token::{
     csrf::CsrfConfig,
     scope::{ChannelScopes, ChatScopes},
-    AccessToken, AuthCallback, RedirectUrl, TwitchOauth, UserAuth, UserToken, ValidateToken,
+    AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth, UserToken,
 };
 
 const COOKIE_NAME: &str = "OAuth-state";
@@ -159,7 +159,7 @@ async fn auth_callback(
     }
 }
 
-async fn process_callback(callback: AuthCallback, state: AppState) -> Result<ValidateToken> {
+async fn process_callback(callback: AuthCallback, state: AppState) -> Result<TokenInfo> {
     info!(
         service = "twitch_oauth",
         action = "exchange_code",
@@ -194,7 +194,7 @@ async fn process_callback(callback: AuthCallback, state: AppState) -> Result<Val
 async fn validate_and_get_user_info(
     oauth: TwitchOauth<UserAuth>,
     access_token: &AccessToken,
-) -> Result<ValidateToken> {
+) -> Result<TokenInfo> {
     info!(
         service = "twitch_oauth",
         action = "validate_token",

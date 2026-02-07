@@ -420,7 +420,7 @@ pub use error::Error;
 pub use oauth::{AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
 pub use scope::Scope;
-pub use tokens::{AppToken, UserToken, ValidateToken};
+pub use tokens::{AppToken, TokenInfo, UserToken};
 pub use types::AuthCallback;
 
 #[cfg(feature = "oneshot")]

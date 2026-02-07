@@ -1,14 +1,14 @@
 use asknothingx2_util::api::{AuthScheme, IntoRequestBuilder, Method};
 use reqwest::{header::AUTHORIZATION, Client, RequestBuilder};
 
-use crate::{error, tokens::ValidateToken, AccessToken, Error, ValidateUrl};
+use crate::{error, tokens::TokenInfo, AccessToken, Error, ValidateUrl};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(
     access_token: &AccessToken,
     client: &Client,
     validate_url: &ValidateUrl,
-) -> Result<ValidateToken, Error> {
+) -> Result<TokenInfo, Error> {
     let resp = ValidateRequest::new(access_token, validate_url)
         .into_request_builder(client)?
         .send()
