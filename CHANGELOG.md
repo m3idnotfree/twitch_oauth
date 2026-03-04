@@ -29,6 +29,7 @@
 
 - add cliff.toml and CHANGELOG.md ([c9eb153](https://github.com/m3idnotfree/twitch_oauth/commit/c9eb1531ed2b228ad3cd33bb754b6405d0799465))
 - **(cliff.toml)** switch from scope-based grouping to chronological order ([df6acf9](https://github.com/m3idnotfree/twitch_oauth/commit/df6acf9aa7f35fd95606f64cfa6d052d4b1a5dfb))
+
 ## [3.1.0](https://github.com/m3idnotfree/twitch_oauth/compare/v3.0.3..v3.1.0) - 2026-01-25
 
 ### Features
