@@ -277,6 +277,7 @@ pub trait ModerationScopes {
     fn get_shield_mode_status(&mut self) -> &mut Self;
     /// <https://dev.twitch.tv/docs/api/reference/#warn-chat-user>
     fn warn_chat_user(&mut self) -> &mut Self;
+    fn add_suspicious_status_to_chat_user(&mut self) -> &mut Self;
 }
 
 pub trait PollScopes {
@@ -993,6 +994,10 @@ impl ModerationScopes for ScopesMut<'_> {
     }
     fn warn_chat_user(&mut self) -> &mut Self {
         self.push(Scope::ModeratorManageWarnings);
+        self
+    }
+    fn add_suspicious_status_to_chat_user(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorManageSuspiciousUsers);
         self
     }
 }

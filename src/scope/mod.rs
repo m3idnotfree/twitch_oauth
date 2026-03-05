@@ -324,6 +324,8 @@ pub enum Scope {
     /// EventSub
     /// Channel Moderator Add
     /// Channel Moderator Remove
+    ChannelManageClips,
+    EditorManageClips,
     ModerationRead,
     /// Send announcements in channels where you have the moderator role.
     ///
@@ -547,6 +549,7 @@ pub enum Scope {
     /// Channel Warning Acknowledge
     /// Channel Warning Send
     ModeratorManageWarnings,
+    ModeratorManageSuspiciousUsers,
     /// Join a specified chat channel as your user and appear as a bot,
     /// and perform chat-related actions as your user.
     ///
@@ -715,6 +718,8 @@ impl Scope {
             Self::ChannelReadVips => "channel:read:vips",
             Self::ChannelManageVips => "channel:manage:vips",
             Self::ClipsEdit => "clips:edit",
+            Self::ChannelManageClips => "channel:manage:clips",
+            Self::EditorManageClips => "editor:manage:clips",
             Self::ModerationRead => "moderation:read",
             Self::ModeratorManageAnnouncements => "moderator:manage:announcements",
             Self::ModeratorManageAutomod => "moderator:manage:automod",
@@ -743,6 +748,7 @@ impl Scope {
             Self::ModeratorReadVips => "moderator:read:vips",
             Self::ModeratorReadWarnings => "moderator:read:warnings",
             Self::ModeratorManageWarnings => "moderator:manage:warnings",
+            Self::ModeratorManageSuspiciousUsers => "moderator:manage:suspicious_users",
             Self::UserBot => "user:bot",
             Self::UserEdit => "user:edit",
             Self::UserEditBroadcast => "user:edit:broadcast",
@@ -827,6 +833,8 @@ impl FromStr for Scope {
             "channel:read:vips" => Ok(Self::ChannelReadVips),
             "channel:manage:vips" => Ok(Self::ChannelManageVips),
             "clips:edit" => Ok(Self::ClipsEdit),
+            "channel:manage:clips" => Ok(Self::ChannelManageClips),
+            "editor:manage:clips" => Ok(Self::EditorManageClips),
             "moderation:read" => Ok(Self::ModerationRead),
             "moderator:manage:announcements" => Ok(Self::ModeratorManageAnnouncements),
             "moderator:manage:automod" => Ok(Self::ModeratorManageAutomod),
@@ -855,6 +863,7 @@ impl FromStr for Scope {
             "moderator:read:vips" => Ok(Self::ModeratorReadVips),
             "moderator:read:warnings" => Ok(Self::ModeratorReadWarnings),
             "moderator:manage:warnings" => Ok(Self::ModeratorManageWarnings),
+            "moderator:manage:suspicious_users" => Ok(Self::ModeratorManageSuspiciousUsers),
             "user:bot" => Ok(Self::UserBot),
             "user:edit" => Ok(Self::UserEdit),
             "user:edit:broadcast" => Ok(Self::UserEditBroadcast),
