@@ -1,3 +1,9 @@
+## [4.1.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.0.1..v4.1.0) - 2026-03-05
+
+### Features
+
+- **(scope)** add new scopes ([a987e43](https://github.com/m3idnotfree/twitch_oauth/commit/a987e4319d4bd387e8762f4cb60b940b4536e32f))
+
 ## [4.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v3.1.0..v4.0.0) - 2026-02-07
 
 ### Bug Fixes
