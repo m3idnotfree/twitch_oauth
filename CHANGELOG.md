@@ -1,3 +1,9 @@
+## [4.2.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.1.0..v4.2.0) - 2026-03-07
+
+### Features
+
+- add device code grant flow ([17bb09f](https://github.com/m3idnotfree/twitch_oauth/commit/17bb09f38e34f22572d5115eef9c20fec3852d80))
+
 ## [4.1.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.0.1..v4.1.0) - 2026-03-05
 
 ### Features
