@@ -2,9 +2,12 @@ use std::collections::HashSet;
 
 use super::Scope;
 
-/// inspired PathSegmentsMut
+/// A builder for adding OAuth scopes, inspired by
+/// [`PathSegmentsMut`](https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42).
 ///
-/// <https://docs.rs/url/latest/src/url/path_segments.rs.html#37-42>
+/// # Method Prefixes
+///
+/// - `on_*` - EventSub subscription helpers
 #[derive(Debug)]
 pub struct ScopesMut<'a> {
     scopes: &'a mut HashSet<Scope>,
@@ -1101,6 +1104,283 @@ impl ScopesMut<'_> {
     /// Uses `user:read:chat` and `user:write:chat`.
     pub fn chat_client(&mut self) -> &mut Self {
         self.extend([Scope::UserReadChat, Scope::UserWriteChat]);
+        self
+    }
+}
+
+// EventSub - Channel Subscriptions
+impl ScopesMut<'_> {
+    /// Covers `automod.message.hold`, `automod.message.hold.v2`,
+    /// `automod.message.update`, and `automod.message.update.v2`.
+    pub fn on_automod_message(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorManageAutomod);
+        self
+    }
+
+    /// Covers `automod.settings.update`.
+    pub fn on_automod_settings_update(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadAutomodSettings);
+        self
+    }
+
+    /// Covers `automod.terms.update`.
+    pub fn on_automod_terms_update(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorManageAutomod);
+        self
+    }
+
+    /// Covers `channel.bits.use`.
+    pub fn on_channel_bits_use(&mut self) -> &mut Self {
+        self.push(Scope::BitsRead);
+        self
+    }
+
+    /// Covers `channel.update`.
+    pub fn on_channel_update(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `channel.follow`.
+    pub fn on_channel_follow(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadFollowers);
+        self
+    }
+
+    /// Covers `channel.ad_break.begin`.
+    pub fn on_channel_ad_break_begin(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadAds);
+        self
+    }
+
+    /// Covers `channel.chat.clear`, `channel.chat.clear_user_messages`,
+    /// `channel.chat.message`, `channel.chat.message_delete`,
+    /// `channel.chat.notification`, `channel.chat.settings_update`,
+    /// `channel.chat.user_message_hold`, and `channel.chat.user_message_update`.
+    pub fn on_channel_chat(&mut self) -> &mut Self {
+        self.push(Scope::UserReadChat);
+        self
+    }
+
+    /// Covers `channel.subscribe`, `channel.subscription.end`,
+    /// `channel.subscription.gift`, and `channel.subscription.message`.
+    pub fn on_channel_subscription(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadSubscriptions);
+        self
+    }
+
+    /// Covers `channel.cheer`.
+    pub fn on_channel_cheer(&mut self) -> &mut Self {
+        self.push(Scope::BitsRead);
+        self
+    }
+
+    /// Covers `channel.raid`.
+    pub fn on_channel_raid(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `channel.ban` and `channel.unban`.
+    pub fn on_channel_ban(&mut self) -> &mut Self {
+        self.push(Scope::ChannelModerate);
+        self
+    }
+
+    /// Covers `channel.unban_request.create` and `channel.unban_request.resolve`.
+    ///
+    /// Accepts `moderator:read:unban_requests` or `moderator:manage:unban_requests`.
+    /// Uses `moderator:read:unban_requests`.
+    pub fn on_channel_unban_request(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadUnbanRequests);
+        self
+    }
+
+    /// Covers `channel.moderate` and `channel.moderate.v2`.
+    ///
+    /// Uses `moderator:read:blocked_terms`, `moderator:read:chat_settings`,
+    /// `moderator:read:unban_requests`, `moderator:read:banned_users`,
+    /// `moderator:read:chat_messages`, `moderator:read:moderators`,
+    /// and `moderator:read:vips`.
+    pub fn on_channel_moderate(&mut self) -> &mut Self {
+        self.extend([
+            Scope::ModeratorReadBlockedTerms,
+            Scope::ModeratorReadChatSettings,
+            Scope::ModeratorReadUnbanRequests,
+            Scope::ModeratorReadBannedUsers,
+            Scope::ModeratorReadChatMessages,
+            Scope::ModeratorReadModerators,
+            Scope::ModeratorReadVips,
+        ]);
+        self
+    }
+
+    /// Covers `channel.moderator.add` and `channel.moderator.remove`.
+    pub fn on_channel_moderator(&mut self) -> &mut Self {
+        self.push(Scope::ModerationRead);
+        self
+    }
+
+    /// Covers `channel.guest_star_session.begin`, `channel.guest_star_session.end`,
+    /// `channel.guest_star_guest.update`, and `channel.guest_star_settings.update`.
+    ///
+    /// Accepts `channel:read:guest_star`, `channel:manage:guest_star`,
+    /// `moderator:read:guest_star`, or `moderator:manage:guest_star`.
+    /// Uses `channel:read:guest_star`.
+    pub fn on_channel_guest_star(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadGuestStar);
+        self
+    }
+
+    /// Covers `channel.channel_points_automatic_reward_redemption.add`,
+    /// `channel.channel_points_automatic_reward_redemption.add.v2`,
+    /// `channel.channel_points_custom_reward.add`,
+    /// `channel.channel_points_custom_reward.update`,
+    /// `channel.channel_points_custom_reward.remove`,
+    /// `channel.channel_points_custom_reward_redemption.add`,
+    /// and `channel.channel_points_custom_reward_redemption.update`.
+    ///
+    /// Accepts `channel:read:redemptions` or `channel:manage:redemptions`.
+    /// Uses `channel:read:redemptions`.
+    pub fn on_channel_channel_points(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadRedemptions);
+        self
+    }
+
+    /// Covers `channel.poll.begin`, `channel.poll.progress`, and `channel.poll.end`.
+    ///
+    /// Accepts `channel:read:polls` or `channel:manage:polls`.
+    /// Uses `channel:read:polls`.
+    pub fn on_channel_poll(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadPolls);
+        self
+    }
+
+    /// Covers `channel.prediction.begin`, `channel.prediction.progress`,
+    /// `channel.prediction.lock`, and `channel.prediction.end`.
+    ///
+    /// Accepts `channel:read:predictions` or `channel:manage:predictions`.
+    /// Uses `channel:read:predictions`.
+    pub fn on_channel_prediction(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadPredictions);
+        self
+    }
+
+    /// Covers `channel.suspicious_user.message` and `channel.suspicious_user.update`.
+    pub fn on_channel_suspicious_user(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadSuspiciousUsers);
+        self
+    }
+
+    /// Covers `channel.vip.add` and `channel.vip.remove`.
+    ///
+    /// Accepts `channel:read:vips` or `channel:manage:vips`.
+    /// Uses `channel:read:vips`.
+    pub fn on_channel_vip(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadVips);
+        self
+    }
+
+    /// Covers `channel.warning.acknowledge` and `channel.warning.send`.
+    ///
+    /// Accepts `moderator:read:warnings` or `moderator:manage:warnings`.
+    /// Uses `moderator:read:warnings`.
+    pub fn on_channel_warning(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadWarnings);
+        self
+    }
+
+    /// Covers `channel.hype_train.begin`, `channel.hype_train.progress`,
+    /// and `channel.hype_train.end`.
+    pub fn on_channel_hype_train(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadHypeTrain);
+        self
+    }
+
+    /// Covers `channel.charity_campaign.donate`,
+    /// `channel.charity_campaign.start`,
+    /// `channel.charity_campaign.progress`,
+    /// and `channel.charity_campaign.stop`.
+    pub fn on_channel_charity_campaign(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadCharity);
+        self
+    }
+
+    /// Covers `channel.shared_chat.begin`, `channel.shared_chat.update`,
+    /// and `channel.shared_chat.end`.
+    pub fn on_channel_shared_chat(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `channel.shield_mode.begin` and `channel.shield_mode.end`.
+    ///
+    /// Accepts `moderator:read:shield_mode` or `moderator:manage:shield_mode`.
+    /// Uses `moderator:read:shield_mode`.
+    pub fn on_channel_shield_mode(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadShieldMode);
+        self
+    }
+
+    /// Covers `channel.shoutout.create` and `channel.shoutout.receive`.
+    ///
+    /// Accepts `moderator:read:shoutouts` or `moderator:manage:shoutouts`.
+    /// Uses `moderator:read:shoutouts`.
+    pub fn on_channel_shoutout(&mut self) -> &mut Self {
+        self.push(Scope::ModeratorReadShoutouts);
+        self
+    }
+
+    /// Covers `conduit.shard.disabled`.
+    pub fn on_conduit_shard_disabled(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `drop.entitlement.grant`.
+    pub fn on_drop_entitlement_grant(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `extension.bits_transaction.create`.
+    pub fn on_extension_bits_transaction_create(&mut self) -> &mut Self {
+        self
+    }
+}
+
+// EventSub - Goal Subscriptions
+impl ScopesMut<'_> {
+    /// Covers `channel.goal.begin`, `channel.goal.progress`, and `channel.goal.end`.
+    pub fn on_channel_goal(&mut self) -> &mut Self {
+        self.push(Scope::ChannelReadGoals);
+        self
+    }
+}
+
+// EventSub - Stream Subscriptions
+impl ScopesMut<'_> {
+    /// Covers `stream.online` and `stream.offline`.
+    pub fn on_stream(&mut self) -> &mut Self {
+        self
+    }
+}
+
+// EventSub - User Subscriptions
+impl ScopesMut<'_> {
+    /// Covers `user.authorization.grant` and `user.authorization.revoke`.
+    pub fn on_user_authorization(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `user.update`.
+    ///
+    /// If you have the `user:read:email` scope, the notification will include the email field.
+    pub fn on_user_update(&mut self) -> &mut Self {
+        self
+    }
+
+    /// Covers `user.whisper.message`.
+    ///
+    /// Accepts `user:read:whispers` or `user:manage:whispers`.
+    /// Uses `user:read:whispers`.
+    pub fn on_user_whisper_message(&mut self) -> &mut Self {
+        self.push(Scope::UserReadWhispers);
         self
     }
 }
