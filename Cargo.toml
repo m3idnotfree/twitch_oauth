@@ -1,10 +1,10 @@
 [package]
 name = "twitch_oauth_token"
-version = "4.2.0"
+version = "4.3.0"
 edition = "2021"
 description = "Type-safe Twitch OAuth 2.0 authentication library with CSRF protection and full scope support"
 documentation = "https://docs.rs/twitch_oauth_token"
-repository = "https://github.com/m3idnotfree/twitch_oauth.git"
+repository = "https://github.com/m3idnotfree/twitch_oauth"
 license = "MIT OR Apache-2.0"
 keywords = ["api", "authentication", "oauth", "oauth2", "twitch"]
 categories = ["api-bindings", "authentication", "web-programming"]

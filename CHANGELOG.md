@@ -1,3 +1,13 @@
+## [4.3.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.2.0..v4.3.0) - 2026-03-07
+
+### Features
+
+- **(scope)** add eventsub scope helpers with on\_ prefix ([a3be8aa](https://github.com/m3idnotfree/twitch_oauth/commit/a3be8aa51fac34dff1f87ad6fb8b91acda685791))
+
+### Refactoring
+
+- **(scope)** [**breaking**] remove traits, implement directly on ScopesMut ([34a1f75](https://github.com/m3idnotfree/twitch_oauth/commit/34a1f75477f9b7da3fbaa099aea08db2c5a984e7))
+
 ## [4.2.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.1.0..v4.2.0) - 2026-03-07
 
 ### Features
