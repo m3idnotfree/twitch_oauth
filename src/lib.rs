@@ -57,7 +57,6 @@
 //! ```rust,no_run
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
-//!     scope::{ChannelScopes, ChatScopes},
 //!     AuthCallback,
 //!     RedirectUrl, TwitchOauth,
 //! };
@@ -129,7 +128,7 @@
 //! For desktop apps, CLI tools, and devices that cannot store a `client_secret`.
 //!
 //! ```rust,no_run
-//! use twitch_oauth_token::{scope::ChatScopes, ClientId, TwitchOauth};
+//! use twitch_oauth_token::{ClientId, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -153,10 +152,6 @@
 //! The library provides type-safe scope builders organized by API category:
 //!
 //! ```rust
-//! use twitch_oauth_token::scope::{
-//!     ChannelScopes, ChatScopes, ModerationScopes,
-//!     SubscriptionScopes, UserScopes
-//! };
 //! # use twitch_oauth_token::{TwitchOauth, UserAuth};
 //!
 //! # fn run(oauth: TwitchOauth<UserAuth>) {
@@ -333,7 +328,7 @@
 //! # #[cfg(feature = "oneshot")]
 //! # {
 //! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot, scope::ChatScopes, AuthCallback, RedirectUrl, TwitchOauth};
+//! use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, TwitchOauth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {

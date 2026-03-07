@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use std::str::FromStr;
-use twitch_oauth_token::{scope::ChatScopes, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{RedirectUrl, TwitchOauth};
 
 fn main() {
     let oauth = TwitchOauth::new("client_id", "client_secret")
@@ -87,7 +87,7 @@ async fn handle_callback(
 ### Device code Flow
 
 ```rust
-use twitch_oauth_token::{scope::ChatScopes, ClientId, TwitchOauth};
+use twitch_oauth_token::{ClientId, TwitchOauth};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

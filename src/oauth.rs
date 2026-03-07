@@ -432,7 +432,7 @@ impl TwitchOauth<UserAuth> {
     /// # Example
     /// ```no_run
     /// # use std::str::FromStr;
-    /// # use twitch_oauth_token::{scope::ChatScopes, TwitchOauth, RedirectUrl};
+    /// # use twitch_oauth_token::{TwitchOauth, RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = TwitchOauth::new("client_id", "client_secret")
     ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());

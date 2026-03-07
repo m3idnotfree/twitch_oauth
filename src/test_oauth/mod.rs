@@ -9,7 +9,6 @@
 //! # #[cfg(feature = "test")]
 //! # {
 //!  use twitch_oauth_token::{
-//!      scope::ChatScopes,
 //!      test_oauth::mock_api::MockApiUnits,
 //!      TwitchOauth,
 //!  };

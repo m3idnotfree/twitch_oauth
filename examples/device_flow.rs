@@ -2,7 +2,7 @@ use std::env;
 
 use anyhow::{Context, Result};
 use tracing_subscriber::EnvFilter;
-use twitch_oauth_token::{scope::ChatScopes, ClientId, TwitchOauth};
+use twitch_oauth_token::{ClientId, TwitchOauth};
 
 #[tokio::main]
 async fn main() -> Result<()> {

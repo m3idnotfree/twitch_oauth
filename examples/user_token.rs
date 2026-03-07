@@ -12,9 +12,8 @@ use axum_extra::{headers::Cookie, TypedHeader};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 use twitch_oauth_token::{
-    csrf::CsrfConfig,
-    scope::{ChannelScopes, ChatScopes},
-    AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth, UserToken,
+    csrf::CsrfConfig, AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth,
+    UserToken,
 };
 
 const COOKIE_NAME: &str = "OAuth-state";
