@@ -25,6 +25,7 @@ pub(crate) enum Kind {
 
     FormData,
     OAuthError,
+    Device,
 
     ClientSetup,
 }
@@ -109,6 +110,10 @@ impl Error {
     pub fn is_decode(&self) -> bool {
         matches!(self.inner.kind, Kind::Decode)
     }
+
+    pub fn is_device_code_error(&self) -> bool {
+        matches!(self.inner.kind, Kind::Device)
+    }
 }
 
 impl Debug for Error {
@@ -167,6 +172,7 @@ impl Kind {
             Kind::CsrfTokenMismatch => "CSRF token mismatch",
             Kind::FormData => "failed to serialize form data",
             Kind::OAuthError => "OAuth error response",
+            Kind::Device => "device code flow error response",
             Kind::ClientSetup => "HTTP client setup failed",
             Kind::Decode => "failed to deserialize response",
         }
@@ -226,5 +232,17 @@ pub mod client_setup {
             Kind::ClientSetup,
             "HTTP client has already been initialized and cannot be reconfigured",
         )
+    }
+}
+
+pub mod device_code {
+    use super::{Error, Kind};
+
+    pub fn flow_error(status: u16, message: impl Into<String>) -> Error {
+        Error::with_http_error(Kind::Device, status, message.into())
+    }
+
+    pub fn timeout() -> Error {
+        Error::with_message(Kind::Device, "device code expired")
     }
 }

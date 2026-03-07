@@ -24,6 +24,7 @@ pub enum GrantType {
     ClientCredentials,
     AuthorizationCode,
     RefreshToken,
+    DeviceCode,
     #[cfg(feature = "test")]
     UserToken,
 }
@@ -40,6 +41,7 @@ impl GrantType {
             Self::ClientCredentials => "client_credentials",
             Self::AuthorizationCode => "authorization_code",
             Self::RefreshToken => "refresh_token",
+            Self::DeviceCode => "urn:ietf:params:oauth:grant-type:device_code",
             #[cfg(feature = "test")]
             Self::UserToken => "user_token",
         }

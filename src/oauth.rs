@@ -9,6 +9,7 @@ use reqwest::Client;
 
 use crate::{
     csrf::{self, CsrfConfig},
+    device::DeviceAuth,
     error,
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, RefreshRequest, RevokeRequest,
@@ -407,6 +408,11 @@ impl TwitchOauth<AppAuth> {
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
         }
+    }
+
+    /// Create Device code grant flow
+    pub fn device_auth(client_id: ClientId) -> DeviceAuth {
+        DeviceAuth::new(client_id)
     }
 }
 

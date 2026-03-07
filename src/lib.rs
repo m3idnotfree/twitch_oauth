@@ -1,8 +1,8 @@
 //! Twitch OAuth Token Library
 //!
 //! This library provides a comprehensive solution for Twitch OAuth 2.0 authentication,
-//! supporting both **app authentication** and **user authentication** flows with built-in
-//! CSRF protection, connection pooling, and type safety.
+//! supporting **app authentication**, **user authentication**, and **device authentication**
+//! flows with built-in CSRF protection, connection pooling, and type safety.
 //!
 //! ## Core Concepts
 //!
@@ -19,6 +19,11 @@
 //! - Access user-specific data (follows, subscriptions, chat)
 //! - Requires redirect URI and user consent flow
 //! - Use [`TwitchOauth::authorization_url()`] and [`TwitchOauth::exchange_code()`]
+//!
+//! **Device Authentication** ([`DeviceAuth`])
+//! - For desktop apps, CLI tools, and devices that cannot store a client secret
+//! - Does not require a client secret or redirect URI
+//! - Use [`TwitchOauth::device_auth()`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
 //!
 //! ### Type Safety
 //!
@@ -49,7 +54,7 @@
 //!
 //! ### User Authentication Flow
 //!
-//! ```rust
+//! ```rust,no_run
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
 //!     scope::{ChannelScopes, ChatScopes},
@@ -59,24 +64,22 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     // Setup OAuth client with redirect URI
 //!     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
 //!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
-//!     
-//!     // Create authorization URL with specific scopes
+//!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut()
 //!         .send_chat_message()
 //!         .get_channel_emotes()
 //!         .modify_channel_info();
-//!     
+//!
 //!     let auth_url = auth_request.url();
 //!     println!("Visit: {}", auth_url);
-//!     
+//!
 //!     // In your callback handler:
 //!     // let callback: AuthCallback = /* parse from URL */;
 //!     // let token = oauth.exchange_code(callback.code, callback.state).await?;
-//!     
+//!
 //!     Ok(())
 //! }
 //! ```
@@ -117,6 +120,30 @@
 //!     // Store the tokens securely for future API calls
 //!     // store_user_tokens(user_id, &token).await?;
 //!     
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ### Device Authentication Flow
+//!
+//! For desktop apps, CLI tools, and devices that cannot store a `client_secret`.
+//!
+//! ```rust,no_run
+//! use twitch_oauth_token::{scope::ChatScopes, ClientId, TwitchOauth};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let mut device_flow = TwitchOauth::device_auth(ClientId::from("your_client_id"));
+//!     device_flow.scopes_mut()
+//!         .send_chat_message()
+//!         .get_channel_emotes();
+//!
+//!     let resp = device_flow.request().await?;
+//!     println!("Visit: {}", resp.verification_uri);
+//!
+//!     let token = device_flow.poll(resp).await?;
+//!     println!("Token: {}", token.access_token.secret());
+//!
 //!     Ok(())
 //! }
 //! ```
@@ -275,6 +302,12 @@
 //!             // - Authorization code expired or invalid
 //!             // - Redirect URI mismatch
 //!
+//!         // Device code flow errors (expired code, invalid device code)
+//!         } else if e.is_device_code_error() {
+//!             eprintln!("Device code error: {}", e);
+//!             // Common causes:
+//!             // - Device code expired (user took too long)
+//!
 //!         // JSON deserialization errors (response doesn't match expected structure)
 //!         } else if e.is_decode() {
 //!             eprintln!("Deserialization error: {}", e);
@@ -350,12 +383,14 @@
 pub mod client;
 pub mod scope;
 
+mod device;
 mod error;
 mod oauth;
 mod request;
 mod tokens;
 mod types;
 
+pub use device::{DeviceAuth, DeviceAuthResponse};
 pub use error::Error;
 pub use oauth::{AppAuth, TwitchOauth, UserAuth};
 pub use request::{validate_access_token, AuthrozationRequest};
@@ -371,8 +406,8 @@ pub mod test_oauth;
 
 // Re-export
 pub use asknothingx2_util::oauth::{
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, RedirectUrl, RefreshToken,
-    RevocationUrl, TokenUrl, ValidateUrl,
+    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, DeviceCode, DeviceUrl,
+    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
 };
 
 pub mod csrf {

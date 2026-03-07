@@ -53,7 +53,7 @@ fn main() {
         .with_redirect_uri(RedirectUrl::from_str("http://example.com/auth/callback").unwrap());
 
     let mut auth_request = oauth.authorization_url();
-    auth_request.scopes_mut().chat_api_as_user();
+    auth_request.scopes_mut().chat_api();
 
     // Create authorization URL for the user to visit
     let auth_url = auth_request.url();
@@ -75,6 +75,29 @@ async fn handle_callback(
         .exchange_code(oauth_callback.code, oauth_callback.state)
         .await?;
 
+    println!("Access token: {}", token.access_token.secret());
+    println!("Refresh token: {}", token.refresh_token.secret());
+    println!("Scopes: {:?}", token.scope);
+    println!("Expires in: {} seconds", token.expires_in);
+
+    Ok(())
+}
+```
+
+### Device code Flow
+
+```rust
+use twitch_oauth_token::{scope::ChatScopes, ClientId, TwitchOauth};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut device_flow = TwitchOauth::device_auth(ClientId::from("client_id"));
+    device_flow.scopes_mut().chat_api();
+
+    let resp = device_flow.request().await?;
+    println!("Visit: {}", resp.verification_uri);
+
+    let token = device_flow.poll(resp).await?;
     println!("Access token: {}", token.access_token.secret());
     println!("Refresh token: {}", token.refresh_token.secret());
     println!("Scopes: {:?}", token.scope);

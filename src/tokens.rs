@@ -59,7 +59,7 @@ pub struct AppToken {
     pub token_type: String,
 }
 
-fn default_created_at() -> i64 {
+pub fn default_created_at() -> i64 {
     Utc::now().timestamp()
 }
 

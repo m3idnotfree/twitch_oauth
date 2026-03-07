@@ -22,12 +22,16 @@ name = "user-token"
 path = "examples/user_token.rs"
 
 [[example]]
+name = "device"
+path = "examples/device_flow.rs"
+
+[[example]]
 name = "oneshot"
 path = "examples/oneshot.rs"
 required-features = ["oneshot"]
 
 [dependencies]
-asknothingx2-util = { version = "0.4.1", features = [
+asknothingx2-util = { version = "0.5.0", features = [
   "api",
   "oauth",
 ] }
@@ -37,12 +41,14 @@ hex = "0.4.3"
 hmac = "0.12.1"
 http-serde = "2.1.1"
 rand = "0.10.0"
-reqwest = "0.13.2"
+reqwest = { version = "0.13.2", features = ["multipart"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_urlencoded = "0.7.1"
 sha2 = "0.10.9"
-url = "2.5.8"
+tokio = { version = "1.50.0", default-features = false, features = ["time"] }
+tracing = { version = "0.1.44", default-features = false }
+url = { version = "2.5.8", features = ["serde"] }
 
 [dev-dependencies]
 anyhow = "1.0.102"
@@ -52,7 +58,7 @@ dotenvy = "0.15.7"
 serde_json = "1.0.149"
 tokio = { version = "1.50.0", features = ["full"] }
 tracing = "0.1.44"
-tracing-subscriber = "0.3.22"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 wiremock = "0.6.5"
 
 [features]

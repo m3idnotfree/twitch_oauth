@@ -12,6 +12,6 @@ pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
 pub use validate_request::{validate_access_token, ValidateRequest};
 
-const CLIENT_ID: &str = "client_id";
+pub const CLIENT_ID: &str = "client_id";
 const CLIENT_SECRET: &str = "client_secret";
-const GRANT_TYPE: &str = "grant_type";
+pub const GRANT_TYPE: &str = "grant_type";
