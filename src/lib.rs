@@ -388,7 +388,7 @@ mod types;
 pub use device::{DeviceAuth, DeviceAuthResponse};
 pub use error::Error;
 pub use oauth::{AppAuth, TwitchOauth, UserAuth};
-pub use request::{validate_access_token, AuthrozationRequest};
+pub use request::{AuthrozationRequest, validate_access_token};
 pub use scope::Scope;
 pub use tokens::{AppToken, TokenInfo, UserToken};
 pub use types::AuthCallback;
@@ -407,8 +407,8 @@ pub use asknothingx2_util::oauth::{
 
 pub mod csrf {
     pub use asknothingx2_util::oauth::signed_token::{
-        current_timestamp, extract_datetime, extract_timestamp, generate, generate_at_time,
-        generate_secret_key, is_expired, token_age, verify, verify_at_time, verify_with_config,
-        TokenConfig as CsrfConfig, TokenError,
+        TokenConfig as CsrfConfig, TokenError, current_timestamp, extract_datetime,
+        extract_timestamp, generate, generate_at_time, generate_secret_key, is_expired, token_age,
+        verify, verify_at_time, verify_with_config,
     };
 }

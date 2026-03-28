@@ -1,7 +1,7 @@
 use asknothingx2_util::api::{AuthScheme, IntoRequestBuilder, Method};
-use reqwest::{header::AUTHORIZATION, Client, RequestBuilder};
+use reqwest::{Client, RequestBuilder, header::AUTHORIZATION};
 
-use crate::{error, tokens::TokenInfo, AccessToken, Error, ValidateUrl};
+use crate::{AccessToken, Error, ValidateUrl, error, tokens::TokenInfo};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(

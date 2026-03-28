@@ -1,13 +1,12 @@
 use std::{collections::HashSet, ops::Deref};
 
-use asknothingx2_util::api::{preset, IntoRequestBuilder, Method};
+use asknothingx2_util::api::{IntoRequestBuilder, Method, preset};
 use reqwest::Client;
 
 use crate::{
-    error,
-    scope::{scopes_mut, Scope, ScopesMut},
+    AuthUrl, ClientId, ClientSecret, Error, error,
+    scope::{Scope, ScopesMut, scopes_mut},
     types::GrantType,
-    AuthUrl, ClientId, ClientSecret, Error,
 };
 
 #[derive(Debug, Clone)]
@@ -111,7 +110,7 @@ where
                 return Err(Error::with_message(
                     error::Kind::OAuthError,
                     format!("HTTP {status} - Failed to read error response: {e}"),
-                ))
+                ));
             }
         }
     }

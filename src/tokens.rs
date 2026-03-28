@@ -2,7 +2,7 @@ use asknothingx2_util::oauth::ClientId;
 use chrono::Utc;
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{scope::Scope, AccessToken, RefreshToken};
+use crate::{AccessToken, RefreshToken, scope::Scope};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct UserToken {

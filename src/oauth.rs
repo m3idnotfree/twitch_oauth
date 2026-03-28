@@ -8,6 +8,8 @@ use asknothingx2_util::api::IntoRequestBuilder;
 use reqwest::Client;
 
 use crate::{
+    AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
+    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
     csrf::{self, CsrfConfig},
     device::DeviceAuth,
     error,
@@ -16,8 +18,6 @@ use crate::{
         ValidateRequest,
     },
     types::GrantType,
-    AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
-    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
 };
 
 pub const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";

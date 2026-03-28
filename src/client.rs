@@ -67,7 +67,7 @@ use std::sync::OnceLock;
 use asknothingx2_util::api::preset;
 use reqwest::Client;
 
-use crate::{error, Error};
+use crate::{Error, error};
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 

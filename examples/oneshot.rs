@@ -1,7 +1,7 @@
 use std::{env, str::FromStr, time::Duration};
 
 use anyhow::{Context, Result};
-use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{AuthCallback, RedirectUrl, TwitchOauth, oneshot};
 
 #[tokio::main]
 async fn main() -> Result<()> {

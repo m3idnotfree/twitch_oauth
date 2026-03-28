@@ -115,8 +115,8 @@ pub mod server {
     use serde_json::json;
     use twitch_oauth_token::{TwitchOauth, UserAuth};
     use wiremock::{
-        matchers::{body_string_contains, header, method, path, query_param},
         Mock, MockServer, ResponseTemplate,
+        matchers::{body_string_contains, header, method, path, query_param},
     };
 
     use super::{config, token, url, validate};

@@ -2,18 +2,18 @@ use std::{collections::HashMap, env, str::FromStr, sync::Arc, time::Instant};
 
 use anyhow::{Context, Result};
 use axum::{
+    Router,
     extract::{FromRef, Query, State},
-    http::{header::SET_COOKIE, HeaderMap},
+    http::{HeaderMap, header::SET_COOKIE},
     response::{IntoResponse, Redirect},
     routing::get,
-    Router,
 };
-use axum_extra::{headers::Cookie, TypedHeader};
+use axum_extra::{TypedHeader, headers::Cookie};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 use twitch_oauth_token::{
-    csrf::CsrfConfig, AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth,
-    UserToken,
+    AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth, UserToken,
+    csrf::CsrfConfig,
 };
 
 const COOKIE_NAME: &str = "OAuth-state";

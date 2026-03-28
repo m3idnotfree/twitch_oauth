@@ -10,7 +10,7 @@ pub use client_credentials::ClientCredentialsRequest;
 pub use exchange_code::ExchangeCodeRequest;
 pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
-pub use validate_request::{validate_access_token, ValidateRequest};
+pub use validate_request::{ValidateRequest, validate_access_token};
 
 pub const CLIENT_ID: &str = "client_id";
 const CLIENT_SECRET: &str = "client_secret";

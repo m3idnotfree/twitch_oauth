@@ -10,13 +10,12 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::{
-    error,
+    DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken, error,
     oauth::TOKEN_URL,
     request::{CLIENT_ID, GRANT_TYPE},
-    scope::{scopes_mut, ScopesMut},
+    scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,
     types::GrantType,
-    DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken,
 };
 
 const DEVICE_URL: &str = "https://id.twitch.tv/oauth2/device";

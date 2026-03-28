@@ -1,12 +1,12 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{mime_type::Application, IntoRequestBuilder, Method};
+use asknothingx2_util::api::{IntoRequestBuilder, Method, mime_type::Application};
 use reqwest::{
-    header::{ACCEPT, CONTENT_TYPE},
     Client, RequestBuilder,
+    header::{ACCEPT, CONTENT_TYPE},
 };
 
-use crate::{error, types::GrantType, ClientId, ClientSecret, Error, TokenUrl};
+use crate::{ClientId, ClientSecret, Error, TokenUrl, error, types::GrantType};
 
 use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 

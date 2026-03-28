@@ -2,7 +2,7 @@ use asknothingx2_util::api;
 use serde::de::DeserializeOwned;
 use url::Url;
 
-use crate::{error, Error};
+use crate::{Error, error};
 
 use super::response::{Client, MockData, User};
 

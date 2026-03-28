@@ -4,7 +4,7 @@ pub use scopes_mut::ScopesMut;
 
 use std::{ops::Deref, str::FromStr};
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 use std::{collections::HashSet, fmt::Display};
 
 pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {

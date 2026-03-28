@@ -3,9 +3,9 @@ use std::{collections::HashSet, ops::Deref};
 use url::Url;
 
 use crate::{
-    scope::{scopes_mut, Scope, ScopesMut},
-    types::ResponseType,
     AuthUrl, ClientId, RedirectUrl,
+    scope::{Scope, ScopesMut, scopes_mut},
+    types::ResponseType,
 };
 
 use super::CLIENT_ID;

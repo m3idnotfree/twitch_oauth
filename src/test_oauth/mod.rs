@@ -55,8 +55,8 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    oauth::OauthFlow, request::ClientCredentialsRequest, types::GrantType, AuthUrl, Error,
-    TokenUrl, TwitchOauth,
+    AuthUrl, Error, TokenUrl, TwitchOauth, oauth::OauthFlow, request::ClientCredentialsRequest,
+    types::GrantType,
 };
 
 #[derive(Debug)]
