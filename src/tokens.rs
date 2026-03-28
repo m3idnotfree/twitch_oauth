@@ -67,7 +67,7 @@ fn deserialize_scopes<'de, D>(deserializer: D) -> Result<Vec<Scope>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    let scopes: Vec<String> = Vec::deserialize(deserializer)?;
+    let scopes: Vec<String> = Option::<Vec<String>>::deserialize(deserializer)?.unwrap_or_default();
     Ok(scopes
         .into_iter()
         .filter_map(|s| (!s.is_empty()).then(|| s.parse().ok()).flatten())
@@ -103,6 +103,17 @@ mod tests {
 
         let token: UserToken = serde_json::from_value(json).unwrap();
         assert_eq!(token.scope.len(), 0);
+
+        let json = json!({
+            "access_token":"d19bb4cb705d1f0",
+            "refresh_token":"",
+            "expires_in":86399,
+            "scope":null,
+            "token_type":"bearer"
+        });
+
+        let token: UserToken = serde_json::from_value(json).unwrap();
+        assert_eq!(token.scope.len(), 0);
     }
 
     #[test]
@@ -122,6 +133,17 @@ mod tests {
           "client_id": "wbmytr93xzw8zbg0p1izqyzzc5mbiz",
           "login": "twitchdev",
           "scopes": [""],
+          "user_id": "141981764",
+          "expires_in": 5520838
+        });
+
+        let token: TokenInfo = serde_json::from_value(json).unwrap();
+        assert_eq!(token.scopes.len(), 0);
+
+        let json = json!({
+          "client_id": "wbmytr93xzw8zbg0p1izqyzzc5mbiz",
+          "login": "twitchdev",
+          "scopes": null,
           "user_id": "141981764",
           "expires_in": 5520838
         });
