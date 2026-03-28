@@ -1,3 +1,14 @@
+## [4.3.1](https://github.com/m3idnotfree/twitch_oauth/compare/v4.3.0..v4.3.1) - 2026-03-28
+
+### Bug Fixes
+
+- **(tokens)** handle null scope field in deserialization ([d317b50](https://github.com/m3idnotfree/twitch_oauth/commit/d317b5083a89325b2ddd03b32607ce0bbe488412))
+
+### Miscellaneous
+
+- **(deps)** remove unused dependencies ([30da751](https://github.com/m3idnotfree/twitch_oauth/commit/30da751ada1ff639ea43c55606e7a0941798c78a))
+- upgrade to edition 2024 and set rust-version to 1.85 ([639205f](https://github.com/m3idnotfree/twitch_oauth/commit/639205f6f2b9a922b9cee8f3059c409ba517d02c))
+
 ## [4.3.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.2.0..v4.3.0) - 2026-03-07
 
 ### Features
