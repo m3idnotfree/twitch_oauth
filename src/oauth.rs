@@ -191,26 +191,6 @@ where
         self.csrf_config = config;
     }
 
-    pub async fn send<T>(&self, request: T) -> Result<reqwest::Response, T::Error>
-    where
-        T: IntoRequestBuilder<Error = Error>,
-    {
-        let resp = request
-            .into_request_builder(&self.client)?
-            .send()
-            .await
-            .map_err(error::network::request)?;
-
-        if !resp.status().is_success() {
-            let status = resp.status().as_u16();
-            let v = resp.bytes().await?;
-            let body = String::from_utf8_lossy(&v).to_string();
-            return Err(error::oauth::http_error(status, body));
-        }
-
-        Ok(resp)
-    }
-
     /// **Refresh an access token** using a refresh token
     ///
     /// # Example
@@ -227,14 +207,16 @@ where
         &self,
         refresh_token: RefreshToken,
     ) -> Result<crate::UserToken, Error> {
-        let resp = self
-            .send(RefreshRequest::new(
+        let resp = send(
+            &self.client,
+            RefreshRequest::new(
                 &self.client_id,
                 &self.client_secret,
                 refresh_token,
                 &self.token_url,
-            ))
-            .await?;
+            ),
+        )
+        .await?;
 
         decode_response(resp).await
     }
@@ -258,13 +240,11 @@ where
     ///
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
-        let _resp = self
-            .send(RevokeRequest::new(
-                access_token,
-                &self.client_id,
-                &self.revoke_url,
-            ))
-            .await?;
+        let _resp = send(
+            &self.client,
+            RevokeRequest::new(access_token, &self.client_id, &self.revoke_url),
+        )
+        .await?;
 
         Ok(())
     }
@@ -288,14 +268,16 @@ where
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
-        let resp = self
-            .send(ClientCredentialsRequest::new(
+        let resp = send(
+            &self.client,
+            ClientCredentialsRequest::new(
                 &self.client_id,
                 &self.client_secret,
                 GrantType::ClientCredentials,
                 &self.token_url,
-            ))
-            .await?;
+            ),
+        )
+        .await?;
 
         decode_response(resp).await
     }
@@ -316,9 +298,11 @@ where
         &self,
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
-        let resp = self
-            .send(ValidateRequest::new(access_token, &self.validate_url))
-            .await?;
+        let resp = send(
+            &self.client,
+            ValidateRequest::new(access_token, &self.validate_url),
+        )
+        .await?;
 
         decode_response(resp).await
     }
@@ -469,15 +453,17 @@ impl TwitchOauth<UserAuth> {
             return Err(error::oauth::csrf_token_mismatch());
         }
 
-        let resp = self
-            .send(ExchangeCodeRequest::new(
+        let resp = send(
+            &self.client,
+            ExchangeCodeRequest::new(
                 &self.client_id,
                 &self.client_secret,
                 code,
                 &self.redirect_uri,
                 &self.token_url,
-            ))
-            .await?;
+            ),
+        )
+        .await?;
 
         decode_response(resp).await
     }
@@ -597,7 +583,27 @@ where
     }
 }
 
-pub(crate) async fn decode_response<T>(resp: reqwest::Response) -> Result<T, Error>
+pub async fn send<T>(client: &reqwest::Client, request: T) -> Result<reqwest::Response, T::Error>
+where
+    T: IntoRequestBuilder<Error = Error>,
+{
+    let resp = request
+        .into_request_builder(client)?
+        .send()
+        .await
+        .map_err(error::network::request)?;
+
+    if !resp.status().is_success() {
+        let status = resp.status().as_u16();
+        let v = resp.bytes().await?;
+        let body = String::from_utf8_lossy(&v).to_string();
+        return Err(error::oauth::http_error(status, body));
+    }
+
+    Ok(resp)
+}
+
+pub async fn decode_response<T>(resp: reqwest::Response) -> Result<T, Error>
 where
     T: serde::de::DeserializeOwned,
 {
