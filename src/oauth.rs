@@ -207,7 +207,7 @@ where
         &self,
         refresh_token: RefreshToken,
     ) -> Result<crate::UserToken, Error> {
-        let resp = send(
+        json(
             &self.client,
             RefreshRequest::new(
                 &self.client_id,
@@ -216,9 +216,7 @@ where
                 &self.token_url,
             ),
         )
-        .await?;
-
-        decode_response(resp).await
+        .await
     }
 
     /// **Revoke/invalidate an access token**
@@ -268,7 +266,7 @@ where
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
-        let resp = send(
+        json(
             &self.client,
             ClientCredentialsRequest::new(
                 &self.client_id,
@@ -277,9 +275,7 @@ where
                 &self.token_url,
             ),
         )
-        .await?;
-
-        decode_response(resp).await
+        .await
     }
 
     /// **Validate access token**
@@ -298,13 +294,11 @@ where
         &self,
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
-        let resp = send(
+        json(
             &self.client,
             ValidateRequest::new(access_token, &self.validate_url),
         )
-        .await?;
-
-        decode_response(resp).await
+        .await
     }
 }
 
@@ -453,7 +447,7 @@ impl TwitchOauth<UserAuth> {
             return Err(error::oauth::csrf_token_mismatch());
         }
 
-        let resp = send(
+        json(
             &self.client,
             ExchangeCodeRequest::new(
                 &self.client_id,
@@ -463,9 +457,7 @@ impl TwitchOauth<UserAuth> {
                 &self.token_url,
             ),
         )
-        .await?;
-
-        decode_response(resp).await
+        .await
     }
 
     /// Set custom secret key for CSRF token generation
@@ -581,6 +573,15 @@ where
             .field("revoke_url", &self.revoke_url)
             .finish()
     }
+}
+
+pub async fn json<T, R>(client: &reqwest::Client, request: T) -> Result<R, T::Error>
+where
+    T: IntoRequestBuilder<Error = Error>,
+    R: serde::de::DeserializeOwned,
+{
+    let resp = send(client, request).await?;
+    decode_response(resp).await
 }
 
 pub async fn send<T>(client: &reqwest::Client, request: T) -> Result<reqwest::Response, T::Error>

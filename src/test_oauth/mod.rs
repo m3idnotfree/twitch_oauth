@@ -108,7 +108,7 @@ where
 
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
-        let resp = crate::oauth::send(
+        crate::oauth::json(
             self.oauth.get_client(),
             ClientCredentialsRequest::new(
                 self.oauth.client_id(),
@@ -117,9 +117,7 @@ where
                 &TokenUrl::from_str(self.test_env.app_auth_url().as_ref()).unwrap(),
             ),
         )
-        .await?;
-
-        crate::oauth::decode_response(resp).await
+        .await
     }
 }
 

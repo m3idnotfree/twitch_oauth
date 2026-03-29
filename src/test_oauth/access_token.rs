@@ -1,10 +1,9 @@
 use std::{collections::HashSet, ops::Deref};
 
 use asknothingx2_util::api::{IntoRequestBuilder, Method, preset};
-use reqwest::Client;
 
 use crate::{
-    AuthUrl, ClientId, ClientSecret, Error, error,
+    AuthUrl, ClientId, ClientSecret, Error,
     scope::{Scope, ScopesMut, scopes_mut},
     types::GrantType,
 };
@@ -44,9 +43,7 @@ impl<'a> TestAccessToken<'a> {
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
         let client = preset::testing("twitch-oauth-test/1.0").build().unwrap();
-        let resp = send(self, &client).await?;
-
-        crate::oauth::decode_response(resp).await
+        crate::oauth::json(&client, self).await
     }
 }
 
@@ -85,35 +82,4 @@ impl IntoRequestBuilder for TestAccessToken<'_> {
         url.query_pairs_mut().extend_pairs(params);
         Ok(client.request(Method::POST, url))
     }
-}
-
-pub async fn send<T>(request: T, client: &Client) -> Result<reqwest::Response, T::Error>
-where
-    T: IntoRequestBuilder<Error = Error>,
-{
-    let resp = request
-        .into_request_builder(client)?
-        .send()
-        .await
-        .map_err(error::network::request)?;
-
-    if !resp.status().is_success() {
-        let status = resp.status();
-        match resp.text().await {
-            Ok(body) => {
-                return Err(Error::with_message(
-                    error::Kind::OAuthError,
-                    format!("HTTP {status}: {body}"),
-                ));
-            }
-            Err(e) => {
-                return Err(Error::with_message(
-                    error::Kind::OAuthError,
-                    format!("HTTP {status} - Failed to read error response: {e}"),
-                ));
-            }
-        }
-    }
-
-    Ok(resp)
 }
