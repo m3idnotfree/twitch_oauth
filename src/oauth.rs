@@ -171,38 +171,6 @@ where
         self
     }
 
-    /// Override the authorization URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/authorize`
-    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
-        self.auth_url = auth_url;
-        self
-    }
-
-    /// Override the token URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/token`
-    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
-        self
-    }
-
-    /// Override the revocation URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/revoke`
-    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
-        self.revoke_url = revoke_url;
-        self
-    }
-
-    /// Override the token validation URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/validate`
-    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
-        self.validate_url = validate_url;
-        self
-    }
-
     /// Update the client secret at runtime
     ///
     /// Use this when you need to rotate credentials in a running application,
@@ -556,6 +524,42 @@ impl<Flow> TwitchOauth<Flow>
 where
     Flow: OauthFlow,
 {
+    /// Override the authorization URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/authorize`
+    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
+        self.auth_url = auth_url;
+        self
+    }
+
+    /// Override the token URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/token`
+    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
+        self.token_url = token_url;
+        self
+    }
+
+    /// Override the revocation URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/revoke`
+    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
+        self.revoke_url = revoke_url;
+        self
+    }
+
+    /// Override the token validation URL
+    ///
+    /// Default: `https://id.twitch.tv/oauth2/validate`
+    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
+        self.validate_url = validate_url;
+        self
+    }
+
+    pub fn get_client(&self) -> &reqwest::Client {
+        &self.client
+    }
+
     pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
         crate::test_oauth::TwitchOauthTest::new(self)
     }
