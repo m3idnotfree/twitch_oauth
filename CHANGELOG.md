@@ -1,3 +1,12 @@
+## [4.4.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.3.1..v4.4.0) - 2026-03-30
+
+### Refactoring
+
+- **(oauth)** [**breaking**] gate url override methods behind test feature ([323bd42](https://github.com/m3idnotfree/twitch_oauth/commit/323bd428a1740629f8623a402933a51914695717))
+- **(oauth)** [**breaking**] extract send as module-level function ([9cc5185](https://github.com/m3idnotfree/twitch_oauth/commit/9cc5185d5071f9721b0a217d00c97e9819cc1e05))
+- **(oauth)** add json internal helper and migrate ([597b408](https://github.com/m3idnotfree/twitch_oauth/commit/597b4088849594d21f7709733a17d90a6404f7e5))
+- **(request)** [**breaking**] simplify validate_access_token and add test helpers ([c343f21](https://github.com/m3idnotfree/twitch_oauth/commit/c343f21c15f3f6377fbedd173f240a77393fcfea))
+
 ## [4.3.1](https://github.com/m3idnotfree/twitch_oauth/compare/v4.3.0..v4.3.1) - 2026-03-28
 
 ### Bug Fixes
