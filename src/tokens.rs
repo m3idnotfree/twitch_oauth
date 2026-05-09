@@ -36,6 +36,7 @@ impl Serialize for UserToken {
         state.serialize_field("token_type", &self.token_type)?;
         state.serialize_field("refresh_token", &self.refresh_token)?;
         state.serialize_field("scope", &self.scope)?;
+        state.serialize_field("created_at", &self.created_at)?;
         state.end()
     }
 }
