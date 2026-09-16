@@ -1,3 +1,9 @@
+## [4.4.1](https://github.com/m3idnotfree/twitch_oauth/compare/v4.4.0..v4.4.1) - 2026-09-16
+
+### Bug Fixes
+
+- **(tokens)** add created_at field in UserToken serialize (#2) ([b3b9fcd](https://github.com/m3idnotfree/twitch_oauth/commit/b3b9fcd6011151528372438b6b38f6f7abe2f883))
+
 ## [4.4.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.3.1..v4.4.0) - 2026-03-30
 
 ### Refactoring
