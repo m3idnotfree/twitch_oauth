@@ -13,7 +13,9 @@
 //! # Default Behavior (No Setup Required)
 //!
 //! If you don't call `setup()`, a default client is created automatically with:
-//! - User-Agent: "twitch-oauth/1.0"
+#![doc = concat!("- User-Agent: ",
+  env!("CARGO_PKG_NAME"), "/",
+  env!("CARGO_PKG_VERSION"))]
 //! - Request timeout: 60s, Connect timeout: 10s
 //! - Connections: 30 max per host, 90s idle timeout
 //! - TLS: 1.2+ minimum, strict validation
@@ -42,7 +44,7 @@
 //! use asknothingx2_util::api::preset;
 //! use twitch_oauth_token::{client, TwitchOauth};
 //!
-//! # async fn run() -> Result<(), twitch_oauth_token::Error> {
+//! # async fn run() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut preset = preset::authentication("MyApp/1.0");
 //! preset
 //!     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
@@ -62,12 +64,13 @@
 //! # }
 //!
 //! ```
-use std::sync::OnceLock;
+use std::{
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    sync::OnceLock,
+};
 
 use asknothingx2_util::api::preset;
 use reqwest::Client;
-
-use crate::{Error, error};
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 
@@ -83,7 +86,7 @@ static CLIENT: OnceLock<Client> = OnceLock::new();
 /// use asknothingx2_util::api::preset;
 /// use twitch_oauth_token::client;
 ///
-/// # fn run() -> Result<(), twitch_oauth_token::Error> {
+/// # fn run() -> Result<(), Box<dyn std::error::Error>> {
 /// let mut preset = preset::authentication("MyApp/1.0");
 /// preset
 ///     .timeouts(Duration::from_secs(60), Duration::from_secs(30))
@@ -99,13 +102,10 @@ static CLIENT: OnceLock<Client> = OnceLock::new();
 /// # }
 /// ```
 pub fn setup(client: reqwest::Client) -> Result<(), Error> {
-    if CLIENT.get().is_some() {
-        return Err(error::client_setup::already_initialized());
-    }
+    CLIENT.set(client).map_err(|_| Error::new())?;
 
-    CLIENT
-        .set(client)
-        .map_err(|_| error::client_setup::already_initialized())?;
+    #[cfg(feature = "tracing")]
+    tracing::debug!(target: "twitch_oauth_token", "http client configured");
 
     Ok(())
 }
@@ -113,12 +113,41 @@ pub fn setup(client: reqwest::Client) -> Result<(), Error> {
 /// Get the global HTTP client (creates default if not configured)
 pub fn get() -> &'static Client {
     CLIENT.get_or_init(|| {
-        preset::authentication(concat!(
+        let client = preset::authentication(concat!(
             env!("CARGO_PKG_NAME"),
             "/",
             env!("CARGO_PKG_VERSION")
         ))
         .build()
-        .expect("failed to build default http client")
+        .expect("failed to build default http client");
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: "twitch_oauth_token", "default http client initialized");
+
+        client
     })
 }
+
+pub struct Error {
+    _private: (),
+}
+
+impl Error {
+    fn new() -> Self {
+        Self { _private: () }
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(self, f)
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("global http client already initialized")
+    }
+}
+
+impl std::error::Error for Error {}

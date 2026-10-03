@@ -26,8 +26,6 @@ pub(crate) enum Kind {
     FormData,
     OAuthError,
     Device,
-
-    ClientSetup,
 }
 
 impl Error {
@@ -103,10 +101,6 @@ impl Error {
         matches!(self.inner.kind, Kind::CsrfTokenMismatch | Kind::OAuthError)
     }
 
-    pub fn is_client_setup_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::ClientSetup)
-    }
-
     pub fn is_decode(&self) -> bool {
         matches!(self.inner.kind, Kind::Decode)
     }
@@ -173,7 +167,6 @@ impl Kind {
             Kind::FormData => "failed to serialize form data",
             Kind::OAuthError => "OAuth error response",
             Kind::Device => "device code flow error response",
-            Kind::ClientSetup => "HTTP client setup failed",
             Kind::Decode => "failed to deserialize response",
         }
     }
@@ -221,17 +214,6 @@ pub mod response {
 
     pub fn decode<E: Into<BoxError>>(e: E, raw: impl Into<String>) -> Error {
         Error::with_decode(Kind::Decode, e, raw)
-    }
-}
-
-pub mod client_setup {
-    use super::{Error, Kind};
-
-    pub fn already_initialized() -> Error {
-        Error::with_message(
-            Kind::ClientSetup,
-            "HTTP client has already been initialized and cannot be reconfigured",
-        )
     }
 }
 
