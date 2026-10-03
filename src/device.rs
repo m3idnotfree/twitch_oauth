@@ -96,10 +96,12 @@ impl DeviceAuth {
         use chrono::Utc;
         use std::time::Duration;
         use tokio::time::sleep;
+        #[cfg(feature = "tracing")]
         use tracing::{debug, trace, warn};
 
         let deadline = response.created_at + response.expires_in as i64;
 
+        #[cfg(feature = "tracing")]
         debug!(
             client_id = %self.client_id,
             expires_in = response.expires_in,
@@ -109,11 +111,13 @@ impl DeviceAuth {
             "starting device code poll"
         );
 
+        #[cfg(feature = "tracing")]
         let mut poll_count: u32 = 0;
         loop {
             sleep(Duration::from_secs(response.interval)).await;
 
             if Utc::now().timestamp() >= deadline {
+                #[cfg(feature = "tracing")]
                 debug!(
                     client_id = %self.client_id,
                     poll_count,
@@ -122,7 +126,10 @@ impl DeviceAuth {
                 return Err(error::device_code::timeout());
             }
 
-            poll_count += 1;
+            #[cfg(feature = "tracing")]
+            {
+                poll_count += 1;
+            }
 
             let form = reqwest::multipart::Form::new()
                 .text(CLIENT_ID, self.client_id.to_string())
@@ -138,6 +145,7 @@ impl DeviceAuth {
                 .await?;
 
             if resp.status().is_success() {
+                #[cfg(feature = "tracing")]
                 debug!(
                     client_id = %self.client_id,
                     poll_count,
@@ -148,6 +156,7 @@ impl DeviceAuth {
 
             let err = resp.json::<DeviceErrorResponse>().await?;
             if err.is_pending() {
+                #[cfg(feature = "tracing")]
                 trace!(
                     client_id = %self.client_id,
                     poll_count,
@@ -156,6 +165,7 @@ impl DeviceAuth {
                 continue;
             }
 
+            #[cfg(feature = "tracing")]
             warn!(
                 client_id = %self.client_id,
                 status = err.status,
@@ -221,6 +231,7 @@ impl DeviceErrorResponse {
     }
 }
 
+#[cfg(feature = "tracing")]
 fn format_timestamp(timestamp: i64) -> String {
     use chrono::TimeZone;
     chrono::Local
