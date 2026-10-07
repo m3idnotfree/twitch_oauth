@@ -407,8 +407,8 @@ pub use asknothingx2_util::oauth::{
 
 pub mod csrf {
     pub use asknothingx2_util::oauth::signed_token::{
-        TokenConfig as CsrfConfig, TokenError, current_timestamp, extract_datetime,
-        extract_timestamp, generate, generate_at_time, generate_secret_key, is_expired, token_age,
-        verify, verify_at_time, verify_with_config,
+        Error, TokenConfig as CsrfConfig, current_timestamp, extract_datetime, extract_timestamp,
+        generate, generate_at_time, generate_secret_key, is_expired, token_age, verify,
+        verify_at_time, verify_with_config,
     };
 }
