@@ -55,8 +55,8 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    AuthUrl, Error, TokenUrl, TwitchOauth, error, oauth::OauthFlow,
-    request::ClientCredentialsRequest, types::GrantType,
+    AuthUrl, Error, TokenUrl, TwitchOauth, oauth::OauthFlow, request::ClientCredentialsRequest,
+    types::GrantType,
 };
 
 const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "-test/", env!("CARGO_PKG_VERSION"));
@@ -107,7 +107,6 @@ where
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
         crate::oauth::json(
-            error::Operation::AppAccessToken,
             self.oauth.get_client(),
             ClientCredentialsRequest::new(
                 self.oauth.client_id(),

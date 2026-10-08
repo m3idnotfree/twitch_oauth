@@ -1,14 +1,13 @@
 use std::str::FromStr;
 
-use asknothingx2_util::api::{AuthScheme, IntoRequestBuilder, Method};
+use asknothingx2_util::api::{AuthScheme, Method};
 use reqwest::{Client, RequestBuilder, header::AUTHORIZATION};
 
-use crate::{AccessToken, Error, ValidateUrl, error, tokens::TokenInfo};
+use crate::{AccessToken, Error, ValidateUrl, request::IntoRequestBuilder, tokens::TokenInfo};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenInfo, Error> {
     crate::oauth::json(
-        error::Operation::ValidateAccessToken,
         crate::client::get(),
         ValidateRequest::new(
             access_token,
@@ -43,11 +42,12 @@ impl<'a> ValidateRequest<'a> {
     }
 
     pub async fn send(self, client: &reqwest::Client) -> Result<TokenInfo, Error> {
-        crate::oauth::json(error::Operation::ValidateAccessToken, client, self).await
+        crate::oauth::json(client, self).await
     }
 }
 
 impl IntoRequestBuilder for ValidateRequest<'_> {
+    const OPERATION: crate::error::Operation = crate::error::Operation::ValidateAccessToken;
     type Error = asknothingx2_util::api::Error;
 
     fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {

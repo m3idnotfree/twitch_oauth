@@ -1,9 +1,10 @@
 use std::{collections::HashSet, ops::Deref};
 
-use asknothingx2_util::api::{IntoRequestBuilder, Method, preset};
+use asknothingx2_util::api::{Method, preset};
 
 use crate::{
-    AuthUrl, ClientId, ClientSecret, Error, error,
+    AuthUrl, ClientId, ClientSecret,
+    request::IntoRequestBuilder,
     scope::{Scope, ScopesMut, scopes_mut},
     test_oauth::USER_AGENT,
     types::GrantType,
@@ -44,12 +45,14 @@ impl<'a> TestAccessToken<'a> {
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
         let client = preset::testing(USER_AGENT).build().unwrap();
-        crate::oauth::json(error::Operation::MockUserAccessToken, &client, self).await
+        crate::oauth::json(&client, self).await
     }
 }
 
 impl IntoRequestBuilder for TestAccessToken<'_> {
-    type Error = Error;
+    const OPERATION: crate::error::Operation = crate::error::Operation::MockUserAccessToken;
+    type Error = std::convert::Infallible;
+
     fn into_request_builder(
         self,
         client: &reqwest::Client,

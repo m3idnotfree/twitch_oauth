@@ -16,3 +16,13 @@ pub const CLIENT_ID: &str = "client_id";
 pub const GRANT_TYPE: &str = "grant_type";
 
 const CLIENT_SECRET: &str = "client_secret";
+
+pub(crate) trait IntoRequestBuilder {
+    const OPERATION: crate::error::Operation;
+    type Error: Into<crate::error::BoxError>;
+
+    fn into_request_builder(
+        self,
+        client: &reqwest::Client,
+    ) -> Result<reqwest::RequestBuilder, Self::Error>;
+}

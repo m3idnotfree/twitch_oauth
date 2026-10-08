@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{IntoRequestBuilder, Method, mime_type::Application};
+use asknothingx2_util::api::{Method, mime_type::Application};
 use reqwest::{
     Client, RequestBuilder,
     header::{ACCEPT, CONTENT_TYPE},
@@ -8,7 +8,7 @@ use reqwest::{
 
 use crate::{
     ClientId, ClientSecret, TokenUrl,
-    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE},
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequestBuilder},
     types::GrantType,
 };
 
@@ -38,6 +38,7 @@ impl<'a> ClientCredentialsRequest<'a> {
 }
 
 impl IntoRequestBuilder for ClientCredentialsRequest<'_> {
+    const OPERATION: crate::error::Operation = crate::error::Operation::AppAccessToken;
     type Error = serde_urlencoded::ser::Error;
 
     fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {

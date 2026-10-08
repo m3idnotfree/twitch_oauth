@@ -1,12 +1,15 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{IntoRequestBuilder, Method, mime_type::Application};
+use asknothingx2_util::api::{Method, mime_type::Application};
 use reqwest::{
     Client, RequestBuilder,
     header::{ACCEPT, CONTENT_TYPE},
 };
 
-use crate::{AccessToken, ClientId, RevocationUrl, request::CLIENT_ID};
+use crate::{
+    AccessToken, ClientId, RevocationUrl,
+    request::{CLIENT_ID, IntoRequestBuilder},
+};
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]
@@ -31,6 +34,7 @@ impl<'a> RevokeRequest<'a> {
 }
 
 impl IntoRequestBuilder for RevokeRequest<'_> {
+    const OPERATION: crate::error::Operation = crate::error::Operation::RevokeAccessToken;
     type Error = serde_urlencoded::ser::Error;
 
     fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {

@@ -4,7 +4,6 @@ use std::{
     str::FromStr,
 };
 
-use asknothingx2_util::api::IntoRequestBuilder;
 use reqwest::Client;
 
 use crate::{
@@ -14,8 +13,8 @@ use crate::{
     device::DeviceAuth,
     error,
     request::{
-        ClientCredentialsRequest, ExchangeCodeRequest, RefreshRequest, RevokeRequest,
-        ValidateRequest,
+        ClientCredentialsRequest, ExchangeCodeRequest, IntoRequestBuilder, RefreshRequest,
+        RevokeRequest, ValidateRequest,
     },
     types::GrantType,
 };
@@ -208,7 +207,6 @@ where
         refresh_token: RefreshToken,
     ) -> Result<crate::UserToken, Error> {
         json(
-            error::Operation::RefreshAccessToken,
             &self.client,
             RefreshRequest::new(
                 &self.client_id,
@@ -240,7 +238,6 @@ where
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
         let _resp = send(
-            error::Operation::RevokeAccessToken,
             &self.client,
             RevokeRequest::new(access_token, &self.client_id, &self.revoke_url),
         )
@@ -269,7 +266,6 @@ where
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
         json(
-            error::Operation::AppAccessToken,
             &self.client,
             ClientCredentialsRequest::new(
                 &self.client_id,
@@ -298,7 +294,6 @@ where
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
         json(
-            error::Operation::ValidateAccessToken,
             &self.client,
             ValidateRequest::new(access_token, &self.validate_url),
         )
@@ -449,7 +444,6 @@ impl TwitchOauth<UserAuth> {
         .map_err(|e| error::csrf(error::Operation::ExchangeCode, e))?;
 
         json(
-            error::Operation::ExchangeCode,
             &self.client,
             ExchangeCodeRequest::new(
                 &self.client_id,
@@ -577,34 +571,27 @@ where
     }
 }
 
-pub(crate) async fn json<T, R>(
-    operation: error::Operation,
-    client: &reqwest::Client,
-    request: T,
-) -> Result<R, Error>
+pub(crate) async fn json<T, R>(client: &reqwest::Client, request: T) -> Result<R, Error>
 where
     T: IntoRequestBuilder,
-    T::Error: Into<crate::error::BoxError>,
     R: serde::de::DeserializeOwned,
 {
-    let resp = send(operation, client, request).await?;
-    read_json(operation, resp).await
+    let resp = send(client, request).await?;
+    read_json(T::OPERATION, resp).await
 }
 
 pub(crate) async fn send<T>(
-    operation: error::Operation,
     client: &reqwest::Client,
     request: T,
 ) -> Result<reqwest::Response, Error>
 where
     T: IntoRequestBuilder,
-    T::Error: Into<crate::error::BoxError>,
 {
     let req = request
         .into_request_builder(client)
-        .map_err(|e| error::build(operation, e))?;
+        .map_err(|e| error::build(T::OPERATION, e))?;
 
-    execute(operation, req).await
+    execute(T::OPERATION, req).await
 }
 
 pub(crate) async fn execute(
