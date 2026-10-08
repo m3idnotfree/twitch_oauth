@@ -269,52 +269,20 @@
 //!
 //! ## Error Handling
 //!
-//! The library provides comprehensive error types:
+//! Use [Error::kind]
 //!
 //! ```rust
-//! # use twitch_oauth_token::{TwitchOauth, AppAuth};
-//!
+//! # use twitch_oauth_token::{AppAuth, ErrorKind, TwitchOauth};
 //! # async fn run(oauth: TwitchOauth<AppAuth>) {
-//!
 //! match oauth.app_access_token().await {
-//!     Ok(response) => { /* success */ }
-//!     Err(e) => {
-//!         // Network/HTTP errors (connection issues, timeouts, DNS failures)
-//!         if e.is_request_error() {
-//!             eprintln!("Network error: {}", e);
-//!             // Common causes:
-//!             // - No internet connection
-//!             // - Twitch API is down
-//!             // - Firewall blocking requests
-//!             // - DNS resolution failure
-//!
-//!         // OAuth-specific errors (invalid credentials, CSRF mismatch)
-//!         } else if e.is_oauth_error() {
-//!             eprintln!("OAuth error: {}", e);
-//!             // Common causes:
-//!             // - Invalid client_id or client_secret
-//!             // - CSRF token validation failed
-//!             // - Authorization code expired or invalid
-//!             // - Redirect URI mismatch
-//!
-//!         // Device code flow errors (expired code, invalid device code)
-//!         } else if e.is_device_code_error() {
-//!             eprintln!("Device code error: {}", e);
-//!             // Common causes:
-//!             // - Device code expired (user took too long)
-//!
-//!         // JSON deserialization errors (response doesn't match expected structure)
-//!         } else if e.is_decode() {
-//!             eprintln!("Deserialization error: {}", e);
-//!             if let Some(raw) = e.raw() {
-//!                 eprintln!("Raw response body: {}", raw);
-//!             }
-//!             // Common causes:
-//!             // - Twitch API response schema changed
-//!             // - Missing or unexpected fields in JSON
-//!             // - Type mismatch (expected number, got string)
-//!             // - Invalid data format
-//!         }
+//!     Ok(app_token) => { /* success */ }
+//!     Err(e) => match e.kind() {
+//!         ErrorKind::Api => {
+//!             eprintln!("{:?} {:?}", e.status(), e.message());
+//!         },
+//!         ErrorKind::Request if e.is_timeout() => { /* */ },
+//!         ErrorKind::Request => { /* */ },
+//!         _ => eprintln!("{e}")
 //!     }
 //! }
 //! # }
@@ -386,7 +354,7 @@ mod tokens;
 mod types;
 
 pub use device::{DeviceAuth, DeviceAuthResponse};
-pub use error::Error;
+pub use error::{Error, ErrorKind};
 pub use oauth::{AppAuth, TwitchOauth, UserAuth};
 pub use request::{AuthrozationRequest, validate_access_token};
 pub use scope::Scope;

@@ -7,12 +7,10 @@ use reqwest::{
 };
 
 use crate::{
-    AuthorizationCode, ClientId, ClientSecret, Error, RedirectUrl, TokenUrl,
-    error::{self},
+    AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl,
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE},
     types::GrantType,
 };
-
-use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
 
 #[derive(Debug)]
 pub struct ExchangeCodeRequest<'a> {
@@ -42,7 +40,7 @@ impl<'a> ExchangeCodeRequest<'a> {
 }
 
 impl IntoRequestBuilder for ExchangeCodeRequest<'_> {
-    type Error = Error;
+    type Error = serde_urlencoded::ser::Error;
 
     fn into_request_builder(self, client: &Client) -> Result<reqwest::RequestBuilder, Self::Error> {
         let form_string = serde_urlencoded::to_string([
@@ -51,8 +49,7 @@ impl IntoRequestBuilder for ExchangeCodeRequest<'_> {
             ("code", self.code.secret()),
             (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),
             ("redirect_uri", self.redirect_url.as_str()),
-        ])
-        .map_err(error::validation::form_data)?;
+        ])?;
 
         let client = client
             .request(Method::POST, self.token_url.to_string())

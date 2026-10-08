@@ -3,8 +3,9 @@ use std::{collections::HashSet, ops::Deref};
 use asknothingx2_util::api::{IntoRequestBuilder, Method, preset};
 
 use crate::{
-    AuthUrl, ClientId, ClientSecret, Error,
+    AuthUrl, ClientId, ClientSecret, Error, error,
     scope::{Scope, ScopesMut, scopes_mut},
+    test_oauth::USER_AGENT,
     types::GrantType,
 };
 
@@ -42,8 +43,8 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
-        let client = preset::testing("twitch-oauth-test/1.0").build().unwrap();
-        crate::oauth::json(&client, self).await
+        let client = preset::testing(USER_AGENT).build().unwrap();
+        crate::oauth::json(error::Operation::MockUserAccessToken, &client, self).await
     }
 }
 

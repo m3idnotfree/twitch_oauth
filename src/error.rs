@@ -1,112 +1,110 @@
-use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
+use std::{
+    error::Error as StdError,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+};
 
-type BoxError = Box<dyn std::error::Error + Send + Sync>;
+use serde::Deserialize;
+
+pub(crate) type BoxError = Box<dyn StdError + Send + Sync>;
 
 pub struct Error {
     inner: Box<Inner>,
 }
 
-#[derive(Debug)]
 struct Inner {
     kind: Kind,
-    message: Option<String>,
+    operation: Operation,
     source: Option<BoxError>,
-    status_code: Option<u16>,
-    raw: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum Kind {
+enum Kind {
+    Build,
     Request,
+    Body,
+    Api(Api),
+    Parse,
+    Csrf,
+    DeviceCodeExpired,
+}
 
-    Decode,
+struct Api {
+    status: u16,
+    message: Option<String>,
+}
 
-    CsrfTokenMismatch,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum ErrorKind {
+    Build,
+    Request,
+    Api,
+    Parse,
+    Csrf,
+    DeviceCodeExpired,
+}
 
-    FormData,
-    OAuthError,
-    Device,
+impl ErrorKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Build => "build",
+            Self::Request => "request",
+            Self::Api => "api",
+            Self::Parse => "parse",
+            Self::Csrf => "csrf",
+            Self::DeviceCodeExpired => "device_code_expired",
+        }
+    }
+}
+
+impl Display for ErrorKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.as_str())
+    }
 }
 
 impl Error {
-    pub(crate) fn with_message(kind: Kind, message: impl Into<String>) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: Some(message.into()),
-                source: None,
-                status_code: None,
-                raw: None,
-            }),
+    pub fn is_timeout(&self) -> bool {
+        self.inner
+            .source
+            .as_ref()
+            .and_then(|e| e.downcast_ref::<reqwest::Error>())
+            .is_some_and(reqwest::Error::is_timeout)
+    }
+
+    pub fn kind(&self) -> ErrorKind {
+        match self.inner.kind {
+            Kind::Build => ErrorKind::Build,
+            Kind::Request | Kind::Body => ErrorKind::Request,
+            Kind::Api(_) => ErrorKind::Api,
+            Kind::Parse => ErrorKind::Parse,
+            Kind::Csrf => ErrorKind::Csrf,
+            Kind::DeviceCodeExpired => ErrorKind::DeviceCodeExpired,
         }
     }
 
-    pub(crate) fn with_source(kind: Kind, source: impl Into<BoxError>) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: None,
-                source: Some(source.into()),
-                status_code: None,
-                raw: None,
-            }),
-        }
-    }
-
-    pub(crate) fn with_decode(
-        kind: Kind,
-        source: impl Into<BoxError>,
-        raw: impl Into<String>,
-    ) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: None,
-                source: Some(source.into()),
-                status_code: None,
-                raw: Some(raw.into()),
-            }),
-        }
-    }
-
-    pub(crate) fn with_http_error(kind: Kind, status: u16, body: impl Into<String>) -> Self {
-        Self {
-            inner: Box::new(Inner {
-                kind,
-                message: Some(format!("HTTP {status} error")),
-                source: None,
-                status_code: Some(status),
-                raw: Some(body.into()),
-            }),
-        }
+    pub fn status(&self) -> Option<u16> {
+        self.api().map(|api| api.status)
     }
 
     pub fn message(&self) -> Option<&str> {
-        self.inner.message.as_deref()
+        self.api().and_then(|api| api.message.as_deref())
     }
 
-    pub fn raw(&self) -> Option<&str> {
-        self.inner.raw.as_deref()
+    fn api(&self) -> Option<&Api> {
+        match &self.inner.kind {
+            Kind::Api(api) => Some(api),
+            _ => None,
+        }
     }
 
-    pub fn status_code(&self) -> Option<u16> {
-        self.inner.status_code
-    }
-
-    pub fn is_request_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::Request)
-    }
-
-    pub fn is_oauth_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::CsrfTokenMismatch | Kind::OAuthError)
-    }
-
-    pub fn is_decode(&self) -> bool {
-        matches!(self.inner.kind, Kind::Decode)
-    }
-
-    pub fn is_device_code_error(&self) -> bool {
-        matches!(self.inner.kind, Kind::Device)
+    fn new(kind: Kind, operation: Operation, source: Option<BoxError>) -> Self {
+        Self {
+            inner: Box::new(Inner {
+                kind,
+                operation,
+                source,
+            }),
+        }
     }
 }
 
@@ -114,18 +112,18 @@ impl Debug for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut builder = f.debug_struct("twitch_oauth_token::Error");
 
-        builder.field("kind", &self.inner.kind);
+        builder.field("kind", &self.kind());
+        builder.field("operation", &self.inner.operation.as_str());
 
-        if let Some(ref message) = self.inner.message {
-            builder.field("message", message);
+        if let Kind::Api(api) = &self.inner.kind {
+            builder.field("status", &api.status);
+            if let Some(message) = &api.message {
+                builder.field("message", message);
+            }
         }
 
-        if let Some(ref source) = self.inner.source {
+        if let Some(source) = &self.inner.source {
             builder.field("source", source);
-        }
-
-        if let Some(ref raw) = self.inner.raw {
-            builder.field("raw", raw);
         }
 
         builder.finish()
@@ -134,97 +132,121 @@ impl Debug for Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.inner.message {
-            Some(msg) => f.write_str(msg),
-            None => f.write_str(self.inner.kind.as_str()),
+        match &self.inner.kind {
+            Kind::Build => f.write_str("failed to build request")?,
+            Kind::Request => f.write_str("failed to send request")?,
+            Kind::Body => f.write_str("failed to read response")?,
+            Kind::Api(api) => {
+                write!(f, "unexpected HTTP status {}", api.status)?;
+                match api.message.as_deref() {
+                    Some(message) if !message.is_empty() => write!(f, " {message:?}")?,
+                    _ => {}
+                }
+            }
+            Kind::Parse => f.write_str("failed to deserialize response")?,
+            Kind::Csrf => f.write_str("failed to verify CSRF state")?,
+            Kind::DeviceCodeExpired => f.write_str("device code expired")?,
         }
+
+        write!(f, " for {}", self.inner.operation)
     }
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         self.inner.source.as_ref().map(|e| &**e as _)
     }
 }
 
-impl From<asknothingx2_util::api::Error> for Error {
-    fn from(value: asknothingx2_util::api::Error) -> Self {
-        Self::with_source(Kind::Request, value)
-    }
+#[derive(Copy, Clone)]
+pub(crate) enum Operation {
+    AppAccessToken,
+    ExchangeCode,
+    RefreshAccessToken,
+    RevokeAccessToken,
+    ValidateAccessToken,
+    DeviceRequest,
+    DevicePoll,
+    #[cfg(feature = "test")]
+    MockUserAccessToken,
+    #[cfg(feature = "test")]
+    MockApiUnits,
 }
 
-impl From<reqwest::Error> for Error {
-    fn from(value: reqwest::Error) -> Self {
-        Self::with_source(Kind::Request, value)
-    }
-}
-
-impl Kind {
+impl Operation {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Kind::Request => "network request failed",
-            Kind::CsrfTokenMismatch => "CSRF token mismatch",
-            Kind::FormData => "failed to serialize form data",
-            Kind::OAuthError => "OAuth error response",
-            Kind::Device => "device code flow error response",
-            Kind::Decode => "failed to deserialize response",
+            Self::AppAccessToken => "app_access_token",
+            Self::ExchangeCode => "exchange_code",
+            Self::RefreshAccessToken => "refresh_access_token",
+            Self::RevokeAccessToken => "revoke_access_token",
+            Self::ValidateAccessToken => "validate_access_token",
+            Self::DeviceRequest => "device_auth_request",
+            Self::DevicePoll => "device_auth_poll",
+            #[cfg(feature = "test")]
+            Self::MockUserAccessToken => "mock_user_access_token",
+            #[cfg(feature = "test")]
+            Self::MockApiUnits => "mock_api_units",
         }
     }
 }
 
-impl Display for Kind {
+impl Display for Operation {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_str())
     }
 }
 
-pub mod network {
-    use super::{BoxError, Error, Kind};
-
-    pub fn request<E: Into<BoxError>>(e: E) -> Error {
-        Error::with_source(Kind::Request, e)
-    }
+pub(crate) fn build(operation: Operation, source: impl Into<BoxError>) -> Error {
+    Error::new(Kind::Build, operation, Some(source.into()))
 }
 
-pub mod oauth {
-    use super::{Error, Kind};
+pub(crate) fn request(operation: Operation, source: reqwest::Error) -> Error {
+    let kind = if source.is_builder() {
+        Kind::Build
+    } else {
+        Kind::Request
+    };
 
-    pub fn csrf_token_mismatch() -> Error {
-        Error::with_message(
-            Kind::CsrfTokenMismatch,
-            "CSRF token validation failed - possible security issue",
-        )
-    }
-
-    pub fn http_error(status: u16, body: impl Into<String>) -> Error {
-        Error::with_http_error(Kind::OAuthError, status, body)
-    }
+    Error::new(kind, operation, Some(source.without_url().into()))
 }
 
-pub mod validation {
-    use super::{BoxError, Error, Kind};
-
-    pub fn form_data<E: Into<BoxError>>(source: E) -> Error {
-        Error::with_source(Kind::FormData, source)
-    }
+pub(crate) fn body(operation: Operation, source: reqwest::Error) -> Error {
+    Error::new(Kind::Body, operation, Some(source.without_url().into()))
 }
 
-pub mod response {
-    use super::{BoxError, Error, Kind};
-
-    pub fn decode<E: Into<BoxError>>(e: E, raw: impl Into<String>) -> Error {
-        Error::with_decode(Kind::Decode, e, raw)
+pub(crate) fn api(operation: Operation, status: u16, body: &[u8]) -> Error {
+    #[derive(Deserialize)]
+    struct ApiBody {
+        message: Option<String>,
     }
+
+    let message = serde_json::from_slice::<ApiBody>(body)
+        .ok()
+        .and_then(|body| body.message);
+
+    Error::new(Kind::Api(Api { status, message }), operation, None)
 }
 
-pub mod device_code {
-    use super::{Error, Kind};
+pub(crate) fn parse(operation: Operation, source: impl Into<BoxError>) -> Error {
+    Error::new(Kind::Parse, operation, Some(source.into()))
+}
 
-    pub fn flow_error(status: u16, message: impl Into<String>) -> Error {
-        Error::with_http_error(Kind::Device, status, message.into())
-    }
+pub(crate) fn csrf(operation: Operation, source: impl Into<BoxError>) -> Error {
+    Error::new(Kind::Csrf, operation, Some(source.into()))
+}
 
-    pub fn timeout() -> Error {
-        Error::with_message(Kind::Device, "device code expired")
+pub(crate) fn device_code_expired(operation: Operation) -> Error {
+    Error::new(Kind::DeviceCodeExpired, operation, None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn send_sync_static() {
+        fn assert<T: Send + Sync + 'static>() {}
+        assert::<Error>();
     }
 }

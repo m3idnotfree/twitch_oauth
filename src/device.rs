@@ -11,7 +11,7 @@ use url::Url;
 
 use crate::{
     DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken, error,
-    oauth::TOKEN_URL,
+    oauth::{TOKEN_URL, execute, read_json},
     request::{CLIENT_ID, GRANT_TYPE},
     scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,
@@ -71,22 +71,10 @@ impl DeviceAuth {
             .text(CLIENT_ID, self.client_id.to_string())
             .text("scopes", self.scopes_to_string());
 
-        let resp = self
-            .client
-            .post(self.device_url.to_url())
-            .multipart(form)
-            .send()
-            .await
-            .map_err(error::network::request)?;
+        let req = self.client.post(self.device_url.to_url()).multipart(form);
+        let resp = execute(error::Operation::DeviceRequest, req).await?;
 
-        if resp.status().is_success() {
-            resp.json::<DeviceAuthResponse>().await.map_err(Error::from)
-        } else {
-            let status = resp.status().as_u16();
-            let v = resp.bytes().await?;
-            let body = String::from_utf8_lossy(&v).to_string();
-            Err(error::oauth::http_error(status, body))
-        }
+        read_json(error::Operation::DeviceRequest, resp).await
     }
 
     /// Poll for the user token
@@ -97,7 +85,7 @@ impl DeviceAuth {
         use std::time::Duration;
         use tokio::time::sleep;
         #[cfg(feature = "tracing")]
-        use tracing::{debug, trace, warn};
+        use tracing::{debug, trace};
 
         let deadline = response.created_at + response.expires_in as i64;
 
@@ -123,7 +111,7 @@ impl DeviceAuth {
                     poll_count,
                     "device code expired"
                 );
-                return Err(error::device_code::timeout());
+                return Err(error::device_code_expired(error::Operation::DevicePoll));
             }
 
             #[cfg(feature = "tracing")]
@@ -137,43 +125,31 @@ impl DeviceAuth {
                 .text("device_code", response.device_code.secret().to_string())
                 .text(GRANT_TYPE, GrantType::DeviceCode.as_str());
 
-            let resp = self
-                .client
-                .post(self.token_url.to_url())
-                .multipart(form)
-                .send()
-                .await?;
+            let req = self.client.post(self.token_url.to_url()).multipart(form);
 
-            if resp.status().is_success() {
-                #[cfg(feature = "tracing")]
-                debug!(
-                    client_id = %self.client_id,
-                    poll_count,
-                    "device code token obtained"
-                );
-                return Ok(resp.json::<UserToken>().await?);
+            match execute(error::Operation::DevicePoll, req).await {
+                Ok(resp) => {
+                    let token = read_json(error::Operation::DevicePoll, resp).await?;
+
+                    #[cfg(feature = "tracing")]
+                    debug!(
+                        client_id = %self.client_id,
+                        poll_count,
+                        "device code token obtained"
+                    );
+
+                    return Ok(token);
+                }
+                Err(e) if e.message() == Some("authorization_pending") => {
+                    #[cfg(feature = "tracing")]
+                    trace!(
+                        client_id = %self.client_id,
+                        poll_count,
+                        "authorization pending"
+                    );
+                }
+                Err(e) => return Err(e),
             }
-
-            let err = resp.json::<DeviceErrorResponse>().await?;
-            if err.is_pending() {
-                #[cfg(feature = "tracing")]
-                trace!(
-                    client_id = %self.client_id,
-                    poll_count,
-                    "authorization pending"
-                );
-                continue;
-            }
-
-            #[cfg(feature = "tracing")]
-            warn!(
-                client_id = %self.client_id,
-                status = err.status,
-                message = %err.message,
-                poll_count,
-                "device code flow error"
-            );
-            return Err(err.into_error());
         }
     }
 
@@ -212,22 +188,6 @@ impl Display for DeviceAuthResponse {
             "DeviceAuthResponse(verification_uri: {}, user_code: {})",
             self.verification_uri, self.user_code
         )
-    }
-}
-
-#[derive(Deserialize)]
-struct DeviceErrorResponse {
-    status: u16,
-    message: String,
-}
-
-impl DeviceErrorResponse {
-    pub fn into_error(self) -> Error {
-        error::device_code::flow_error(self.status, self.message)
-    }
-
-    pub fn is_pending(&self) -> bool {
-        self.message == "authorization_pending"
     }
 }
 

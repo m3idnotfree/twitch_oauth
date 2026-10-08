@@ -2,9 +2,13 @@ use asknothingx2_util::api;
 use serde::de::DeserializeOwned;
 use url::Url;
 
-use crate::{Error, error};
-
-use super::response::{Client, MockData, User};
+use crate::{
+    Error, error,
+    test_oauth::{
+        USER_AGENT,
+        response::{Client, MockData, User},
+    },
+};
 
 #[derive(Debug, Clone)]
 pub struct MockApiUnits {
@@ -51,9 +55,9 @@ impl MockApiUnits {
             .get(url)
             .send()
             .await
-            .map_err(error::network::request)?;
+            .map_err(|e| error::request(error::Operation::MockApiUnits, e))?;
 
-        crate::oauth::decode_response(resp).await
+        crate::oauth::read_json(error::Operation::MockApiUnits, resp).await
     }
 }
 
@@ -62,9 +66,7 @@ impl Default for MockApiUnits {
         Self {
             port: 8080,
             url: Url::parse("http://localhost:8080/units").unwrap(),
-            client: api::preset::testing("twitch-oauth-test/1.0")
-                .build()
-                .unwrap(),
+            client: api::preset::testing(USER_AGENT).build().unwrap(),
         }
     }
 }

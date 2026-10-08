@@ -6,9 +6,7 @@ use reqwest::{
     header::{ACCEPT, CONTENT_TYPE},
 };
 
-use crate::{AccessToken, ClientId, Error, RevocationUrl, error};
-
-use super::CLIENT_ID;
+use crate::{AccessToken, ClientId, RevocationUrl, request::CLIENT_ID};
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
 #[derive(Debug)]
@@ -33,14 +31,13 @@ impl<'a> RevokeRequest<'a> {
 }
 
 impl IntoRequestBuilder for RevokeRequest<'_> {
-    type Error = Error;
+    type Error = serde_urlencoded::ser::Error;
 
     fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
         let form_string = serde_urlencoded::to_string([
             (CLIENT_ID, self.client_id.deref()),
             ("token", self.access_token.secret()),
-        ])
-        .map_err(error::validation::form_data)?;
+        ])?;
 
         Ok(client
             .request(Method::POST, self.revoke_url.as_str())

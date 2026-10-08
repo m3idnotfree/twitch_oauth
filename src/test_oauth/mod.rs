@@ -55,9 +55,11 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    AuthUrl, Error, TokenUrl, TwitchOauth, oauth::OauthFlow, request::ClientCredentialsRequest,
-    types::GrantType,
+    AuthUrl, Error, TokenUrl, TwitchOauth, error, oauth::OauthFlow,
+    request::ClientCredentialsRequest, types::GrantType,
 };
+
+const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "-test/", env!("CARGO_PKG_VERSION"));
 
 #[derive(Debug)]
 pub struct TwitchOauthTest<Flow>
@@ -73,11 +75,7 @@ where
     Flow: OauthFlow,
 {
     pub fn new(oauth: TwitchOauth<Flow>) -> Self {
-        let this = oauth.with_client(
-            preset::testing("twitch-oauth-token-test/1.0")
-                .build()
-                .unwrap(),
-        );
+        let this = oauth.with_client(preset::testing(USER_AGENT).build().unwrap());
 
         Self {
             oauth: this,
@@ -109,6 +107,7 @@ where
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
         crate::oauth::json(
+            error::Operation::AppAccessToken,
             self.oauth.get_client(),
             ClientCredentialsRequest::new(
                 self.oauth.client_id(),

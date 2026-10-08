@@ -6,9 +6,11 @@ use reqwest::{
     header::{ACCEPT, CONTENT_TYPE},
 };
 
-use crate::{ClientId, ClientSecret, Error, TokenUrl, error, types::GrantType};
-
-use super::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE};
+use crate::{
+    ClientId, ClientSecret, TokenUrl,
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE},
+    types::GrantType,
+};
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
 #[derive(Debug)]
@@ -36,15 +38,14 @@ impl<'a> ClientCredentialsRequest<'a> {
 }
 
 impl IntoRequestBuilder for ClientCredentialsRequest<'_> {
-    type Error = Error;
+    type Error = serde_urlencoded::ser::Error;
 
-    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Error> {
+    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
         let form_string = serde_urlencoded::to_string([
             (CLIENT_ID, self.client_id.deref()),
             (CLIENT_SECRET, self.client_secret.secret()),
             (GRANT_TYPE, self.grant_type.as_str()),
-        ])
-        .map_err(error::validation::form_data)?;
+        ])?;
 
         Ok(client
             .request(Method::POST, self.token_url.as_str())

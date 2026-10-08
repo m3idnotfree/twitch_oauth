@@ -208,6 +208,7 @@ where
         refresh_token: RefreshToken,
     ) -> Result<crate::UserToken, Error> {
         json(
+            error::Operation::RefreshAccessToken,
             &self.client,
             RefreshRequest::new(
                 &self.client_id,
@@ -239,6 +240,7 @@ where
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
         let _resp = send(
+            error::Operation::RevokeAccessToken,
             &self.client,
             RevokeRequest::new(access_token, &self.client_id, &self.revoke_url),
         )
@@ -267,6 +269,7 @@ where
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
         json(
+            error::Operation::AppAccessToken,
             &self.client,
             ClientCredentialsRequest::new(
                 &self.client_id,
@@ -295,6 +298,7 @@ where
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
         json(
+            error::Operation::ValidateAccessToken,
             &self.client,
             ValidateRequest::new(access_token, &self.validate_url),
         )
@@ -436,18 +440,16 @@ impl TwitchOauth<UserAuth> {
         code: AuthorizationCode,
         state: String,
     ) -> Result<crate::UserToken, Error> {
-        if csrf::verify_with_config(
+        csrf::verify_with_config(
             &self.secret_key,
             &state,
             Some(&self.client_id),
             &self.csrf_config,
         )
-        .is_err()
-        {
-            return Err(error::oauth::csrf_token_mismatch());
-        }
+        .map_err(|e| error::csrf(error::Operation::ExchangeCode, e))?;
 
         json(
+            error::Operation::ExchangeCode,
             &self.client,
             ExchangeCodeRequest::new(
                 &self.client_id,
@@ -575,39 +577,76 @@ where
     }
 }
 
-pub async fn json<T, R>(client: &reqwest::Client, request: T) -> Result<R, T::Error>
+pub(crate) async fn json<T, R>(
+    operation: error::Operation,
+    client: &reqwest::Client,
+    request: T,
+) -> Result<R, Error>
 where
-    T: IntoRequestBuilder<Error = Error>,
+    T: IntoRequestBuilder,
+    T::Error: Into<crate::error::BoxError>,
     R: serde::de::DeserializeOwned,
 {
-    let resp = send(client, request).await?;
-    decode_response(resp).await
+    let resp = send(operation, client, request).await?;
+    read_json(operation, resp).await
 }
 
-pub async fn send<T>(client: &reqwest::Client, request: T) -> Result<reqwest::Response, T::Error>
+pub(crate) async fn send<T>(
+    operation: error::Operation,
+    client: &reqwest::Client,
+    request: T,
+) -> Result<reqwest::Response, Error>
 where
-    T: IntoRequestBuilder<Error = Error>,
+    T: IntoRequestBuilder,
+    T::Error: Into<crate::error::BoxError>,
 {
-    let resp = request
-        .into_request_builder(client)?
-        .send()
-        .await
-        .map_err(error::network::request)?;
+    let req = request
+        .into_request_builder(client)
+        .map_err(|e| error::build(operation, e))?;
+
+    execute(operation, req).await
+}
+
+pub(crate) async fn execute(
+    operation: error::Operation,
+    req: reqwest::RequestBuilder,
+) -> Result<reqwest::Response, Error> {
+    let resp = req.send().await.map_err(|e| error::request(operation, e))?;
 
     if !resp.status().is_success() {
         let status = resp.status().as_u16();
-        let v = resp.bytes().await?;
-        let body = String::from_utf8_lossy(&v).to_string();
-        return Err(error::oauth::http_error(status, body));
+        let body = resp.bytes().await.unwrap_or_default();
+
+        return Err(error::api(operation, status, &body));
     }
 
     Ok(resp)
 }
 
-pub async fn decode_response<T>(resp: reqwest::Response) -> Result<T, Error>
+pub(crate) async fn read_json<T>(
+    operation: error::Operation,
+    resp: reqwest::Response,
+) -> Result<T, Error>
 where
     T: serde::de::DeserializeOwned,
 {
-    let v = resp.bytes().await?;
-    serde_json::from_slice(&v).map_err(|e| error::response::decode(e, String::from_utf8_lossy(&v)))
+    let body = resp.bytes().await.map_err(|e| error::body(operation, e))?;
+    decode(operation, &body)
+}
+
+pub(crate) fn decode<T>(operation: error::Operation, body: &[u8]) -> Result<T, Error>
+where
+    T: serde::de::DeserializeOwned,
+{
+    let mut de = serde_json::Deserializer::from_slice(body);
+
+    let value = match serde_path_to_error::deserialize(&mut de) {
+        Ok(value) => value,
+        Err(e) => return Err(error::parse(operation, e)),
+    };
+
+    match de.end() {
+        Ok(()) => Ok(value),
+        Err(e) => Err(error::parse(operation, e)),
+    }
 }

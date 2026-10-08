@@ -34,12 +34,10 @@ async fn main() -> Result<()> {
         .app_access_token()
         .await
         .map_err(|e| {
-            let error_type = classify_error(&e);
-
             error!(
                 service = "twitch_oauth",
                 action = "get_app_token",
-                error_type = error_type,
+                error_type = e.kind().as_str(),
                 error_message = %e,
                 duration_ms = start_time.elapsed().as_millis(),
                 "Failed to get OAuth token"
@@ -66,16 +64,4 @@ async fn main() -> Result<()> {
     );
 
     Ok(())
-}
-
-fn classify_error(e: &twitch_oauth_token::Error) -> &str {
-    if e.is_request_error() {
-        "network"
-    } else if e.is_oauth_error() {
-        "oauth"
-    } else if e.is_decode() {
-        "decode"
-    } else {
-        "unknown"
-    }
 }

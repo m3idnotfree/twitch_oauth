@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use twitch_oauth_token::{AuthorizationCode, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{AuthorizationCode, ErrorKind, RedirectUrl, TwitchOauth};
 
 #[tokio::test]
 async fn csrf_validation_failure() {
@@ -13,9 +13,5 @@ async fn csrf_validation_failure() {
 
     assert!(result.is_err());
     let error = result.unwrap_err();
-    assert!(error.is_oauth_error());
-    assert_eq!(
-        error.message(),
-        Some("CSRF token validation failed - possible security issue")
-    );
+    assert!(matches!(error.kind(), ErrorKind::Csrf));
 }

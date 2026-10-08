@@ -4,11 +4,10 @@ use url::Url;
 
 use crate::{
     AuthUrl, ClientId, RedirectUrl,
+    request::CLIENT_ID,
     scope::{Scope, ScopesMut, scopes_mut},
     types::ResponseType,
 };
-
-use super::CLIENT_ID;
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
 #[derive(Debug)]
