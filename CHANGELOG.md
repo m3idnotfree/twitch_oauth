@@ -1,3 +1,27 @@
+## [5.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.4.1..v5.0.0) - 2026-10-09
+
+### Features
+
+- **(tracing)** [**breaking**] make tracing optional feature ([fc6180a](https://github.com/m3idnotfree/twitch_oauth/commit/fc6180a4c6e15952d5166e31c53cdf46341c48e0))
+- **(client)** [**breaking**] return client::Error from setup and log initialization ([53c42cf](https://github.com/m3idnotfree/twitch_oauth/commit/53c42cf901780ce7812a08db4946fa4385283fc4))
+- **(error)** [**breaking**] redesign Error ([0b270ad](https://github.com/m3idnotfree/twitch_oauth/commit/0b270adbf14018b05aee0f3de3e6a0d28b26f0b6))
+
+### Bug Fixes
+
+- **(device)** log remaining seconds instead of local time in the poll event ([0f79673](https://github.com/m3idnotfree/twitch_oauth/commit/0f7967396440f1248bf1d2e0554d513964a9a4e1))
+
+### Refactoring
+
+- **(request)** use internal IntoRequestBuilder trait with OPERATION ([620f40c](https://github.com/m3idnotfree/twitch_oauth/commit/620f40cd7035627fc81fe226d8a62ed985d0ecd6))
+
+### Documentation
+
+- **(migration)** add 4.x to 5.0 guide ([cd99a12](https://github.com/m3idnotfree/twitch_oauth/commit/cd99a12422111009c8c1e43b9a4aa661a4afb213))
+
+### Miscellaneous
+
+- **(deps)** [**breaking**] bump asknothingx2-util to 0.6.0 ([b0a0c15](https://github.com/m3idnotfree/twitch_oauth/commit/b0a0c154d28353a08f6753abeaf3af39ad160a34))
+
 ## [4.4.1](https://github.com/m3idnotfree/twitch_oauth/compare/v4.4.0..v4.4.1) - 2026-09-16
 
 ### Bug Fixes

@@ -18,7 +18,7 @@ A Rust library for Twitch OAuth 2.0 authentication with compile-time safety and 
 
 ```toml
 [dependencies]
-twitch_oauth_token = "4"
+twitch_oauth_token = "5"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -111,6 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - **`oneshot`** - Built-in development server for handling OAuth callbacks
 - **`test`** - Testing utilities and mock server support
+- **`tracing`** - Log events for `DeviceAuth::poll` and client setup
 
 ## License
 
