@@ -1,4 +1,56 @@
-### 1. Update Feature Flags
+## 4.x -> 5.0
+
+`tracing` is now an optional feature. Enable it to keep the `DeviceAuth::poll` events.
+
+```diff
+- twitch_oauth_token = "4.4"
++ twitch_oauth_token = { version = "5.0", features = ["tracing"] }
+```
+
+### Error Handling
+
+```diff
+- error.is_request_error()
++ error.kind() == ErrorKind::Request
+
+- error.is_decode()
++ error.kind() == ErrorKind::Parse
+
+- error.is_oauth_error()
++ matches!(error.kind(), ErrorKind::Api | ErrorKind::Csrf)
+
+- error.is_device_code_error()
++ matches!(error.kind(), ErrorKind::DeviceCodeExpired | ErrorKind::Api)
+
+- error.status_code()
++ error.status()
+```
+
+- `Error::raw` is removed. The response body is no longer kept.
+- `Error::message` returns only the message from Twitch.
+
+### Client Setup
+
+`client::setup` returns `client::Error`.
+
+```diff
+- fn init(http_client: reqwest::Client) -> Result<(), twitch_oauth_token::Error> {
++ fn init(http_client: reqwest::Client) -> Result<(), twitch_oauth_token::client::Error> {
+      client::setup(http_client)?;
+      Ok(())
+  }
+```
+
+### Update Type Names
+
+```diff
+- use twitch_oauth_token::csrf::TokenError;
++ use twitch_oauth_token::csrf::Error;
+```
+
+## 3.x -> 4.0
+
+### Update Feature Flags
 
 ```diff
 [dependencies]
@@ -6,14 +58,14 @@
 + twitch_oauth_token = { version = "4.0", features = ["oneshot"] }
 ```
 
-### 2. Update Imports
+### Update Imports
 
 ```diff
 - use twitch_oauth_token::{oneshot_server, OAuthCallbackQuery};
 + use twitch_oauth_token::{oneshot, AuthCallback};
 ```
 
-### 3. Update Method Calls
+### Update Method Calls
 
 #### Exchange authorization code
 
@@ -66,7 +118,7 @@
 + let callback: AuthCallback = oneshot::listen(config).await?;
 ```
 
-### 4. Update Type Names
+### Update Type Names
 
 ```diff
 - CodeTokenRequest
@@ -79,7 +131,7 @@
 + TokenInfo
 ```
 
-### 5. Error Handling
+### Error Handling
 
 ```diff
 - error.is_validation_error()
@@ -91,7 +143,7 @@
 + error.is_request_error
 ```
 
-### 5. Client Setup
+### Client Setup
 
 ```diff
 - client::setup(|preset| {
