@@ -84,18 +84,14 @@ impl DeviceAuth {
         use chrono::Utc;
         use std::time::Duration;
         use tokio::time::sleep;
-        #[cfg(feature = "tracing")]
-        use tracing::{debug, trace};
 
         let deadline = response.created_at + response.expires_in as i64;
 
         #[cfg(feature = "tracing")]
-        debug!(
+        tracing::debug!(
             client_id = %self.client_id,
-            expires_in = response.expires_in,
-            interval = response.interval,
-            created_at = %format_timestamp(response.created_at),
-            deadline = %format_timestamp(deadline),
+            interval_secs = response.interval,
+            remaining_secs = deadline - Utc::now().timestamp(),
             "starting device code poll"
         );
 
@@ -106,7 +102,7 @@ impl DeviceAuth {
 
             if Utc::now().timestamp() >= deadline {
                 #[cfg(feature = "tracing")]
-                debug!(
+                tracing::debug!(
                     client_id = %self.client_id,
                     poll_count,
                     "device code expired"
@@ -132,7 +128,7 @@ impl DeviceAuth {
                     let token = read_json(error::Operation::DevicePoll, resp).await?;
 
                     #[cfg(feature = "tracing")]
-                    debug!(
+                    tracing::debug!(
                         client_id = %self.client_id,
                         poll_count,
                         "device code token obtained"
@@ -142,7 +138,7 @@ impl DeviceAuth {
                 }
                 Err(e) if e.message() == Some("authorization_pending") => {
                     #[cfg(feature = "tracing")]
-                    trace!(
+                    tracing::trace!(
                         client_id = %self.client_id,
                         poll_count,
                         "authorization pending"
@@ -189,14 +185,4 @@ impl Display for DeviceAuthResponse {
             self.verification_uri, self.user_code
         )
     }
-}
-
-#[cfg(feature = "tracing")]
-fn format_timestamp(timestamp: i64) -> String {
-    use chrono::TimeZone;
-    chrono::Local
-        .timestamp_opt(timestamp, 0)
-        .single()
-        .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
-        .unwrap_or_else(|| timestamp.to_string())
 }
