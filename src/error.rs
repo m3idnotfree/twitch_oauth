@@ -148,12 +148,22 @@ impl Display for Error {
             Kind::DeviceCodeExpired => f.write_str("device code expired")?,
         }
 
-        write!(f, " for {}", self.inner.operation)
+        write!(f, " for {}", self.inner.operation)?;
+
+        if let (Kind::Parse, Some(source)) = (&self.inner.kind, &self.inner.source) {
+            write!(f, ": {source}")?;
+        }
+        Ok(())
     }
 }
 
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        if matches!(self.inner.kind, Kind::Parse) {
+            // rendered by Display
+            return None;
+        }
+
         self.inner.source.as_ref().map(|e| &**e as _)
     }
 }
