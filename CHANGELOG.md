@@ -1,3 +1,8 @@
+## [5.0.1](https://github.com/m3idnotfree/twitch_oauth/compare/v5.0.0..v5.0.1) - 2026-10-09
+
+### Bug Fixes
+
+- **(error)** [**breaking**] render parse cause in Display instead of source ([8b28011](https://github.com/m3idnotfree/twitch_oauth/commit/8b280114c687f90eab8a0c26289924a9151a511c))
 ## [5.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.4.1..v5.0.0) - 2026-10-09
 
 ### Features
