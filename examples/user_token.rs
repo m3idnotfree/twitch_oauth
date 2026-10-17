@@ -137,12 +137,15 @@ async fn auth_callback(
             info!(
                 service = "twitch_oauth",
                 action = "handle_callback",
-                user_id = %user_info.user_id,
-                username = %user_info.login,
+                user_id = user_info.user_id,
+                username = user_info.login,
                 duration_ms = start_time.elapsed().as_millis(),
                 "Successfully authenticated user"
             );
-            format!("Successfully authenticated as {}", user_info.login)
+            format!(
+                "Successfully authenticated as {}",
+                user_info.login.unwrap_or_default()
+            )
         }
         Err(e) => {
             error!(
@@ -180,10 +183,14 @@ async fn process_callback(callback: AuthCallback, state: AppState) -> Result<Tok
     );
 
     let user_info = validate_and_get_user_info(state.oauth, &token.access_token).await?;
+    let user_id = user_info
+        .user_id
+        .clone()
+        .expect("a user access token must have a user_id");
 
     let mut user_tokens = state.user_tokens.write().await;
     user_tokens
-        .entry(user_info.user_id.clone())
+        .entry(user_id)
         .and_modify(|t| *t = token.clone())
         .or_insert(token);
 
@@ -219,8 +226,8 @@ async fn validate_and_get_user_info(
     info!(
         service = "twitch_oauth",
         action = "validate_token",
-        user_id = %token.user_id,
-        username = %token.login,
+        user_id = token.user_id,
+        username = token.login,
         "Access token validated successfully"
     );
 

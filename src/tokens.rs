@@ -45,11 +45,13 @@ impl Serialize for UserToken {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TokenInfo {
     pub client_id: ClientId,
-    pub login: String,
     #[serde(default, deserialize_with = "deserialize_scopes")]
     pub scopes: Vec<Scope>,
-    pub user_id: String,
     pub expires_in: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub login: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<String>,
 }
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
