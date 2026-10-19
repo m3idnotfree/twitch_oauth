@@ -1,5 +1,4 @@
 /target
 Cargo.lock
-/notes
 .env
 .DS_Store
