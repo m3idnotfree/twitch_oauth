@@ -1,14 +1,12 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{Method, mime_type::Application};
-use reqwest::{
-    Client, RequestBuilder,
-    header::{ACCEPT, CONTENT_TYPE},
-};
+use asknothingx2_http::Body;
+use asknothingx2_util::api::mime_type::Application;
+use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
     AccessToken, ClientId, RevocationUrl,
-    request::{CLIENT_ID, IntoRequestBuilder},
+    request::{CLIENT_ID, IntoRequest},
 };
 
 /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
@@ -33,20 +31,16 @@ impl<'a> RevokeRequest<'a> {
     }
 }
 
-impl IntoRequestBuilder for RevokeRequest<'_> {
+impl IntoRequest for RevokeRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::RevokeAccessToken;
-    type Error = serde_urlencoded::ser::Error;
 
-    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
-        let form_string = serde_urlencoded::to_string([
-            (CLIENT_ID, self.client_id.deref()),
-            ("token", self.access_token.secret()),
-        ])?;
-
-        Ok(client
-            .request(Method::POST, self.revoke_url.as_str())
+    fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
+        Ok(http::Request::post(self.revoke_url.to_string())
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
-            .body(form_string))
+            .body(Body::from(super::form(&[
+                (CLIENT_ID, self.client_id.deref()),
+                ("token", self.access_token.secret()),
+            ])?))?)
     }
 }

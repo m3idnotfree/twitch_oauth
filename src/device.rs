@@ -4,6 +4,7 @@ use std::{
     str::FromStr,
 };
 
+use asknothingx2_http::{Body, ClientService, client::Reqwest};
 use asknothingx2_util::oauth::ClientId;
 use reqwest::Client;
 use serde::Deserialize;
@@ -26,6 +27,7 @@ pub struct DeviceAuth {
     client: Client,
     device_url: DeviceUrl,
     token_url: TokenUrl,
+    svc: ClientService,
 }
 
 impl DeviceAuth {
@@ -36,6 +38,7 @@ impl DeviceAuth {
             client: crate::client::get().clone(),
             device_url: DeviceUrl::from_str(DEVICE_URL).unwrap(),
             token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
+            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
         }
     }
 
@@ -45,6 +48,7 @@ impl DeviceAuth {
     }
 
     pub fn with_client(mut self, client: Client) -> Self {
+        self.svc = ClientService::new(Reqwest::new(client.clone()));
         self.client = client;
         self
     }
@@ -71,8 +75,20 @@ impl DeviceAuth {
             .text(CLIENT_ID, self.client_id.to_string())
             .text("scopes", self.scopes_to_string());
 
-        let req = self.client.post(self.device_url.to_url()).multipart(form);
-        let resp = execute(error::Operation::DeviceRequest, req).await?;
+        let req = self
+            .client
+            .post(self.device_url.to_url())
+            .multipart(form)
+            .build()
+            .map_err(|e| error::build(error::Operation::DeviceRequest, e))?;
+        let req = http::Request::<reqwest::Body>::try_from(req)
+            .map_err(|e| error::build(error::Operation::DeviceRequest, e))?;
+        let resp = execute(
+            error::Operation::DeviceRequest,
+            self.svc.clone(),
+            req.map(Body::wrap),
+        )
+        .await?;
 
         read_json(error::Operation::DeviceRequest, resp).await
     }
@@ -121,9 +137,22 @@ impl DeviceAuth {
                 .text("device_code", response.device_code.secret().to_string())
                 .text(GRANT_TYPE, GrantType::DeviceCode.as_str());
 
-            let req = self.client.post(self.token_url.to_url()).multipart(form);
+            let req = self
+                .client
+                .post(self.token_url.to_url())
+                .multipart(form)
+                .build()
+                .map_err(|e| error::build(error::Operation::DevicePoll, e))?;
+            let req = http::Request::<reqwest::Body>::try_from(req)
+                .map_err(|e| error::build(error::Operation::DevicePoll, e))?;
 
-            match execute(error::Operation::DevicePoll, req).await {
+            match execute(
+                error::Operation::DevicePoll,
+                self.svc.clone(),
+                req.map(Body::wrap),
+            )
+            .await
+            {
                 Ok(resp) => {
                     let token = read_json(error::Operation::DevicePoll, resp).await?;
 

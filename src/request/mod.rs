@@ -12,17 +12,21 @@ pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
 pub use validate_request::{ValidateRequest, validate_access_token};
 
+use asknothingx2_http::Request;
+
+use crate::error::BoxError;
+
 pub const CLIENT_ID: &str = "client_id";
 pub const GRANT_TYPE: &str = "grant_type";
 
 const CLIENT_SECRET: &str = "client_secret";
 
-pub(crate) trait IntoRequestBuilder {
+pub(crate) trait IntoRequest {
     const OPERATION: crate::error::Operation;
-    type Error: Into<crate::error::BoxError>;
 
-    fn into_request_builder(
-        self,
-        client: &reqwest::Client,
-    ) -> Result<reqwest::RequestBuilder, Self::Error>;
+    fn into_request(self) -> Result<Request, BoxError>;
+}
+
+pub(super) fn form(form: &[(&str, &str)]) -> Result<String, serde_urlencoded::ser::Error> {
+    serde_urlencoded::to_string(form)
 }

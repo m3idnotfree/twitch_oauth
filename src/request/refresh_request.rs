@@ -1,14 +1,12 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{Method, mime_type::Application};
-use reqwest::{
-    Client, RequestBuilder,
-    header::{ACCEPT, CONTENT_TYPE},
-};
+use asknothingx2_http::Body;
+use asknothingx2_util::api::mime_type::Application;
+use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
     ClientId, ClientSecret, RefreshToken, TokenUrl,
-    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequestBuilder},
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
     types::GrantType,
 };
 
@@ -37,22 +35,18 @@ impl<'a> RefreshRequest<'a> {
     }
 }
 
-impl IntoRequestBuilder for RefreshRequest<'_> {
+impl IntoRequest for RefreshRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::RefreshAccessToken;
-    type Error = serde_urlencoded::ser::Error;
 
-    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
-        let form_string = serde_urlencoded::to_string([
-            (CLIENT_ID, self.client_id.deref()),
-            (CLIENT_SECRET, self.client_secret.secret()),
-            (GRANT_TYPE, GrantType::RefreshToken.as_str()),
-            ("refresh_token", self.refresh_token.secret()),
-        ])?;
-
-        Ok(client
-            .request(Method::POST, self.token_url.to_string())
+    fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
+        Ok(http::Request::post(self.token_url.to_string())
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
-            .body(form_string))
+            .body(Body::from(super::form(&[
+                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_SECRET, self.client_secret.secret()),
+                (GRANT_TYPE, GrantType::RefreshToken.as_str()),
+                ("refresh_token", self.refresh_token.secret()),
+            ])?))?)
     }
 }

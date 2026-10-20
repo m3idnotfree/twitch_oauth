@@ -1,3 +1,4 @@
+use asknothingx2_http::{Body, ClientService, client::Reqwest};
 use asknothingx2_util::api;
 use serde::de::DeserializeOwned;
 use url::Url;
@@ -15,6 +16,7 @@ pub struct MockApiUnits {
     port: u16,
     url: Url,
     client: reqwest::Client,
+    svc: ClientService,
 }
 
 impl MockApiUnits {
@@ -29,6 +31,7 @@ impl MockApiUnits {
     }
 
     pub fn set_client(mut self, client: reqwest::Client) -> Self {
+        self.svc = ClientService::new(Reqwest::new(client.clone()));
         self.client = client;
         self
     }
@@ -50,13 +53,15 @@ impl MockApiUnits {
     }
 
     async fn send_json<T: DeserializeOwned>(&self, url: Url) -> Result<MockData<T>, Error> {
+        let req = http::Request::get(url.as_str())
+            .body(Body::empty())
+            .map_err(|e| error::build(error::Operation::MockApiUnits, e))?;
         let resp = self
-            .client
-            .get(url)
-            .send()
+            .svc
+            .clone()
+            .execute(req)
             .await
-            .map_err(|e| error::request(error::Operation::MockApiUnits, e))?;
-
+            .map_err(|e| error::request(error::Operation::MockApiUnits, e.into_inner()))?;
         crate::oauth::read_json(error::Operation::MockApiUnits, resp).await
     }
 }
@@ -67,6 +72,9 @@ impl Default for MockApiUnits {
             port: 8080,
             url: Url::parse("http://localhost:8080/units").unwrap(),
             client: api::preset::testing(USER_AGENT).build().unwrap(),
+            svc: ClientService::new(Reqwest::new(
+                api::preset::testing(USER_AGENT).build().unwrap(),
+            )),
         }
     }
 }

@@ -1,14 +1,12 @@
 use std::ops::Deref;
 
-use asknothingx2_util::api::{Method, mime_type::Application};
-use reqwest::{
-    Client,
-    header::{ACCEPT, CONTENT_TYPE},
-};
+use asknothingx2_http::Body;
+use asknothingx2_util::api::mime_type::Application;
+use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
     AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl,
-    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequestBuilder},
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
     types::GrantType,
 };
 
@@ -39,25 +37,19 @@ impl<'a> ExchangeCodeRequest<'a> {
     }
 }
 
-impl IntoRequestBuilder for ExchangeCodeRequest<'_> {
+impl IntoRequest for ExchangeCodeRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::ExchangeCode;
-    type Error = serde_urlencoded::ser::Error;
 
-    fn into_request_builder(self, client: &Client) -> Result<reqwest::RequestBuilder, Self::Error> {
-        let form_string = serde_urlencoded::to_string([
-            (CLIENT_ID, self.client_id.deref()),
-            (CLIENT_SECRET, self.client_secret.secret()),
-            ("code", self.code.secret()),
-            (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),
-            ("redirect_uri", self.redirect_url.as_str()),
-        ])?;
-
-        let client = client
-            .request(Method::POST, self.token_url.to_string())
+    fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
+        Ok(http::Request::post(self.token_url.to_string())
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
-            .body(form_string);
-
-        Ok(client)
+            .body(Body::from(super::form(&[
+                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_SECRET, self.client_secret.secret()),
+                ("code", self.code.secret()),
+                (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),
+                ("redirect_uri", self.redirect_url.as_str()),
+            ])?))?)
     }
 }

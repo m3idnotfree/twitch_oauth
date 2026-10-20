@@ -1,10 +1,11 @@
 use std::{collections::HashSet, ops::Deref};
 
-use asknothingx2_util::api::{Method, preset};
+use asknothingx2_http::{Body, ClientService, client::Reqwest};
+use asknothingx2_util::api::preset;
 
 use crate::{
     AuthUrl, ClientId, ClientSecret,
-    request::IntoRequestBuilder,
+    request::IntoRequest,
     scope::{Scope, ScopesMut, scopes_mut},
     test_oauth::USER_AGENT,
     types::GrantType,
@@ -18,6 +19,7 @@ pub struct TestAccessToken<'a> {
     user_id: Option<&'a str>,
     scopes: HashSet<Scope>,
     auth_url: AuthUrl,
+    svc: ClientService,
 }
 
 impl<'a> TestAccessToken<'a> {
@@ -36,6 +38,7 @@ impl<'a> TestAccessToken<'a> {
             user_id,
             scopes,
             auth_url,
+            svc: ClientService::new(Reqwest::new(preset::testing(USER_AGENT).build().unwrap())),
         }
     }
 
@@ -44,19 +47,13 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
-        let client = preset::testing(USER_AGENT).build().unwrap();
-        crate::oauth::json(&client, self).await
+        crate::oauth::json(self.svc.clone(), self).await
     }
 }
 
-impl IntoRequestBuilder for TestAccessToken<'_> {
+impl IntoRequest for TestAccessToken<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::MockUserAccessToken;
-    type Error = std::convert::Infallible;
-
-    fn into_request_builder(
-        self,
-        client: &reqwest::Client,
-    ) -> Result<reqwest::RequestBuilder, Self::Error> {
+    fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
         let mut url = self.auth_url.to_url();
 
         let mut params = vec![
@@ -84,6 +81,6 @@ impl IntoRequestBuilder for TestAccessToken<'_> {
         }
 
         url.query_pairs_mut().extend_pairs(params);
-        Ok(client.request(Method::POST, url))
+        Ok(http::Request::post(url.to_string()).body(Body::empty())?)
     }
 }

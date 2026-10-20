@@ -4,6 +4,7 @@ use std::{
     str::FromStr,
 };
 
+use asknothingx2_http::{ClientService, client::Reqwest};
 use reqwest::Client;
 
 use crate::{
@@ -13,8 +14,8 @@ use crate::{
     device::DeviceAuth,
     error,
     request::{
-        ClientCredentialsRequest, ExchangeCodeRequest, IntoRequestBuilder, RefreshRequest,
-        RevokeRequest, ValidateRequest,
+        ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
+        ValidateRequest,
     },
     types::GrantType,
 };
@@ -128,6 +129,7 @@ where
     validate_url: ValidateUrl,
     csrf_config: CsrfConfig,
     phanthom: PhantomData<Flow>,
+    pub(crate) svc: ClientService,
 }
 
 impl<Flow> TwitchOauth<Flow>
@@ -150,6 +152,7 @@ where
     /// Note: This only affects this OAuth instance, not the global client.
     /// For global configuration, use [client::setup()](crate::client::setup()) instead.
     pub fn with_client(mut self, client: Client) -> Self {
+        self.svc = ClientService::new(Reqwest::new(client.clone()));
         self.client = client;
         self
     }
@@ -207,7 +210,7 @@ where
         refresh_token: RefreshToken,
     ) -> Result<crate::UserToken, Error> {
         json(
-            &self.client,
+            self.svc.clone(),
             RefreshRequest::new(
                 &self.client_id,
                 &self.client_secret,
@@ -238,7 +241,7 @@ where
     /// <https://dev.twitch.tv/docs/authentication/revoke-tokens/>
     pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
         let _resp = send(
-            &self.client,
+            self.svc.clone(),
             RevokeRequest::new(access_token, &self.client_id, &self.revoke_url),
         )
         .await?;
@@ -266,7 +269,7 @@ where
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow>
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
         json(
-            &self.client,
+            self.svc.clone(),
             ClientCredentialsRequest::new(
                 &self.client_id,
                 &self.client_secret,
@@ -294,7 +297,7 @@ where
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
         json(
-            &self.client,
+            self.svc.clone(),
             ValidateRequest::new(access_token, &self.validate_url),
         )
         .await
@@ -316,6 +319,7 @@ impl TwitchOauth<AppAuth> {
             client: crate::client::get().clone(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
+            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
         }
     }
 
@@ -333,6 +337,7 @@ impl TwitchOauth<AppAuth> {
             client: self.client,
             csrf_config: self.csrf_config,
             phanthom: PhantomData,
+            svc: self.svc,
         }
     }
 
@@ -352,6 +357,7 @@ impl TwitchOauth<AppAuth> {
             validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
+            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
         }
     }
 
@@ -444,7 +450,7 @@ impl TwitchOauth<UserAuth> {
         .map_err(|e| error::csrf(error::Operation::ExchangeCode, e))?;
 
         json(
-            &self.client,
+            self.svc.clone(),
             ExchangeCodeRequest::new(
                 &self.client_id,
                 &self.client_secret,
@@ -571,38 +577,41 @@ where
     }
 }
 
-pub(crate) async fn json<T, R>(client: &reqwest::Client, request: T) -> Result<R, Error>
+pub(crate) async fn json<T, R>(svc: ClientService, request: T) -> Result<R, Error>
 where
-    T: IntoRequestBuilder,
+    T: IntoRequest,
     R: serde::de::DeserializeOwned,
 {
-    let resp = send(client, request).await?;
+    let resp = send(svc, request).await?;
     read_json(T::OPERATION, resp).await
 }
 
 pub(crate) async fn send<T>(
-    client: &reqwest::Client,
+    svc: ClientService,
     request: T,
-) -> Result<reqwest::Response, Error>
+) -> Result<asknothingx2_http::Response, Error>
 where
-    T: IntoRequestBuilder,
+    T: IntoRequest,
 {
     let req = request
-        .into_request_builder(client)
+        .into_request()
         .map_err(|e| error::build(T::OPERATION, e))?;
-
-    execute(T::OPERATION, req).await
+    execute(T::OPERATION, svc, req).await
 }
 
 pub(crate) async fn execute(
     operation: error::Operation,
-    req: reqwest::RequestBuilder,
-) -> Result<reqwest::Response, Error> {
-    let resp = req.send().await.map_err(|e| error::request(operation, e))?;
+    svc: ClientService,
+    req: asknothingx2_http::Request,
+) -> Result<asknothingx2_http::Response, Error> {
+    let resp = svc
+        .execute(req)
+        .await
+        .map_err(|e| error::request(operation, e.into_inner()))?;
 
     if !resp.status().is_success() {
         let status = resp.status().as_u16();
-        let body = resp.bytes().await.unwrap_or_default();
+        let body = resp.into_body().collect_bytes().await.unwrap_or_default();
 
         return Err(error::api(operation, status, &body));
     }
@@ -612,12 +621,16 @@ pub(crate) async fn execute(
 
 pub(crate) async fn read_json<T>(
     operation: error::Operation,
-    resp: reqwest::Response,
+    resp: asknothingx2_http::Response,
 ) -> Result<T, Error>
 where
     T: serde::de::DeserializeOwned,
 {
-    let body = resp.bytes().await.map_err(|e| error::body(operation, e))?;
+    let body = resp
+        .into_body()
+        .collect_bytes()
+        .await
+        .map_err(|e| error::body(operation, e.into_inner()))?;
     decode(operation, &body)
 }
 

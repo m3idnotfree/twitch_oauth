@@ -211,18 +211,26 @@ pub(crate) fn build(operation: Operation, source: impl Into<BoxError>) -> Error 
     Error::new(Kind::Build, operation, Some(source.into()))
 }
 
-pub(crate) fn request(operation: Operation, source: reqwest::Error) -> Error {
-    let kind = if source.is_builder() {
-        Kind::Build
-    } else {
-        Kind::Request
-    };
+pub(crate) fn request(operation: Operation, source: BoxError) -> Error {
+    match source.downcast::<reqwest::Error>() {
+        Ok(source) => {
+            let kind = if source.is_builder() {
+                Kind::Build
+            } else {
+                Kind::Request
+            };
 
-    Error::new(kind, operation, Some(source.without_url().into()))
+            Error::new(kind, operation, Some(source.without_url().into()))
+        }
+        Err(source) => Error::new(Kind::Request, operation, Some(source)),
+    }
 }
 
-pub(crate) fn body(operation: Operation, source: reqwest::Error) -> Error {
-    Error::new(Kind::Body, operation, Some(source.without_url().into()))
+pub(crate) fn body(operation: Operation, source: BoxError) -> Error {
+    match source.downcast::<reqwest::Error>() {
+        Ok(source) => Error::new(Kind::Body, operation, Some(source.without_url().into())),
+        Err(source) => Error::new(Kind::Body, operation, Some(source)),
+    }
 }
 
 pub(crate) fn api(operation: Operation, status: u16, body: &[u8]) -> Error {

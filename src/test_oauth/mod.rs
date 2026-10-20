@@ -107,7 +107,7 @@ where
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
         crate::oauth::json(
-            self.oauth.get_client(),
+            self.oauth.svc.clone(),
             ClientCredentialsRequest::new(
                 self.oauth.client_id(),
                 self.oauth.client_secret(),

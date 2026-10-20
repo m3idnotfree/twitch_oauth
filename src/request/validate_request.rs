@@ -1,14 +1,15 @@
 use std::str::FromStr;
 
-use asknothingx2_util::api::{AuthScheme, Method};
-use reqwest::{Client, RequestBuilder, header::AUTHORIZATION};
+use asknothingx2_http::{Body, ClientService, client::Reqwest};
+use asknothingx2_util::api::AuthScheme;
+use http::header::AUTHORIZATION;
 
-use crate::{AccessToken, Error, ValidateUrl, request::IntoRequestBuilder, tokens::TokenInfo};
+use crate::{AccessToken, Error, ValidateUrl, request::IntoRequest, tokens::TokenInfo};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenInfo, Error> {
     crate::oauth::json(
-        crate::client::get(),
+        ClientService::new(Reqwest::new(crate::client::get().clone())),
         ValidateRequest::new(
             access_token,
             &ValidateUrl::from_str(crate::oauth::VALIDATE_URL).unwrap(),
@@ -42,20 +43,19 @@ impl<'a> ValidateRequest<'a> {
     }
 
     pub async fn send(self, client: &reqwest::Client) -> Result<TokenInfo, Error> {
-        crate::oauth::json(client, self).await
+        crate::oauth::json(ClientService::new(Reqwest::new(client.clone())), self).await
     }
 }
 
-impl IntoRequestBuilder for ValidateRequest<'_> {
+impl IntoRequest for ValidateRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::ValidateAccessToken;
-    type Error = asknothingx2_util::api::Error;
 
-    fn into_request_builder(self, client: &Client) -> Result<RequestBuilder, Self::Error> {
-        Ok(client
-            .request(Method::GET, self.validate_url.as_str())
-            .header(
-                AUTHORIZATION,
-                AuthScheme::custom("OAuth", self.access_token.secret()).to_header_value()?,
-            ))
+    fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
+        let authorization =
+            AuthScheme::custom("OAuth", self.access_token.secret()).to_header_value()?;
+
+        Ok(http::Request::get(self.validate_url.to_string())
+            .header(AUTHORIZATION, authorization)
+            .body(Body::empty())?)
     }
 }
