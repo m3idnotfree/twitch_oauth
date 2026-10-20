@@ -335,7 +335,7 @@
 //! ## HTTP Client Configuration
 //!
 //! The default HTTP client works for most applications.
-//! For custom configuration, see [`client`].
+//! For custom configuration, see [`TwitchOauth::with_client`].
 //!
 //! ## Testing
 //!
@@ -343,7 +343,6 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-pub mod client;
 pub mod scope;
 
 mod device;
@@ -379,4 +378,14 @@ pub mod csrf {
         generate, generate_at_time, generate_secret_key, is_expired, token_age, verify,
         verify_at_time, verify_with_config,
     };
+}
+
+pub(crate) fn default_client() -> reqwest::Client {
+    asknothingx2_util::api::preset::authentication(concat!(
+        env!("CARGO_PKG_NAME"),
+        "/",
+        env!("CARGO_PKG_VERSION")
+    ))
+    .build()
+    .expect("failed to build default http client")
 }

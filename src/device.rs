@@ -35,10 +35,10 @@ impl DeviceAuth {
         Self {
             client_id: client_id.into(),
             scopes: HashSet::new(),
-            client: crate::client::get().clone(),
+            client: crate::default_client(),
             device_url: DeviceUrl::from_str(DEVICE_URL).unwrap(),
             token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
-            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
+            svc: ClientService::new(Reqwest::new(crate::default_client())),
         }
     }
 

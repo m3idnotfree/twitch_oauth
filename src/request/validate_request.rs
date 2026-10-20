@@ -9,7 +9,7 @@ use crate::{AccessToken, Error, ValidateUrl, request::IntoRequest, tokens::Token
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenInfo, Error> {
     crate::oauth::json(
-        ClientService::new(Reqwest::new(crate::client::get().clone())),
+        ClientService::new(Reqwest::new(crate::default_client())),
         ValidateRequest::new(
             access_token,
             &ValidateUrl::from_str(crate::oauth::VALIDATE_URL).unwrap(),

@@ -148,9 +148,6 @@ where
     }
 
     /// Override the HTTP client
-    ///
-    /// Note: This only affects this OAuth instance, not the global client.
-    /// For global configuration, use [client::setup()](crate::client::setup()) instead.
     pub fn with_client(mut self, client: Client) -> Self {
         self.svc = ClientService::new(Reqwest::new(client.clone()));
         self.client = client;
@@ -316,10 +313,10 @@ impl TwitchOauth<AppAuth> {
             auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
             revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
             validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
-            client: crate::client::get().clone(),
+            client: crate::default_client(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
-            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
+            svc: ClientService::new(Reqwest::new(crate::default_client())),
         }
     }
 
@@ -350,14 +347,14 @@ impl TwitchOauth<AppAuth> {
             client_secret,
             redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
-            client: crate::client::get().clone(),
+            client: crate::default_client(),
             token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
             auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
             revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
             validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
-            svc: ClientService::new(Reqwest::new(crate::client::get().clone())),
+            svc: ClientService::new(Reqwest::new(crate::default_client())),
         }
     }
 
