@@ -42,6 +42,7 @@ pub mod token {
 
 #[cfg(feature = "test")]
 pub mod setup {
+    use asknothingx2_http::{ClientService, client::Reqwest};
     use twitch_oauth_token::{Client, UserAuth};
     use wiremock::MockServer;
 
@@ -50,8 +51,10 @@ pub mod setup {
     pub async fn oauth_server() -> (MockServer, Client<UserAuth>) {
         let server = MockServer::start().await;
 
-        let oauth = Client::new(config::client_id(), config::client_secret())
-            .with_client(config::client())
+        let client = Client::builder(config::client_id().into(), config::client_secret().into())
+            .http_client(ClientService::new(Reqwest::new(config::client())))
+            .build();
+        let oauth = client
             .with_token_url(url::token(&server.uri()))
             .with_auth_url(url::auth(&server.uri()))
             .with_validate_url(url::validate(&server.uri()))

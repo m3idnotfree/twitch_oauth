@@ -47,6 +47,7 @@ pub mod response;
 mod access_token;
 
 pub use access_token::TestAccessToken;
+use asknothingx2_http::{ClientService, client::Reqwest};
 
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -74,11 +75,11 @@ impl<Flow> TwitchOauthTest<Flow>
 where
     Flow: OauthFlow,
 {
-    pub fn new(oauth: Client<Flow>) -> Self {
-        let this = oauth.with_client(preset::testing(USER_AGENT).build().unwrap());
+    pub fn new(mut oauth: Client<Flow>) -> Self {
+        oauth.svc = ClientService::new(Reqwest::new(preset::testing(USER_AGENT).build().unwrap()));
 
         Self {
-            oauth: this,
+            oauth,
             test_env: TestEnv::default(),
         }
     }

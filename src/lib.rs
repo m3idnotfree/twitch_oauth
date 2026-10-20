@@ -232,7 +232,7 @@
 //!
 //! **Important for multi-server deployments:**
 //! - By default, each [`Client`] instance generates a random secret key
-//! - For load-balanced or clustered environments, use [`Client<UserAuth>::with_secret_key`] to share the same secret across all instances
+//! - For load-balanced or clustered environments, use [`ClientBuilder::secret_key`] to share the same secret across all instances
 //! - Without a shared secret key, tokens generated on one server will fail validation on another
 //!
 //! #### CSRF Configuration
@@ -240,24 +240,36 @@
 //! You can customize CSRF token validation behavior:
 //!
 //! ```rust
-//! use twitch_oauth_token::{csrf::CsrfConfig, Client};
+//! use twitch_oauth_token::{Client, ClientId, ClientSecret, csrf::CsrfConfig};
 //!
 //! // Default: 30 minutes expiry, no clock skew tolerance
-//! let oauth = Client::new("client_id", "client_secret");
+//! let oauth = Client::builder(
+//!     ClientId::from("client_id"),
+//!     ClientSecret::from("client_secret"),
+//! )
+//! .build();
 //!
 //! // Custom: 10 minutes expiry, 60 seconds clock skew tolerance
-//! let oauth = Client::new("client_id", "client_secret")
-//!     .with_csrf_config(CsrfConfig::new(60, 600));
+//! let oauth = Client::builder(
+//!     ClientId::from("client_id"),
+//!     ClientSecret::from("client_secret"),
+//! )
+//! .csrf_config(CsrfConfig::new(60, 600))
+//! .build();
 //!
 //! // Strict: 5 minutes expiry, no clock skew tolerance
-//! let oauth = Client::new("client_id", "client_secret")
-//!     .with_csrf_config(CsrfConfig::default().with_max_age(300));
+//! let oauth = Client::builder(
+//!     ClientId::from("client_id"),
+//!     ClientSecret::from("client_secret"),
+//! )
+//! .csrf_config(CsrfConfig::default().with_max_age(300))
+//! .build();
 //! ```
 //!
 //! **When to customize:**
 //! - **High-security apps**: Shorter expiry times (300-900 seconds)
 //! - **Mobile apps**: Clock skew tolerance (30-60 seconds) for device time differences
-//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`Client<UserAuth>::with_secret_key`]
+//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`ClientBuilder::secret_key`]
 //!
 //! ### Secure Defaults
 //!
@@ -335,7 +347,7 @@
 //! ## HTTP Client Configuration
 //!
 //! The default HTTP client works for most applications.
-//! For custom configuration, see [`Client::with_client`].
+//! For custom configuration, see [`ClientBuilder::http_client`].
 //!
 //! ## Testing
 //!
@@ -352,7 +364,7 @@ mod request;
 mod tokens;
 mod types;
 
-pub use client::{AppAuth, Client, UserAuth};
+pub use client::{AppAuth, Client, ClientBuilder, UserAuth};
 pub use device::{DeviceAuth, DeviceAuthResponse};
 pub use error::{Error, ErrorKind};
 pub use request::{AuthrozationRequest, validate_access_token};

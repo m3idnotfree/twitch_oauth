@@ -4,14 +4,16 @@ use std::{
     str::FromStr,
 };
 
-use asknothingx2_http::{ClientService, client::Reqwest};
+use asknothingx2_http::{ClientService, Request, client::Reqwest};
+use bytes::Bytes;
+use tower_service::Service;
 
 use crate::{
     AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
     RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
     csrf::{self, CsrfConfig},
     device::DeviceAuth,
-    error,
+    error::{self, BoxError},
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
         ValidateRequest,
@@ -23,6 +25,78 @@ pub const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
 pub const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
 pub const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
 pub const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
+
+pub struct ClientBuilder {
+    client_id: ClientId,
+    client_secret: ClientSecret,
+    csrf_config: Option<CsrfConfig>,
+    secret_key: Option<[u8; 32]>,
+    svc: Option<ClientService>,
+}
+
+impl ClientBuilder {
+    pub fn new(client_id: ClientId, client_secret: ClientSecret) -> Self {
+        Self {
+            client_id,
+            client_secret,
+            svc: None,
+            csrf_config: None,
+            secret_key: None,
+        }
+    }
+
+    /// Configure CSRF token validation settings
+    ///
+    /// This controls how CSRF tokens are validated during the OAuth flow.
+    /// Tokens use HMAC-SHA256 signatures with timestamp validation.
+    ///
+    /// Defaults:
+    /// - max_age: 1800s (30 minutes)
+    /// - clock_skew: None (no tolerance for time differences)
+    pub fn csrf_config(mut self, config: CsrfConfig) -> Self {
+        self.csrf_config = Some(config);
+        self
+    }
+
+    /// Set custom secret key for CSRF token generation
+    ///
+    /// By default, a random secret key is generated automatically for each `Client` instance.
+    /// Set custom secret key for CSRF token generation and validation
+    pub fn secret_key(mut self, secret_key: [u8; 32]) -> Self {
+        self.secret_key = Some(secret_key);
+        self
+    }
+
+    pub fn http_client<S, B>(mut self, service: S) -> Self
+    where
+        S: Service<Request, Response = http::Response<B>> + Clone + Send + Sync + 'static,
+        S::Error: Into<BoxError>,
+        S::Future: Send + 'static,
+        B: http_body::Body<Data = Bytes> + Send + Sync + 'static,
+        B::Error: Into<BoxError>,
+    {
+        self.svc = Some(ClientService::new(service));
+        self
+    }
+
+    pub fn build(self) -> Client {
+        Client {
+            client_id: self.client_id,
+            client_secret: self.client_secret,
+            redirect_uri: (),
+            secret_key: self.secret_key.unwrap_or_else(csrf::generate_secret_key),
+            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
+            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
+            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
+            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
+            csrf_config: self.csrf_config.unwrap_or_default(),
+            phanthom: PhantomData,
+            svc: self
+                .svc
+                .unwrap_or_else(|| ClientService::new(Reqwest::new(crate::default_client()))),
+        }
+    }
+}
 
 mod private {
     pub trait Sealed {}
@@ -145,28 +219,6 @@ where
         &self.client_secret
     }
 
-    /// Override the HTTP client
-    pub fn with_client(mut self, client: reqwest::Client) -> Self {
-        self.svc = ClientService::new(Reqwest::new(client.clone()));
-        self
-    }
-
-    /// Configure CSRF token validation settings
-    ///
-    /// This controls how CSRF tokens are validated during the OAuth flow.
-    /// Tokens use HMAC-SHA256 signatures with timestamp validation.
-    ///
-    /// Defaults:
-    /// - max_age: 1800s (30 minutes)
-    /// - clock_skew: None (no tolerance for time differences)
-    ///
-    /// Note: For multi-server deployments, also use [`Client<UserAuth>::with_secret_key`] to share
-    /// the same secret across all instances.
-    pub fn with_csrf_config(mut self, config: CsrfConfig) -> Self {
-        self.csrf_config = config;
-        self
-    }
-
     /// Update the client secret at runtime
     ///
     /// Use this when you need to rotate credentials in a running application,
@@ -182,7 +234,7 @@ where
     /// Use this to adjust CSRF validation behavior in a running application,
     /// especially in `Arc<RwLock<Client>>` patterns.
     ///
-    /// For initial configuration during construction, use [`Client::with_csrf_config`] instead.
+    /// For initial configuration during construction, use [`ClientBuilder::csrf_config`] instead.
     pub fn set_csrf_config(&mut self, config: CsrfConfig) {
         self.csrf_config = config;
     }
@@ -301,19 +353,11 @@ where
 impl Client<AppAuth> {
     /// Create OAuth client for app authentication
     pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
-        Self {
-            client_id: ClientId::from(client_id.into()),
-            client_secret: ClientSecret::from(client_secret.into()),
-            redirect_uri: (),
-            secret_key: csrf::generate_secret_key(),
-            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
-            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
-            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
-            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
-            csrf_config: CsrfConfig::default(),
-            phanthom: PhantomData,
-            svc: ClientService::new(Reqwest::new(crate::default_client())),
-        }
+        ClientBuilder::new(
+            ClientId::from(client_id.into()),
+            ClientSecret::from(client_secret.into()),
+        )
+        .build()
     }
 
     /// Upgrade to user authentication by adding redirect URI
@@ -337,24 +381,16 @@ impl Client<AppAuth> {
     ///
     /// Most users should use [`Client::new()`] instead.
     pub fn from_credentials(client_id: ClientId, client_secret: ClientSecret) -> Self {
-        Self {
-            client_id,
-            client_secret,
-            redirect_uri: (),
-            secret_key: csrf::generate_secret_key(),
-            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
-            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
-            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
-            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
-            csrf_config: CsrfConfig::default(),
-            phanthom: PhantomData,
-            svc: ClientService::new(Reqwest::new(crate::default_client())),
-        }
+        ClientBuilder::new(client_id, client_secret).build()
     }
 
     /// Create Device code grant flow
     pub fn device_auth(client_id: ClientId) -> DeviceAuth {
         DeviceAuth::new(client_id)
+    }
+
+    pub fn builder(client_id: ClientId, client_secret: ClientSecret) -> ClientBuilder {
+        ClientBuilder::new(client_id, client_secret)
     }
 }
 
@@ -453,38 +489,12 @@ impl Client<UserAuth> {
         .await
     }
 
-    /// Set custom secret key for CSRF token generation
-    ///
-    /// By default, a random secret key is generated automatically for each `Client` instance.
-    /// Set custom secret key for CSRF token generation and validation
-    ///
-    /// # Example
-    /// ```rust
-    /// use std::str::FromStr;
-    /// use twitch_oauth_token::{csrf, RedirectUrl, Client};
-    ///
-    /// # fn run() -> Result<(), Box<dyn std::error::Error>> {
-    ///
-    /// let shared_secret = csrf::generate_secret_key();
-    ///
-    /// let oauth = Client::new("your_client_id", "your_client_secret")
-    ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
-    ///     .with_secret_key(shared_secret);
-    ///
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn with_secret_key(mut self, secret_key: [u8; 32]) -> Self {
-        self.secret_key = secret_key;
-        self
-    }
-
     /// Update the CSRF secret key at runtime
     ///
     /// Use this to rotate CSRF secret keys in a running application,
     /// especially in `Arc<RwLock<Client>>` patterns or multi-server deployments.
     ///
-    /// For initial configuration during construction, use [`Client::with_secret_key`] instead.
+    /// For initial configuration during construction, use [`ClientBuilder::secret_key`] instead.
     pub fn set_secret_key(&mut self, secret_key: [u8; 32]) {
         self.secret_key = secret_key;
     }

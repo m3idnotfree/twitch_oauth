@@ -35,14 +35,17 @@ required-features = ["oneshot"]
 [dependencies]
 asknothingx2-http = { version = "0.1.0", features = ["reqwest"] }
 asknothingx2-util = { version = "0.6.0", features = ["api", "oauth"] }
+bytes = "1.12.1"
 chrono = { version = "0.4.45", features = ["serde"] }
 http = "1.5.0"
+http-body = "1.1.0"
 reqwest = { version = "0.13.5", features = ["multipart"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_path_to_error = "0.1.20"
 serde_urlencoded = "0.7.1"
 tokio = { version = "1.53.2", default-features = false, features = ["time"] }
+tower-service = "0.3.3"
 tracing = { version = "0.1.44", default-features = false, optional = true }
 url = { version = "2.5.8", features = ["serde"] }
 
