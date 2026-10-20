@@ -5,8 +5,8 @@ use asknothingx2_util::api::mime_type::Application;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
-    ClientId, ClientSecret, RefreshToken, TokenUrl,
-    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
+    ClientId, ClientSecret, RefreshToken,
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest, TOKEN_URL},
     types::GrantType,
 };
 
@@ -16,7 +16,6 @@ pub struct RefreshRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
     refresh_token: RefreshToken,
-    token_url: &'a TokenUrl,
 }
 
 impl<'a> RefreshRequest<'a> {
@@ -24,13 +23,11 @@ impl<'a> RefreshRequest<'a> {
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
         refresh_token: RefreshToken,
-        token_url: &'a TokenUrl,
     ) -> Self {
         Self {
             client_id,
             client_secret,
             refresh_token,
-            token_url,
         }
     }
 }
@@ -39,7 +36,7 @@ impl IntoRequest for RefreshRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::RefreshAccessToken;
 
     fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
-        Ok(http::Request::post(self.token_url.to_string())
+        Ok(http::Request::post(TOKEN_URL)
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
             .body(Body::from(super::form(&[

@@ -3,8 +3,8 @@ use std::{collections::HashSet, ops::Deref};
 use url::Url;
 
 use crate::{
-    AuthUrl, ClientId, RedirectUrl,
-    request::CLIENT_ID,
+    ClientId, RedirectUrl,
+    request::{AUTH_URL, CLIENT_ID},
     scope::{Scope, ScopesMut, scopes_mut},
     types::ResponseType,
 };
@@ -12,7 +12,6 @@ use crate::{
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
 #[derive(Debug)]
 pub struct AuthrozationRequest<'a> {
-    auth_url: &'a AuthUrl,
     client_id: &'a ClientId,
     force_verify: Option<bool>,
     redirect_url: &'a RedirectUrl,
@@ -21,14 +20,8 @@ pub struct AuthrozationRequest<'a> {
 }
 
 impl<'a> AuthrozationRequest<'a> {
-    pub fn new(
-        auth_url: &'a AuthUrl,
-        client_id: &'a ClientId,
-        redirect_url: &'a RedirectUrl,
-        state: String,
-    ) -> Self {
+    pub fn new(client_id: &'a ClientId, redirect_url: &'a RedirectUrl, state: String) -> Self {
         Self {
-            auth_url,
             client_id,
             force_verify: None,
             redirect_url,
@@ -48,7 +41,7 @@ impl<'a> AuthrozationRequest<'a> {
 
     /// Generate authorization URL with HMAC-based CSRF protection
     pub fn url(self) -> Url {
-        let mut url: Url = self.auth_url.to_url();
+        let mut url: Url = Url::parse(AUTH_URL).expect("AUTH_URL is a valid URL");
 
         {
             let mut query_pairs = url.query_pairs_mut();

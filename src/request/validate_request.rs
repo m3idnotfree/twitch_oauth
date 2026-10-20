@@ -1,19 +1,18 @@
-use std::str::FromStr;
-
 use asknothingx2_http::{Body, ClientService, client::Reqwest};
 use asknothingx2_util::api::AuthScheme;
 use http::header::AUTHORIZATION;
 
-use crate::{AccessToken, Error, ValidateUrl, request::IntoRequest, tokens::TokenInfo};
+use crate::{
+    AccessToken, Error,
+    request::{IntoRequest, VALIDATE_URL},
+    tokens::TokenInfo,
+};
 
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenInfo, Error> {
     crate::client::json(
         ClientService::new(Reqwest::new(crate::default_client())),
-        ValidateRequest::new(
-            access_token,
-            &ValidateUrl::from_str(crate::client::VALIDATE_URL).unwrap(),
-        ),
+        ValidateRequest::new(access_token),
     )
     .await
 }
@@ -22,26 +21,17 @@ pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenIn
 #[derive(Debug)]
 pub struct ValidateRequest<'a> {
     access_token: &'a AccessToken,
-    validate_url: &'a ValidateUrl,
 }
 
 impl<'a> ValidateRequest<'a> {
-    pub fn new(access_token: &'a AccessToken, validate_url: &'a ValidateUrl) -> Self {
-        Self {
-            access_token,
-            validate_url,
-        }
+    pub fn new(access_token: &'a AccessToken) -> Self {
+        Self { access_token }
     }
 }
 
 #[allow(dead_code)]
 #[cfg(feature = "test")]
 impl<'a> ValidateRequest<'a> {
-    pub fn with_validate_url(mut self, url: &'a ValidateUrl) -> Self {
-        self.validate_url = url;
-        self
-    }
-
     pub async fn send(self, client: &reqwest::Client) -> Result<TokenInfo, Error> {
         crate::client::json(ClientService::new(Reqwest::new(client.clone())), self).await
     }
@@ -54,7 +44,7 @@ impl IntoRequest for ValidateRequest<'_> {
         let authorization =
             AuthScheme::custom("OAuth", self.access_token.secret()).to_header_value()?;
 
-        Ok(http::Request::get(self.validate_url.to_string())
+        Ok(http::Request::get(VALIDATE_URL)
             .header(AUTHORIZATION, authorization)
             .body(Body::empty())?)
     }

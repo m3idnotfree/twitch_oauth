@@ -1,7 +1,6 @@
 use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    str::FromStr,
 };
 
 use asknothingx2_http::{ClientService, Request, client::Reqwest};
@@ -9,8 +8,8 @@ use bytes::Bytes;
 use tower_service::Service;
 
 use crate::{
-    AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
-    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
+    AccessToken, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
+    RedirectUrl, RefreshToken,
     csrf::{self, CsrfConfig},
     device::DeviceAuth,
     error::{self, BoxError},
@@ -18,13 +17,7 @@ use crate::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
         ValidateRequest,
     },
-    types::GrantType,
 };
-
-pub const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
-pub const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
-pub const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
-pub const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
 
 pub struct ClientBuilder {
     client_id: ClientId,
@@ -85,15 +78,11 @@ impl ClientBuilder {
             client_secret: self.client_secret,
             redirect_uri: (),
             secret_key: self.secret_key.unwrap_or_else(csrf::generate_secret_key),
-            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
-            auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
-            revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
-            validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
             csrf_config: self.csrf_config.unwrap_or_default(),
-            phanthom: PhantomData,
             svc: self
                 .svc
                 .unwrap_or_else(|| ClientService::new(Reqwest::new(crate::default_client()))),
+            phanthom: PhantomData,
         }
     }
 }
@@ -195,13 +184,9 @@ where
     client_secret: ClientSecret,
     redirect_uri: Flow::RedirectUrl,
     secret_key: [u8; 32],
-    token_url: TokenUrl,
-    auth_url: AuthUrl,
-    revoke_url: RevocationUrl,
-    validate_url: ValidateUrl,
     csrf_config: CsrfConfig,
-    phanthom: PhantomData<Flow>,
     pub(crate) svc: ClientService,
+    phanthom: PhantomData<Flow>,
 }
 
 impl<Flow> Client<Flow>
@@ -257,12 +242,7 @@ where
     ) -> Result<crate::UserToken, Error> {
         json(
             self.svc.clone(),
-            RefreshRequest::new(
-                &self.client_id,
-                &self.client_secret,
-                refresh_token,
-                &self.token_url,
-            ),
+            RefreshRequest::new(&self.client_id, &self.client_secret, refresh_token),
         )
         .await
     }
@@ -288,7 +268,7 @@ where
     pub async fn revoke_access_token(&self, access_token: &AccessToken) -> Result<(), Error> {
         let _resp = send(
             self.svc.clone(),
-            RevokeRequest::new(access_token, &self.client_id, &self.revoke_url),
+            RevokeRequest::new(access_token, &self.client_id),
         )
         .await?;
 
@@ -316,12 +296,7 @@ where
     pub async fn app_access_token(&self) -> Result<crate::AppToken, Error> {
         json(
             self.svc.clone(),
-            ClientCredentialsRequest::new(
-                &self.client_id,
-                &self.client_secret,
-                GrantType::ClientCredentials,
-                &self.token_url,
-            ),
+            ClientCredentialsRequest::new(&self.client_id, &self.client_secret),
         )
         .await
     }
@@ -342,11 +317,7 @@ where
         &self,
         access_token: &AccessToken,
     ) -> Result<crate::TokenInfo, Error> {
-        json(
-            self.svc.clone(),
-            ValidateRequest::new(access_token, &self.validate_url),
-        )
-        .await
+        json(self.svc.clone(), ValidateRequest::new(access_token)).await
     }
 }
 
@@ -367,13 +338,9 @@ impl Client<AppAuth> {
             client_secret: self.client_secret,
             redirect_uri,
             secret_key: self.secret_key,
-            token_url: self.token_url,
-            auth_url: self.auth_url,
-            revoke_url: self.revoke_url,
-            validate_url: self.validate_url,
             csrf_config: self.csrf_config,
-            phanthom: PhantomData,
             svc: self.svc,
+            phanthom: PhantomData,
         }
     }
 
@@ -428,7 +395,6 @@ impl Client<UserAuth> {
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub fn authorization_url<'a>(&'a self) -> AuthrozationRequest<'a> {
         AuthrozationRequest::new(
-            &self.auth_url,
             &self.client_id,
             &self.redirect_uri,
             csrf::generate(&self.secret_key, Some(&self.client_id)),
@@ -483,7 +449,6 @@ impl Client<UserAuth> {
                 &self.client_secret,
                 code,
                 &self.redirect_uri,
-                &self.token_url,
             ),
         )
         .await
@@ -505,38 +470,6 @@ impl<Flow> Client<Flow>
 where
     Flow: OauthFlow,
 {
-    /// Override the authorization URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/authorize`
-    pub fn with_auth_url(mut self, auth_url: AuthUrl) -> Self {
-        self.auth_url = auth_url;
-        self
-    }
-
-    /// Override the token URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/token`
-    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
-        self
-    }
-
-    /// Override the revocation URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/revoke`
-    pub fn with_revoke_url(mut self, revoke_url: RevocationUrl) -> Self {
-        self.revoke_url = revoke_url;
-        self
-    }
-
-    /// Override the token validation URL
-    ///
-    /// Default: `https://id.twitch.tv/oauth2/validate`
-    pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
-        self.validate_url = validate_url;
-        self
-    }
-
     pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
         crate::test_oauth::TwitchOauthTest::new(self)
     }
@@ -567,9 +500,6 @@ where
             .field("client_id", &self.client_id)
             .field("client_secret", &self.client_secret)
             .field("redirect_uri", &self.redirect_uri)
-            .field("token_url", &self.token_url)
-            .field("auth_url", &self.auth_url)
-            .field("revoke_url", &self.revoke_url)
             .finish()
     }
 }

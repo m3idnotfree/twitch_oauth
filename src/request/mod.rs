@@ -21,6 +21,11 @@ pub const GRANT_TYPE: &str = "grant_type";
 
 const CLIENT_SECRET: &str = "client_secret";
 
+pub(crate) const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
+pub(crate) const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
+pub(crate) const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
+pub(crate) const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
+
 pub(crate) trait IntoRequest {
     const OPERATION: crate::error::Operation;
 

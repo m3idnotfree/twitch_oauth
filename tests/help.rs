@@ -1,26 +1,19 @@
 pub mod url {
-    use twitch_oauth_token::{AuthUrl, RedirectUrl, RevocationUrl, TokenUrl, ValidateUrl};
+    use twitch_oauth_token::RedirectUrl;
+    use url::Url;
 
     use std::str::FromStr;
-
-    pub fn token(url: &str) -> TokenUrl {
-        TokenUrl::from_str(&format!("{url}/oauth2/token",)).unwrap()
-    }
-
-    pub fn auth(url: &str) -> AuthUrl {
-        AuthUrl::from_str(&format!("{url}/oauth2/authorize")).unwrap()
-    }
 
     pub fn redirect() -> RedirectUrl {
         RedirectUrl::from_str("http://localhost:3000").unwrap()
     }
 
-    pub fn revoke(url: &str) -> RevocationUrl {
-        RevocationUrl::from_str(&format!("{url}/oauth2/revoke")).unwrap()
-    }
-
-    pub fn validate(url: &str) -> ValidateUrl {
-        ValidateUrl::from_str(&format!("{url}/oauth2/validate")).unwrap()
+    pub fn to_mock(mut url: Url, server: &wiremock::MockServer) -> Url {
+        let mock = Url::parse(&server.uri()).unwrap();
+        url.set_scheme(mock.scheme()).unwrap();
+        url.set_host(mock.host_str()).unwrap();
+        url.set_port(mock.port()).unwrap();
+        url
     }
 }
 
@@ -42,23 +35,22 @@ pub mod token {
 
 #[cfg(feature = "test")]
 pub mod setup {
-    use asknothingx2_http::{ClientService, client::Reqwest};
+    use asknothingx2_http::client::Reqwest;
     use twitch_oauth_token::{Client, UserAuth};
     use wiremock::MockServer;
 
+    use super::service;
     use super::{config, url};
 
     pub async fn oauth_server() -> (MockServer, Client<UserAuth>) {
         let server = MockServer::start().await;
 
-        let client = Client::builder(config::client_id().into(), config::client_secret().into())
-            .http_client(ClientService::new(Reqwest::new(config::client())))
-            .build();
-        let oauth = client
-            .with_token_url(url::token(&server.uri()))
-            .with_auth_url(url::auth(&server.uri()))
-            .with_validate_url(url::validate(&server.uri()))
-            .with_revoke_url(url::revoke(&server.uri()))
+        let oauth = Client::builder(config::client_id().into(), config::client_secret().into())
+            .http_client(service::Host::new(
+                Reqwest::new(config::client()),
+                &server.uri(),
+            ))
+            .build()
             .with_redirect_uri(url::redirect());
 
         (server, oauth)
@@ -255,5 +247,52 @@ pub mod server {
             .respond_with(ResponseTemplate::new(204))
             .mount(server)
             .await;
+    }
+}
+
+pub mod service {
+    use asknothingx2_http::Request;
+    use http::Uri;
+    use tower_service::Service;
+
+    #[derive(Clone)]
+    pub struct Host<S> {
+        inner: S,
+        base: Uri,
+    }
+
+    impl<S> Host<S> {
+        pub fn new(inner: S, base: &str) -> Self {
+            Self {
+                inner,
+                base: base.parse().unwrap(),
+            }
+        }
+    }
+
+    impl<S> Service<Request> for Host<S>
+    where
+        S: Service<Request>,
+    {
+        type Response = S::Response;
+        type Error = S::Error;
+        type Future = S::Future;
+
+        fn poll_ready(
+            &mut self,
+            cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Result<(), Self::Error>> {
+            self.inner.poll_ready(cx)
+        }
+
+        fn call(&mut self, mut req: Request) -> Self::Future {
+            let mut parts = req.uri().clone().into_parts();
+            let base = self.base.clone().into_parts();
+            parts.scheme = base.scheme;
+            parts.authority = base.authority;
+            *req.uri_mut() = Uri::from_parts(parts).unwrap();
+
+            self.inner.call(req)
+        }
     }
 }

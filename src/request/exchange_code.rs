@@ -5,8 +5,8 @@ use asknothingx2_util::api::mime_type::Application;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
-    AuthorizationCode, ClientId, ClientSecret, RedirectUrl, TokenUrl,
-    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
+    AuthorizationCode, ClientId, ClientSecret, RedirectUrl,
+    request::{CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest, TOKEN_URL},
     types::GrantType,
 };
 
@@ -16,7 +16,6 @@ pub struct ExchangeCodeRequest<'a> {
     client_secret: &'a ClientSecret,
     code: AuthorizationCode,
     redirect_url: &'a RedirectUrl,
-    token_url: &'a TokenUrl,
 }
 
 impl<'a> ExchangeCodeRequest<'a> {
@@ -25,14 +24,12 @@ impl<'a> ExchangeCodeRequest<'a> {
         client_secret: &'a ClientSecret,
         code: AuthorizationCode,
         redirect_url: &'a RedirectUrl,
-        token_url: &'a TokenUrl,
     ) -> Self {
         Self {
             client_id,
             client_secret,
             code,
             redirect_url,
-            token_url,
         }
     }
 }
@@ -41,7 +38,7 @@ impl IntoRequest for ExchangeCodeRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::ExchangeCode;
 
     fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
-        Ok(http::Request::post(self.token_url.to_string())
+        Ok(http::Request::post(TOKEN_URL)
             .header(ACCEPT, Application::Json)
             .header(CONTENT_TYPE, Application::FormUrlEncoded)
             .body(Body::from(super::form(&[

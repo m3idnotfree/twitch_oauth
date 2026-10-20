@@ -12,9 +12,9 @@ use url::Url;
 
 use crate::{
     DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken,
-    client::{TOKEN_URL, execute, read_json},
+    client::{execute, read_json},
     error,
-    request::{CLIENT_ID, GRANT_TYPE},
+    request::{CLIENT_ID, GRANT_TYPE, TOKEN_URL},
     scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,
     types::GrantType,

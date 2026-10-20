@@ -56,7 +56,10 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    AuthUrl, Client, Error, TokenUrl, client::OauthFlow, request::ClientCredentialsRequest,
+    AuthUrl, Client, Error,
+    client::OauthFlow,
+    error,
+    request::{ClientCredentialsRequest, IntoRequest},
     types::GrantType,
 };
 
@@ -107,16 +110,22 @@ where
 
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
-        crate::client::json(
-            self.oauth.svc.clone(),
-            ClientCredentialsRequest::new(
-                self.oauth.client_id(),
-                self.oauth.client_secret(),
-                GrantType::ClientCredentials,
-                &TokenUrl::from_str(self.test_env.app_auth_url().as_ref()).unwrap(),
-            ),
-        )
-        .await
+        let operation = ClientCredentialsRequest::OPERATION;
+
+        let mut req =
+            ClientCredentialsRequest::new(self.oauth.client_id(), self.oauth.client_secret())
+                .into_request()
+                .map_err(|e| error::build(operation, e))?;
+
+        *req.uri_mut() = self
+            .test_env
+            .app_auth_url()
+            .as_ref()
+            .parse()
+            .map_err(|e| error::build(operation, e))?;
+
+        let resp = crate::client::execute(operation, self.oauth.svc.clone(), req).await?;
+        crate::client::read_json(operation, resp).await
     }
 }
 
