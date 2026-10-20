@@ -10,7 +10,7 @@
 //! # {
 //!  use twitch_oauth_token::{
 //!      test_oauth::mock_api::MockApiUnits,
-//!      TwitchOauth,
+//!      Client,
 //!  };
 //!
 //! #[tokio::main]
@@ -19,7 +19,7 @@
 //!      let clients = mock_api.get_clients().await.unwrap();
 //!      let client = clients.data.first().unwrap();
 //!     
-//!     let oauth = TwitchOauth::from_credentials(client.ID.clone(), client.Secret.clone())
+//!     let oauth = Client::from_credentials(client.ID.clone(), client.Secret.clone())
 //!         .with_test();
 //!
 //!     // Get app token from mock API
@@ -55,7 +55,7 @@ use asknothingx2_util::api::preset;
 use url::Url;
 
 use crate::{
-    AuthUrl, Error, TokenUrl, TwitchOauth, oauth::OauthFlow, request::ClientCredentialsRequest,
+    AuthUrl, Client, Error, TokenUrl, client::OauthFlow, request::ClientCredentialsRequest,
     types::GrantType,
 };
 
@@ -66,7 +66,7 @@ pub struct TwitchOauthTest<Flow>
 where
     Flow: OauthFlow,
 {
-    oauth: TwitchOauth<Flow>,
+    oauth: Client<Flow>,
     test_env: TestEnv,
 }
 
@@ -74,7 +74,7 @@ impl<Flow> TwitchOauthTest<Flow>
 where
     Flow: OauthFlow,
 {
-    pub fn new(oauth: TwitchOauth<Flow>) -> Self {
+    pub fn new(oauth: Client<Flow>) -> Self {
         let this = oauth.with_client(preset::testing(USER_AGENT).build().unwrap());
 
         Self {
@@ -88,7 +88,7 @@ where
         self
     }
 
-    pub fn oauth(&self) -> &TwitchOauth<Flow> {
+    pub fn oauth(&self) -> &Client<Flow> {
         &self.oauth
     }
 
@@ -106,7 +106,7 @@ where
 
     #[allow(deprecated)]
     pub async fn app_access_token(&self) -> Result<crate::AppToken, crate::Error> {
-        crate::oauth::json(
+        crate::client::json(
             self.oauth.svc.clone(),
             ClientCredentialsRequest::new(
                 self.oauth.client_id(),

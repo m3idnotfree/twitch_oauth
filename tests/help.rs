@@ -42,15 +42,15 @@ pub mod token {
 
 #[cfg(feature = "test")]
 pub mod setup {
-    use twitch_oauth_token::{TwitchOauth, UserAuth};
+    use twitch_oauth_token::{Client, UserAuth};
     use wiremock::MockServer;
 
     use super::{config, url};
 
-    pub async fn oauth_server() -> (MockServer, TwitchOauth<UserAuth>) {
+    pub async fn oauth_server() -> (MockServer, Client<UserAuth>) {
         let server = MockServer::start().await;
 
-        let oauth = TwitchOauth::new(config::client_id(), config::client_secret())
+        let oauth = Client::new(config::client_id(), config::client_secret())
             .with_client(config::client())
             .with_token_url(url::token(&server.uri()))
             .with_auth_url(url::auth(&server.uri()))
@@ -113,7 +113,7 @@ pub mod validate {
 
 pub mod server {
     use serde_json::json;
-    use twitch_oauth_token::{TwitchOauth, UserAuth};
+    use twitch_oauth_token::{Client, UserAuth};
     use wiremock::{
         Mock, MockServer, ResponseTemplate,
         matchers::{body_string_contains, header, method, path, query_param},
@@ -142,7 +142,7 @@ pub mod server {
 
     pub async fn authorization_code_grant_flow(
         server: &MockServer,
-        oauth: &TwitchOauth<UserAuth>,
+        oauth: &Client<UserAuth>,
         scopes: &str,
     ) -> String {
         let auth_url = oauth.authorization_url().url();

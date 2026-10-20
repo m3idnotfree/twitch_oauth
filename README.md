@@ -27,11 +27,11 @@ tokio = { version = "1", features = ["full"] }
 ### App access token
 
 ```rust
-use twitch_oauth_token::TwitchOauth;
+use twitch_oauth_token::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let oauth = TwitchOauth::new("client_id", "client_secret");
+    let oauth = Client::new("client_id", "client_secret");
 
     let token = oauth.app_access_token().await?;
 
@@ -46,10 +46,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use std::str::FromStr;
-use twitch_oauth_token::{RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{Client, RedirectUrl};
 
 fn main() {
-    let oauth = TwitchOauth::new("client_id", "client_secret")
+    let oauth = Client::new("client_id", "client_secret")
         .with_redirect_uri(RedirectUrl::from_str("http://example.com/auth/callback").unwrap());
 
     let mut auth_request = oauth.authorization_url();
@@ -65,10 +65,10 @@ fn main() {
 ### Handling OAuth Callback
 
 ```rust
-use twitch_oauth_token::{AuthCallback, TwitchOauth, UserAuth};
+use twitch_oauth_token::{AuthCallback, Client, UserAuth};
 
 async fn handle_callback(
-    oauth: &TwitchOauth<UserAuth>,
+    oauth: &Client<UserAuth>,
     oauth_callback: AuthCallback,
 ) -> Result<(), twitch_oauth_token::Error> {
     let token = oauth
@@ -87,11 +87,11 @@ async fn handle_callback(
 ### Device code Flow
 
 ```rust
-use twitch_oauth_token::{ClientId, TwitchOauth};
+use twitch_oauth_token::{Client, ClientId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut device_flow = TwitchOauth::device_auth(ClientId::from("client_id"));
+    let mut device_flow = Client::device_auth(ClientId::from("client_id"));
     device_flow.scopes_mut().chat_api();
 
     let resp = device_flow.request().await?;

@@ -8,28 +8,28 @@
 //!
 //! ### Authentication Flows
 //!
-//! **App Authentication** ([`TwitchOauth<AppAuth>`])
+//! **App Authentication** ([`Client<AppAuth>`])
 //! - For server-to-server API calls that don't require user context
 //! - Access public data (streams, games, public user info)
 //! - No user interaction or redirect URI required
-//! - Use [`TwitchOauth::app_access_token()`] to get tokens
+//! - Use [`Client::app_access_token()`] to get tokens
 //!
-//! **User Authentication** ([`TwitchOauth<UserAuth>`])  
+//! **User Authentication** ([`Client<UserAuth>`])  
 //! - For applications that need to act on behalf of users
 //! - Access user-specific data (follows, subscriptions, chat)
 //! - Requires redirect URI and user consent flow
-//! - Use [`TwitchOauth::authorization_url()`] and [`TwitchOauth::exchange_code()`]
+//! - Use [`Client::authorization_url()`] and [`Client::exchange_code()`]
 //!
 //! **Device Authentication** ([`DeviceAuth`])
 //! - For desktop apps, CLI tools, and devices that cannot store a client secret
 //! - Does not require a client secret or redirect URI
-//! - Use [`TwitchOauth::device_auth()`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
+//! - Use [`Client::device_auth()`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
 //!
 //! ### Type Safety
 //!
 //! The library uses Rust's type system to prevent common OAuth mistakes:
-//! - [`TwitchOauth<AppAuth>`] only allows app authentication operations
-//! - [`TwitchOauth<UserAuth>`] only allows user authentication operations  
+//! - [`Client<AppAuth>`] only allows app authentication operations
+//! - [`Client<UserAuth>`] only allows user authentication operations  
 //! - No way to accidentally call user methods without a redirect URI
 //!
 //! ## Examples
@@ -37,11 +37,11 @@
 //! ### App Authentication Flow
 //!
 //! ```rust,no_run
-//! use twitch_oauth_token::TwitchOauth;
+//! use twitch_oauth_token::Client;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = TwitchOauth::new("client_id", "client_secret");
+//!     let oauth = Client::new("client_id", "client_secret");
 //!     
 //!     let token = oauth.app_access_token().await?;
 //!     
@@ -58,12 +58,12 @@
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
 //!     AuthCallback,
-//!     RedirectUrl, TwitchOauth,
+//!     RedirectUrl, Client,
 //! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
+//!     let oauth = Client::new("your_client_id", "your_client_secret")
 //!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
@@ -106,10 +106,10 @@
 //! Use it to extract the authorization code and state
 //!
 //! ```rust
-//! use twitch_oauth_token::{AuthCallback, TwitchOauth, UserAuth};
+//! use twitch_oauth_token::{AuthCallback, Client, UserAuth};
 //!
 //! async fn handle_oauth_callback(
-//!     oauth: &TwitchOauth<UserAuth>,
+//!     oauth: &Client<UserAuth>,
 //!     query_params: AuthCallback,
 //! ) -> Result<(), twitch_oauth_token::Error> {
 //!     let token = oauth
@@ -128,11 +128,11 @@
 //! For desktop apps, CLI tools, and devices that cannot store a `client_secret`.
 //!
 //! ```rust,no_run
-//! use twitch_oauth_token::{ClientId, TwitchOauth};
+//! use twitch_oauth_token::{ClientId, Client};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut device_flow = TwitchOauth::device_auth(ClientId::from("your_client_id"));
+//!     let mut device_flow = Client::device_auth(ClientId::from("your_client_id"));
 //!     device_flow.scopes_mut()
 //!         .send_chat_message()
 //!         .get_channel_emotes();
@@ -152,9 +152,9 @@
 //! The library provides type-safe scope builders organized by API category:
 //!
 //! ```rust
-//! # use twitch_oauth_token::{TwitchOauth, UserAuth};
+//! # use twitch_oauth_token::{Client, UserAuth};
 //!
-//! # fn run(oauth: TwitchOauth<UserAuth>) {
+//! # fn run(oauth: Client<UserAuth>) {
 //! let mut auth_request = oauth.authorization_url();
 //!
 //! // Chat-related scopes
@@ -191,8 +191,8 @@
 //! Returns [`UserToken`].
 //!
 //! ```rust
-//! # use twitch_oauth_token::{Error, RefreshToken, TwitchOauth};
-//! # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), Error> {
+//! # use twitch_oauth_token::{Error, RefreshToken, Client};
+//! # async fn run(oauth: Client, refresh_token: RefreshToken) -> Result<(), Error> {
 //! let new_token = oauth.refresh_access_token(refresh_token).await?;
 //! # Ok(())
 //! # }
@@ -203,8 +203,8 @@
 //! Returns [`TokenInfo`].
 //!
 //! ```rust
-//! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
-//! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
+//! # use twitch_oauth_token::{AccessToken, Error, Client};
+//! # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), Error> {
 //! let token_info = oauth.validate_access_token(&access_token).await?;
 //! # Ok(())
 //! # }
@@ -213,8 +213,8 @@
 //! ### Revocation
 //!
 //! ```rust
-//! # use twitch_oauth_token::{AccessToken, Error, TwitchOauth};
-//! # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), Error> {
+//! # use twitch_oauth_token::{AccessToken, Error, Client};
+//! # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), Error> {
 //! oauth.revoke_access_token(&access_token).await?;
 //! # Ok(())
 //! # }
@@ -231,8 +231,8 @@
 //! - Self-contained validation without database storage
 //!
 //! **Important for multi-server deployments:**
-//! - By default, each [`TwitchOauth`] instance generates a random secret key
-//! - For load-balanced or clustered environments, use [`TwitchOauth<UserAuth>::with_secret_key`] to share the same secret across all instances
+//! - By default, each [`Client`] instance generates a random secret key
+//! - For load-balanced or clustered environments, use [`Client<UserAuth>::with_secret_key`] to share the same secret across all instances
 //! - Without a shared secret key, tokens generated on one server will fail validation on another
 //!
 //! #### CSRF Configuration
@@ -240,24 +240,24 @@
 //! You can customize CSRF token validation behavior:
 //!
 //! ```rust
-//! use twitch_oauth_token::{csrf::CsrfConfig, TwitchOauth};
+//! use twitch_oauth_token::{csrf::CsrfConfig, Client};
 //!
 //! // Default: 30 minutes expiry, no clock skew tolerance
-//! let oauth = TwitchOauth::new("client_id", "client_secret");
+//! let oauth = Client::new("client_id", "client_secret");
 //!
 //! // Custom: 10 minutes expiry, 60 seconds clock skew tolerance
-//! let oauth = TwitchOauth::new("client_id", "client_secret")
+//! let oauth = Client::new("client_id", "client_secret")
 //!     .with_csrf_config(CsrfConfig::new(60, 600));
 //!
 //! // Strict: 5 minutes expiry, no clock skew tolerance
-//! let oauth = TwitchOauth::new("client_id", "client_secret")
+//! let oauth = Client::new("client_id", "client_secret")
 //!     .with_csrf_config(CsrfConfig::default().with_max_age(300));
 //! ```
 //!
 //! **When to customize:**
 //! - **High-security apps**: Shorter expiry times (300-900 seconds)
 //! - **Mobile apps**: Clock skew tolerance (30-60 seconds) for device time differences
-//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`TwitchOauth<UserAuth>::with_secret_key`]
+//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`Client<UserAuth>::with_secret_key`]
 //!
 //! ### Secure Defaults
 //!
@@ -272,8 +272,8 @@
 //! Use [Error::kind]
 //!
 //! ```rust
-//! # use twitch_oauth_token::{AppAuth, ErrorKind, TwitchOauth};
-//! # async fn run(oauth: TwitchOauth<AppAuth>) {
+//! # use twitch_oauth_token::{AppAuth, ErrorKind, Client};
+//! # async fn run(oauth: Client<AppAuth>) {
 //! match oauth.app_access_token().await {
 //!     Ok(app_token) => { /* success */ }
 //!     Err(e) => match e.kind() {
@@ -296,11 +296,11 @@
 //! # #[cfg(feature = "oneshot")]
 //! # {
 //! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, TwitchOauth};
+//! use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, Client};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = TwitchOauth::new("client_id", "client_secret")
+//!     let oauth = Client::new("client_id", "client_secret")
 //!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
@@ -335,7 +335,7 @@
 //! ## HTTP Client Configuration
 //!
 //! The default HTTP client works for most applications.
-//! For custom configuration, see [`TwitchOauth::with_client`].
+//! For custom configuration, see [`Client::with_client`].
 //!
 //! ## Testing
 //!
@@ -345,16 +345,16 @@
 
 pub mod scope;
 
+mod client;
 mod device;
 mod error;
-mod oauth;
 mod request;
 mod tokens;
 mod types;
 
+pub use client::{AppAuth, Client, UserAuth};
 pub use device::{DeviceAuth, DeviceAuthResponse};
 pub use error::{Error, ErrorKind};
-pub use oauth::{AppAuth, TwitchOauth, UserAuth};
 pub use request::{AuthrozationRequest, validate_access_token};
 pub use scope::Scope;
 pub use tokens::{AppToken, TokenInfo, UserToken};

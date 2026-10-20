@@ -2,7 +2,7 @@ use std::{env, time::Instant};
 
 use anyhow::{Context, Result};
 use tracing::{debug, error, info};
-use twitch_oauth_token::TwitchOauth;
+use twitch_oauth_token::Client;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
         "Getting OAuth token"
     );
 
-    let oauth = TwitchOauth::new(client_id, client_secret);
+    let oauth = Client::new(client_id, client_secret);
 
     debug!(
         service = "twitch_oauth",

@@ -11,8 +11,9 @@ use serde::Deserialize;
 use url::Url;
 
 use crate::{
-    DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken, error,
-    oauth::{TOKEN_URL, execute, read_json},
+    DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken,
+    client::{TOKEN_URL, execute, read_json},
+    error,
     request::{CLIENT_ID, GRANT_TYPE},
     scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,

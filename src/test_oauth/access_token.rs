@@ -47,7 +47,7 @@ impl<'a> TestAccessToken<'a> {
     }
 
     pub async fn send(self) -> Result<crate::UserToken, crate::Error> {
-        crate::oauth::json(self.svc.clone(), self).await
+        crate::client::json(self.svc.clone(), self).await
     }
 }
 

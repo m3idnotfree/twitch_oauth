@@ -1,7 +1,7 @@
 use std::{env, str::FromStr, time::Duration};
 
 use anyhow::{Context, Result};
-use twitch_oauth_token::{AuthCallback, RedirectUrl, TwitchOauth, oneshot};
+use twitch_oauth_token::{AuthCallback, Client, RedirectUrl, oneshot};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
         .context("PORT environment variable not set")?
         .parse()?;
 
-    let oauth = TwitchOauth::new(client_id, client_secret)
+    let oauth = Client::new(client_id, client_secret)
         .with_redirect_uri(RedirectUrl::from_str(&redirect_uri)?);
 
     let auth_url = oauth.authorization_url();

@@ -12,7 +12,7 @@ use axum_extra::{TypedHeader, headers::Cookie};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 use twitch_oauth_token::{
-    AccessToken, AuthCallback, RedirectUrl, TokenInfo, TwitchOauth, UserAuth, UserToken,
+    AccessToken, AuthCallback, Client, RedirectUrl, TokenInfo, UserAuth, UserToken,
     csrf::CsrfConfig,
 };
 
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
         "Starting Twitch OAuth server"
     );
 
-    let oauth = TwitchOauth::new(client_id, client_secret)
+    let oauth = Client::new(client_id, client_secret)
         .with_redirect_uri(RedirectUrl::from_str(&redirect_uri)?)
         .with_csrf_config(CsrfConfig::new(0, 180));
 
@@ -69,7 +69,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn twitch_auth(State(client): State<TwitchOauth<UserAuth>>) -> impl IntoResponse {
+async fn twitch_auth(State(client): State<Client<UserAuth>>) -> impl IntoResponse {
     info!(
         service = "twitch_oauth",
         action = "generate_auth_url",
@@ -198,7 +198,7 @@ async fn process_callback(callback: AuthCallback, state: AppState) -> Result<Tok
 }
 
 async fn validate_and_get_user_info(
-    oauth: TwitchOauth<UserAuth>,
+    oauth: Client<UserAuth>,
     access_token: &AccessToken,
 ) -> Result<TokenInfo> {
     info!(
@@ -236,11 +236,11 @@ async fn validate_and_get_user_info(
 
 #[derive(Clone)]
 struct AppState {
-    pub oauth: TwitchOauth<UserAuth>,
+    pub oauth: Client<UserAuth>,
     pub user_tokens: Arc<RwLock<HashMap<String, UserToken>>>,
 }
 
-impl FromRef<AppState> for TwitchOauth<UserAuth> {
+impl FromRef<AppState> for Client<UserAuth> {
     fn from_ref(input: &AppState) -> Self {
         input.oauth.clone()
     }

@@ -62,7 +62,7 @@ impl MockApiUnits {
             .execute(req)
             .await
             .map_err(|e| error::request(error::Operation::MockApiUnits, e.into_inner()))?;
-        crate::oauth::read_json(error::Operation::MockApiUnits, resp).await
+        crate::client::read_json(error::Operation::MockApiUnits, resp).await
     }
 }
 

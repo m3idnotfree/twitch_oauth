@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-use twitch_oauth_token::{AuthorizationCode, ErrorKind, RedirectUrl, TwitchOauth};
+use twitch_oauth_token::{AuthorizationCode, Client, ErrorKind, RedirectUrl};
 
 #[tokio::test]
 async fn csrf_validation_failure() {
-    let oauth = TwitchOauth::new("client_id", "client_secret")
+    let oauth = Client::new("client_id", "client_secret")
         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000").unwrap());
 
     let result = oauth

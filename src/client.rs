@@ -5,7 +5,6 @@ use std::{
 };
 
 use asknothingx2_http::{ClientService, client::Reqwest};
-use reqwest::Client;
 
 use crate::{
     AccessToken, AuthUrl, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
@@ -80,11 +79,11 @@ impl OauthFlow for UserAuth {
 ///
 /// **App authentication** (most common for backend services):
 /// ```no_run
-/// use twitch_oauth_token::TwitchOauth;
+/// use twitch_oauth_token::Client;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let oauth = TwitchOauth::new("client_id", "client_secret");
+///     let oauth = Client::new("client_id", "client_secret");
 ///     
 ///     let token = oauth.app_access_token().await?;
 ///     
@@ -96,11 +95,11 @@ impl OauthFlow for UserAuth {
 /// **User authentication** (for user login flows):
 /// ```no_run
 /// use std::str::FromStr;
-/// use twitch_oauth_token::{TwitchOauth, RedirectUrl};
+/// use twitch_oauth_token::{Client, RedirectUrl};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
-///     let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
+///     let oauth = Client::new("your_client_id", "your_client_secret")
 ///         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
@@ -114,7 +113,7 @@ impl OauthFlow for UserAuth {
 /// }
 /// ```
 #[derive(Clone)]
-pub struct TwitchOauth<Flow = AppAuth>
+pub struct Client<Flow = AppAuth>
 where
     Flow: OauthFlow,
 {
@@ -122,7 +121,7 @@ where
     client_secret: ClientSecret,
     redirect_uri: Flow::RedirectUrl,
     secret_key: [u8; 32],
-    client: Client,
+    client: reqwest::Client,
     token_url: TokenUrl,
     auth_url: AuthUrl,
     revoke_url: RevocationUrl,
@@ -132,7 +131,7 @@ where
     pub(crate) svc: ClientService,
 }
 
-impl<Flow> TwitchOauth<Flow>
+impl<Flow> Client<Flow>
 where
     Flow: OauthFlow,
 {
@@ -148,7 +147,7 @@ where
     }
 
     /// Override the HTTP client
-    pub fn with_client(mut self, client: Client) -> Self {
+    pub fn with_client(mut self, client: reqwest::Client) -> Self {
         self.svc = ClientService::new(Reqwest::new(client.clone()));
         self.client = client;
         self
@@ -163,7 +162,7 @@ where
     /// - max_age: 1800s (30 minutes)
     /// - clock_skew: None (no tolerance for time differences)
     ///
-    /// Note: For multi-server deployments, also use [`TwitchOauth<UserAuth>::with_secret_key`] to share
+    /// Note: For multi-server deployments, also use [`Client<UserAuth>::with_secret_key`] to share
     /// the same secret across all instances.
     pub fn with_csrf_config(mut self, config: CsrfConfig) -> Self {
         self.csrf_config = config;
@@ -173,9 +172,9 @@ where
     /// Update the client secret at runtime
     ///
     /// Use this when you need to rotate credentials in a running application,
-    /// especially in `Arc<RwLock<TwitchOauth>>` patterns.
+    /// especially in `Arc<RwLock<Client>>` patterns.
     ///
-    /// For initial configuration during construction, use [`TwitchOauth::new`] instead.
+    /// For initial configuration during construction, use [`Client::new`] instead.
     pub fn set_client_secret(&mut self, client_secret: ClientSecret) {
         self.client_secret = client_secret;
     }
@@ -183,9 +182,9 @@ where
     /// Update CSRF token validation settings at runtime
     ///
     /// Use this to adjust CSRF validation behavior in a running application,
-    /// especially in `Arc<RwLock<TwitchOauth>>` patterns.
+    /// especially in `Arc<RwLock<Client>>` patterns.
     ///
-    /// For initial configuration during construction, use [`TwitchOauth::with_csrf_config`] instead.
+    /// For initial configuration during construction, use [`Client::with_csrf_config`] instead.
     pub fn set_csrf_config(&mut self, config: CsrfConfig) {
         self.csrf_config = config;
     }
@@ -194,8 +193,8 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, RefreshToken};
-    /// # async fn run(oauth: TwitchOauth, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
+    /// # use twitch_oauth_token::{Client, RefreshToken};
+    /// # async fn run(oauth: Client, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
     /// let new_token = oauth.refresh_access_token(refresh_token).await?;
     /// # Ok(())
     /// # }
@@ -228,8 +227,8 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
-    /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
+    /// # use twitch_oauth_token::{Client, AccessToken};
+    /// # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// oauth.revoke_access_token(&access_token).await?;
     /// # Ok(())
     /// # }
@@ -254,9 +253,9 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::TwitchOauth;
+    /// # use twitch_oauth_token::Client;
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
-    /// let oauth = TwitchOauth::new("client_id", "client_secret");
+    /// let oauth = Client::new("client_id", "client_secret");
     ///
     /// let token = oauth.app_access_token().await?;
     /// # Ok(())
@@ -281,8 +280,8 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::{TwitchOauth, AccessToken};
-    /// # async fn run(oauth: TwitchOauth, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
+    /// # use twitch_oauth_token::{Client, AccessToken};
+    /// # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), twitch_oauth_token::Error> {
     /// let user_info = oauth.validate_access_token(&access_token).await?;
     /// # Ok(())
     /// # }
@@ -301,7 +300,7 @@ where
     }
 }
 
-impl TwitchOauth<AppAuth> {
+impl Client<AppAuth> {
     /// Create OAuth client for app authentication
     pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
         Self {
@@ -321,8 +320,8 @@ impl TwitchOauth<AppAuth> {
     }
 
     /// Upgrade to user authentication by adding redirect URI
-    pub fn with_redirect_uri(self, redirect_uri: RedirectUrl) -> TwitchOauth<UserAuth> {
-        TwitchOauth {
+    pub fn with_redirect_uri(self, redirect_uri: RedirectUrl) -> Client<UserAuth> {
+        Client {
             client_id: self.client_id,
             client_secret: self.client_secret,
             redirect_uri,
@@ -340,7 +339,7 @@ impl TwitchOauth<AppAuth> {
 
     /// Create OAuth client from existing credentials (advanced usage)
     ///
-    /// Most users should use [`TwitchOauth::new()`] instead.
+    /// Most users should use [`Client::new()`] instead.
     pub fn from_credentials(client_id: ClientId, client_secret: ClientSecret) -> Self {
         Self {
             client_id,
@@ -364,7 +363,7 @@ impl TwitchOauth<AppAuth> {
     }
 }
 
-impl TwitchOauth<UserAuth> {
+impl Client<UserAuth> {
     pub fn get_redirect_uri(&self) -> &RedirectUrl {
         &self.redirect_uri
     }
@@ -380,9 +379,9 @@ impl TwitchOauth<UserAuth> {
     /// # Example
     /// ```no_run
     /// # use std::str::FromStr;
-    /// # use twitch_oauth_token::{TwitchOauth, RedirectUrl};
+    /// # use twitch_oauth_token::{Client, RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
-    /// let oauth = TwitchOauth::new("client_id", "client_secret")
+    /// let oauth = Client::new("client_id", "client_secret")
     ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
@@ -416,12 +415,12 @@ impl TwitchOauth<UserAuth> {
     /// use twitch_oauth_token::{
     ///     AuthorizationCode,
     ///     AuthCallback,
-    ///     TwitchOauth,
+    ///     Client,
     ///     UserAuth
     /// };
     ///
     /// async fn handle_callback(
-    ///     oauth: &TwitchOauth<UserAuth>,
+    ///     oauth: &Client<UserAuth>,
     ///     oauth_callback: AuthCallback,
     /// ) -> Result<(), twitch_oauth_token::Error> {
     ///     let token = oauth
@@ -461,19 +460,19 @@ impl TwitchOauth<UserAuth> {
 
     /// Set custom secret key for CSRF token generation
     ///
-    /// By default, a random secret key is generated automatically for each `TwitchOauth` instance.
+    /// By default, a random secret key is generated automatically for each `Client` instance.
     /// Set custom secret key for CSRF token generation and validation
     ///
     /// # Example
     /// ```rust
     /// use std::str::FromStr;
-    /// use twitch_oauth_token::{csrf, RedirectUrl, TwitchOauth};
+    /// use twitch_oauth_token::{csrf, RedirectUrl, Client};
     ///
     /// # fn run() -> Result<(), Box<dyn std::error::Error>> {
     ///
     /// let shared_secret = csrf::generate_secret_key();
     ///
-    /// let oauth = TwitchOauth::new("your_client_id", "your_client_secret")
+    /// let oauth = Client::new("your_client_id", "your_client_secret")
     ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?)
     ///     .with_secret_key(shared_secret);
     ///
@@ -488,16 +487,16 @@ impl TwitchOauth<UserAuth> {
     /// Update the CSRF secret key at runtime
     ///
     /// Use this to rotate CSRF secret keys in a running application,
-    /// especially in `Arc<RwLock<TwitchOauth>>` patterns or multi-server deployments.
+    /// especially in `Arc<RwLock<Client>>` patterns or multi-server deployments.
     ///
-    /// For initial configuration during construction, use [`TwitchOauth::with_secret_key`] instead.
+    /// For initial configuration during construction, use [`Client::with_secret_key`] instead.
     pub fn set_secret_key(&mut self, secret_key: [u8; 32]) {
         self.secret_key = secret_key;
     }
 }
 
 #[cfg(feature = "test")]
-impl<Flow> TwitchOauth<Flow>
+impl<Flow> Client<Flow>
 where
     Flow: OauthFlow,
 {
@@ -542,28 +541,28 @@ where
     }
 }
 
-impl Display for TwitchOauth<AppAuth> {
+impl Display for Client<AppAuth> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "TwitchOauth(client_id: {})", self.client_id)
+        write!(f, "Client(client_id: {})", self.client_id)
     }
 }
 
-impl Display for TwitchOauth<UserAuth> {
+impl Display for Client<UserAuth> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "TwitchOauth(client_id: {}, redirect_uri: {})",
+            "Client(client_id: {}, redirect_uri: {})",
             self.client_id, self.redirect_uri
         )
     }
 }
 
-impl<Flow> Debug for TwitchOauth<Flow>
+impl<Flow> Debug for Client<Flow>
 where
     Flow: OauthFlow,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.debug_struct("TwitchOauth")
+        f.debug_struct("Client")
             .field("client_id", &self.client_id)
             .field("client_secret", &self.client_secret)
             .field("redirect_uri", &self.redirect_uri)
