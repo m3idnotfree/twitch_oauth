@@ -121,7 +121,6 @@ where
     client_secret: ClientSecret,
     redirect_uri: Flow::RedirectUrl,
     secret_key: [u8; 32],
-    client: reqwest::Client,
     token_url: TokenUrl,
     auth_url: AuthUrl,
     revoke_url: RevocationUrl,
@@ -149,7 +148,6 @@ where
     /// Override the HTTP client
     pub fn with_client(mut self, client: reqwest::Client) -> Self {
         self.svc = ClientService::new(Reqwest::new(client.clone()));
-        self.client = client;
         self
     }
 
@@ -312,7 +310,6 @@ impl Client<AppAuth> {
             auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
             revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
             validate_url: ValidateUrl::from_str(VALIDATE_URL).unwrap(),
-            client: crate::default_client(),
             csrf_config: CsrfConfig::default(),
             phanthom: PhantomData,
             svc: ClientService::new(Reqwest::new(crate::default_client())),
@@ -330,7 +327,6 @@ impl Client<AppAuth> {
             auth_url: self.auth_url,
             revoke_url: self.revoke_url,
             validate_url: self.validate_url,
-            client: self.client,
             csrf_config: self.csrf_config,
             phanthom: PhantomData,
             svc: self.svc,
@@ -346,7 +342,6 @@ impl Client<AppAuth> {
             client_secret,
             redirect_uri: (),
             secret_key: csrf::generate_secret_key(),
-            client: crate::default_client(),
             token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
             auth_url: AuthUrl::from_str(AUTH_URL).unwrap(),
             revoke_url: RevocationUrl::from_str(REVOKE_URL).unwrap(),
@@ -530,10 +525,6 @@ where
     pub fn with_validate_url(mut self, validate_url: ValidateUrl) -> Self {
         self.validate_url = validate_url;
         self
-    }
-
-    pub fn get_client(&self) -> &reqwest::Client {
-        &self.client
     }
 
     pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
