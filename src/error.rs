@@ -175,8 +175,8 @@ pub(crate) enum Operation {
     RefreshAccessToken,
     RevokeAccessToken,
     ValidateAccessToken,
-    DeviceRequest,
-    DevicePoll,
+    DeviceCode,
+    DeviceToken,
     #[cfg(feature = "test")]
     MockUserAccessToken,
     #[cfg(feature = "test")]
@@ -191,8 +191,8 @@ impl Operation {
             Self::RefreshAccessToken => "refresh_access_token",
             Self::RevokeAccessToken => "revoke_access_token",
             Self::ValidateAccessToken => "validate_access_token",
-            Self::DeviceRequest => "device_auth_request",
-            Self::DevicePoll => "device_auth_poll",
+            Self::DeviceCode => "device_code",
+            Self::DeviceToken => "device_token",
             #[cfg(feature = "test")]
             Self::MockUserAccessToken => "mock_user_access_token",
             #[cfg(feature = "test")]

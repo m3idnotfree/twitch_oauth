@@ -18,7 +18,7 @@ pub mod url {
 }
 
 pub mod token {
-    use twitch_oauth_token::{AccessToken, RefreshToken};
+    use twitch_oauth_token::{AccessToken, DeviceCode, RefreshToken};
 
     pub fn refresh() -> RefreshToken {
         RefreshToken::from("eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj")
@@ -31,12 +31,16 @@ pub mod token {
     pub fn code() -> String {
         "gulfwdmys5lsm6qyz4xiz9q32l10".to_string()
     }
+
+    pub fn device_code() -> DeviceCode {
+        DeviceCode::from("ike3GM8QIdYZs43KdrWPIO36LofILoCyFEzjlQ91")
+    }
 }
 
 #[cfg(feature = "test")]
 pub mod setup {
     use asknothingx2_http::client::Reqwest;
-    use twitch_oauth_token::{Client, UserAuth};
+    use twitch_oauth_token::{Client, ClientId, DeviceAuth, UserAuth};
     use wiremock::MockServer;
 
     use super::service;
@@ -52,6 +56,16 @@ pub mod setup {
             ))
             .build()
             .with_redirect_uri(url::redirect());
+
+        (server, oauth)
+    }
+
+    pub async fn device_server() -> (MockServer, DeviceAuth) {
+        let server = MockServer::start().await;
+
+        let oauth = DeviceAuth::new(ClientId::from(config::client_id())).with_http_client(
+            service::Host::new(Reqwest::new(config::client()), &server.uri()),
+        );
 
         (server, oauth)
     }
@@ -75,8 +89,7 @@ pub mod config {
 }
 
 pub mod validate {
-
-    use super::config;
+    use super::{config, token};
 
     pub fn form_client_id() -> String {
         format!("client_id={}", config::client_id())
@@ -91,7 +104,7 @@ pub mod validate {
     }
 
     pub fn form_grant_type(kind: &str) -> String {
-        format!("grant_type={kind}")
+        serde_urlencoded::to_string([("grant_type", kind)]).unwrap()
     }
 
     pub fn form_code(kind: &str) -> String {
@@ -103,6 +116,10 @@ pub mod validate {
     }
     pub fn form_token(token: &str) -> String {
         format!("token={token}")
+    }
+
+    pub fn form_device_code() -> String {
+        format!("device_code={}", token::device_code().secret())
     }
 }
 
@@ -245,6 +262,59 @@ pub mod server {
                 token::access().secret(),
             )))
             .respond_with(ResponseTemplate::new(204))
+            .mount(server)
+            .await;
+    }
+
+    pub async fn device_code_grant_flow(server: &MockServer) {
+        Mock::given(method("POST"))
+            .and(path("/oauth2/device"))
+            .and(header("accept", "application/json"))
+            .and(header("content-type", "application/x-www-form-urlencoded"))
+            .and(body_string_contains(validate::form_client_id()))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "device_code": token::device_code(),
+                "expires_in": 1800,
+                "interval": 0,
+                "user_code": "ABCDEFGH",
+                "verification_uri": "https://www.twitch.tv/activate?public=true&device-code=ABCDEFGH"
+            })))
+            .mount(server)
+            .await;
+
+        let token_request = || {
+            Mock::given(method("POST"))
+                .and(path("/oauth2/token"))
+                .and(header("accept", "application/json"))
+                .and(header("content-type", "application/x-www-form-urlencoded"))
+                .and(body_string_contains(validate::form_client_id()))
+                .and(body_string_contains(validate::form_device_code()))
+                .and(body_string_contains(validate::form_grant_type(
+                    "urn:ietf:params:oauth:grant-type:device_code",
+                )))
+        };
+
+        token_request()
+            .respond_with(ResponseTemplate::new(400).set_body_json(json!({
+                "status": 400,
+                "message": "authorization_pending"
+            })))
+            .up_to_n_times(1)
+            .with_priority(1)
+            .mount(server)
+            .await;
+
+        token_request()
+            .respond_with(ResponseTemplate::new(200).set_body_json(json! ({
+                "access_token": token::access(),
+                "expires_in": 15485,
+                "refresh_token": token::refresh(),
+                "scope": [
+                    "channel:manage:polls",
+                    "channel:read:polls"
+                ],
+                "token_type": "bearer"
+            })))
             .mount(server)
             .await;
     }

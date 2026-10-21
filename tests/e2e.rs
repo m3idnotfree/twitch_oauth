@@ -66,3 +66,17 @@ pub async fn revoke_access_token() {
 
     oauth.revoke_access_token(&token::access()).await.unwrap();
 }
+
+#[tokio::test]
+pub async fn device_code_grant_flow() {
+    let (server, mut device) = setup::device_server().await;
+    device.scopes_mut().chat_api();
+
+    server::device_code_grant_flow(&server).await;
+
+    let resp = device.request().await.unwrap();
+    assert_eq!(token::device_code().secret(), resp.device_code.secret());
+
+    let token = device.poll(resp).await.unwrap();
+    assert_eq!(token::access().secret(), token.access_token.secret());
+}

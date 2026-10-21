@@ -1,33 +1,27 @@
 use std::{
     collections::HashSet,
     fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
 };
 
-use asknothingx2_http::{Body, ClientService, client::Reqwest};
+use asknothingx2_http::{ClientService, Request, client::Reqwest};
 use asknothingx2_util::oauth::ClientId;
-use reqwest::Client;
+use bytes::Bytes;
 use serde::Deserialize;
+use tower_service::Service;
 use url::Url;
 
 use crate::{
-    DeviceCode, DeviceUrl, Error, Scope, TokenUrl, UserToken,
-    client::{execute, read_json},
-    error,
-    request::{CLIENT_ID, GRANT_TYPE, TOKEN_URL},
+    DeviceCode, Error, Scope, UserToken,
+    client::{json, read_json, send},
+    error::{self, BoxError},
+    request::{DeviceCodeRequest, DeviceTokenRequest},
     scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,
-    types::GrantType,
 };
-
-const DEVICE_URL: &str = "https://id.twitch.tv/oauth2/device";
 
 pub struct DeviceAuth {
     client_id: ClientId,
     scopes: HashSet<Scope>,
-    client: Client,
-    device_url: DeviceUrl,
-    token_url: TokenUrl,
     svc: ClientService,
 }
 
@@ -36,31 +30,24 @@ impl DeviceAuth {
         Self {
             client_id: client_id.into(),
             scopes: HashSet::new(),
-            client: crate::default_client(),
-            device_url: DeviceUrl::from_str(DEVICE_URL).unwrap(),
-            token_url: TokenUrl::from_str(TOKEN_URL).unwrap(),
             svc: ClientService::new(Reqwest::new(crate::default_client())),
         }
     }
 
+    pub fn with_http_client<S, B>(mut self, service: S) -> Self
+    where
+        S: Service<Request, Response = http::Response<B>> + Clone + Send + Sync + 'static,
+        S::Error: Into<BoxError>,
+        S::Future: Send + 'static,
+        B: http_body::Body<Data = Bytes> + Send + Sync + 'static,
+        B::Error: Into<BoxError>,
+    {
+        self.svc = ClientService::new(service);
+        self
+    }
+
     pub fn with_scopes(mut self, scopes: HashSet<Scope>) -> Self {
         self.scopes = scopes;
-        self
-    }
-
-    pub fn with_client(mut self, client: Client) -> Self {
-        self.svc = ClientService::new(Reqwest::new(client.clone()));
-        self.client = client;
-        self
-    }
-
-    pub fn with_device_url(mut self, device_url: DeviceUrl) -> Self {
-        self.device_url = device_url;
-        self
-    }
-
-    pub fn with_token_url(mut self, token_url: TokenUrl) -> Self {
-        self.token_url = token_url;
         self
     }
 
@@ -72,26 +59,11 @@ impl DeviceAuth {
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow>
     pub async fn request(&self) -> Result<DeviceAuthResponse, Error> {
-        let form = reqwest::multipart::Form::new()
-            .text(CLIENT_ID, self.client_id.to_string())
-            .text("scopes", self.scopes_to_string());
-
-        let req = self
-            .client
-            .post(self.device_url.to_url())
-            .multipart(form)
-            .build()
-            .map_err(|e| error::build(error::Operation::DeviceRequest, e))?;
-        let req = http::Request::<reqwest::Body>::try_from(req)
-            .map_err(|e| error::build(error::Operation::DeviceRequest, e))?;
-        let resp = execute(
-            error::Operation::DeviceRequest,
+        json(
             self.svc.clone(),
-            req.map(Body::wrap),
+            DeviceCodeRequest::new(&self.client_id, &self.scopes_to_string()),
         )
-        .await?;
-
-        read_json(error::Operation::DeviceRequest, resp).await
+        .await
     }
 
     /// Poll for the user token
@@ -102,7 +74,9 @@ impl DeviceAuth {
         use std::time::Duration;
         use tokio::time::sleep;
 
+        let operation = error::Operation::DeviceToken;
         let deadline = response.created_at + response.expires_in as i64;
+        let scopes = self.scopes_to_string();
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
@@ -124,7 +98,7 @@ impl DeviceAuth {
                     poll_count,
                     "device code expired"
                 );
-                return Err(error::device_code_expired(error::Operation::DevicePoll));
+                return Err(error::device_code_expired(operation));
             }
 
             #[cfg(feature = "tracing")]
@@ -132,30 +106,11 @@ impl DeviceAuth {
                 poll_count += 1;
             }
 
-            let form = reqwest::multipart::Form::new()
-                .text(CLIENT_ID, self.client_id.to_string())
-                .text("scopes", self.scopes_to_string())
-                .text("device_code", response.device_code.secret().to_string())
-                .text(GRANT_TYPE, GrantType::DeviceCode.as_str());
+            let req = DeviceTokenRequest::new(&self.client_id, &scopes, &response.device_code);
 
-            let req = self
-                .client
-                .post(self.token_url.to_url())
-                .multipart(form)
-                .build()
-                .map_err(|e| error::build(error::Operation::DevicePoll, e))?;
-            let req = http::Request::<reqwest::Body>::try_from(req)
-                .map_err(|e| error::build(error::Operation::DevicePoll, e))?;
-
-            match execute(
-                error::Operation::DevicePoll,
-                self.svc.clone(),
-                req.map(Body::wrap),
-            )
-            .await
-            {
+            match send(self.svc.clone(), req).await {
                 Ok(resp) => {
-                    let token = read_json(error::Operation::DevicePoll, resp).await?;
+                    let token = read_json(operation, resp).await?;
 
                     #[cfg(feature = "tracing")]
                     tracing::debug!(

@@ -1,5 +1,6 @@
 mod authorize_request;
 mod client_credentials;
+mod device;
 mod exchange_code;
 mod refresh_request;
 mod revoke_request;
@@ -7,6 +8,7 @@ mod validate_request;
 
 pub use authorize_request::AuthrozationRequest;
 pub use client_credentials::ClientCredentialsRequest;
+pub use device::{DeviceCodeRequest, DeviceTokenRequest};
 pub use exchange_code::ExchangeCodeRequest;
 pub use refresh_request::RefreshRequest;
 pub use revoke_request::RevokeRequest;
@@ -25,6 +27,7 @@ pub(crate) const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
 pub(crate) const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
 pub(crate) const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
 pub(crate) const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
+pub(crate) const DEVICE_URL: &str = "https://id.twitch.tv/oauth2/device";
 
 pub(crate) trait IntoRequest {
     const OPERATION: crate::error::Operation;
