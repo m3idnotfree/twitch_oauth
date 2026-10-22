@@ -352,7 +352,7 @@ impl Client<AppAuth> {
 }
 
 impl Client<UserAuth> {
-    pub fn get_redirect_uri(&self) -> &RedirectUrl {
+    pub fn redirect_uri(&self) -> &RedirectUrl {
         &self.redirect_uri
     }
 
