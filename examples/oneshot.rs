@@ -1,15 +1,18 @@
 use std::{env, str::FromStr, time::Duration};
 
 use anyhow::{Context, Result};
-use twitch_oauth_token::{AuthCallback, Client, RedirectUrl, oneshot};
+use twitch_oauth_token::{AuthCallback, Client, ClientId, ClientSecret, RedirectUrl, oneshot};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv()?;
 
-    let client_id = env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?;
-    let client_secret =
-        env::var("CLIENT_SECRET").context("CLIENT_SECRET environment variable not set")?;
+    let client_id: ClientId = env::var("CLIENT_ID")
+        .context("CLIENT_ID environment variable not set")?
+        .into();
+    let client_secret: ClientSecret = env::var("CLIENT_SECRET")
+        .context("CLIENT_SECRET environment variable not set")?
+        .into();
     let redirect_uri =
         env::var("REDIRECT_URI").context("REDIRECT_URI environment variable not set")?;
     let port: u16 = env::var("PORT")

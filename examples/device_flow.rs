@@ -2,7 +2,7 @@ use std::env;
 
 use anyhow::{Context, Result};
 use tracing_subscriber::EnvFilter;
-use twitch_oauth_token::{Client, ClientId};
+use twitch_oauth_token::{ClientId, DeviceAuth};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -14,8 +14,10 @@ async fn main() -> Result<()> {
         .init();
     dotenvy::dotenv()?;
 
-    let client_id = env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?;
-    let mut device_flow = Client::device_auth(ClientId::from(client_id));
+    let client_id: ClientId = env::var("CLIENT_ID")
+        .context("CLIENT_ID environment variable not set")?
+        .into();
+    let mut device_flow = DeviceAuth::new(client_id);
     device_flow.scopes_mut().chat_api();
 
     let resp = device_flow.request().await?;

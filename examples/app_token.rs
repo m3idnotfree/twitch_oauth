@@ -2,7 +2,7 @@ use std::{env, time::Instant};
 
 use anyhow::{Context, Result};
 use tracing::{debug, error, info};
-use twitch_oauth_token::Client;
+use twitch_oauth_token::{Client, ClientId, ClientSecret};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -10,9 +10,12 @@ async fn main() -> Result<()> {
 
     dotenvy::dotenv()?;
 
-    let client_id = env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?;
-    let client_secret =
-        env::var("CLIENT_SECRET").context("CLIENT_SECRET environment variable not set")?;
+    let client_id: ClientId = env::var("CLIENT_ID")
+        .context("CLIENT_ID environment variable not set")?
+        .into();
+    let client_secret: ClientSecret = env::var("CLIENT_SECRET")
+        .context("CLIENT_SECRET environment variable not set")?
+        .into();
 
     let start_time = Instant::now();
 

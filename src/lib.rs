@@ -23,7 +23,7 @@
 //! **Device Authentication** ([`DeviceAuth`])
 //! - For desktop apps, CLI tools, and devices that cannot store a client secret
 //! - Does not require a client secret or redirect URI
-//! - Use [`Client::device_auth()`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
+//! - Use [`DeviceAuth::new`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
 //!
 //! ### Type Safety
 //!
@@ -36,12 +36,15 @@
 //!
 //! ### App Authentication Flow
 //!
-//! ```rust,no_run
-//! use twitch_oauth_token::Client;
+//! ```no_run
+//! use twitch_oauth_token::{Client, ClientId, ClientSecret};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = Client::new("client_id", "client_secret");
+//!     let oauth = Client::new(
+//!         ClientId::from("client_id"),
+//!         ClientSecret::from("client_secret")
+//!     );
 //!     
 //!     let token = oauth.app_access_token().await?;
 //!     
@@ -54,17 +57,20 @@
 //!
 //! ### User Authentication Flow
 //!
-//! ```rust,no_run
+//! ```no_run
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
-//!     AuthCallback,
-//!     RedirectUrl, Client,
+//!     AuthCallback, Client, ClientId,
+//!     ClientSecret, RedirectUrl,
 //! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = Client::new("your_client_id", "your_client_secret")
-//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
+//!     let oauth = Client::new(
+//!         ClientId::from("your_client_id"),
+//!         ClientSecret::from("your_client_secret")
+//!     )
+//!     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut()
@@ -105,7 +111,7 @@
 //! The library provides [`AuthCallback`] to parse OAuth callback parameters.
 //! Use it to extract the authorization code and state
 //!
-//! ```rust
+//! ```
 //! use twitch_oauth_token::{AuthCallback, Client, UserAuth};
 //!
 //! async fn handle_oauth_callback(
@@ -127,12 +133,12 @@
 //!
 //! For desktop apps, CLI tools, and devices that cannot store a `client_secret`.
 //!
-//! ```rust,no_run
-//! use twitch_oauth_token::{ClientId, Client};
+//! ```no_run
+//! use twitch_oauth_token::{ClientId, DeviceAuth};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut device_flow = Client::device_auth(ClientId::from("your_client_id"));
+//!     let mut device_flow = DeviceAuth::new(ClientId::from("your_client_id"));
 //!     device_flow.scopes_mut()
 //!         .send_chat_message()
 //!         .get_channel_emotes();
@@ -151,7 +157,7 @@
 //!
 //! The library provides type-safe scope builders organized by API category:
 //!
-//! ```rust
+//! ```
 //! # use twitch_oauth_token::{Client, UserAuth};
 //!
 //! # fn run(oauth: Client<UserAuth>) {
@@ -190,7 +196,7 @@
 //!
 //! Returns [`UserToken`].
 //!
-//! ```rust
+//! ```
 //! # use twitch_oauth_token::{Error, RefreshToken, Client};
 //! # async fn run(oauth: Client, refresh_token: RefreshToken) -> Result<(), Error> {
 //! let new_token = oauth.refresh_access_token(refresh_token).await?;
@@ -202,7 +208,7 @@
 //!
 //! Returns [`TokenInfo`].
 //!
-//! ```rust
+//! ```
 //! # use twitch_oauth_token::{AccessToken, Error, Client};
 //! # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), Error> {
 //! let token_info = oauth.validate_access_token(&access_token).await?;
@@ -212,7 +218,7 @@
 //!
 //! ### Revocation
 //!
-//! ```rust
+//! ```
 //! # use twitch_oauth_token::{AccessToken, Error, Client};
 //! # async fn run(oauth: Client, access_token: AccessToken) -> Result<(), Error> {
 //! oauth.revoke_access_token(&access_token).await?;
@@ -239,7 +245,7 @@
 //!
 //! You can customize CSRF token validation behavior:
 //!
-//! ```rust
+//! ```
 //! use twitch_oauth_token::{Client, ClientId, ClientSecret, csrf::CsrfConfig};
 //!
 //! // Default: 30 minutes expiry, no clock skew tolerance
@@ -283,7 +289,7 @@
 //!
 //! Use [Error::kind]
 //!
-//! ```rust
+//! ```
 //! # use twitch_oauth_token::{AppAuth, ErrorKind, Client};
 //! # async fn run(oauth: Client<AppAuth>) {
 //! match oauth.app_access_token().await {
@@ -304,16 +310,22 @@
 //!
 //! For local development, use the built-in oneshot server to handle OAuth callbacks:
 //!
-//! ```rust,no_run
+//! ```no_run
 //! # #[cfg(feature = "oneshot")]
 //! # {
 //! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{oneshot, AuthCallback, RedirectUrl, Client};
+//! use twitch_oauth_token::{
+//!     AuthCallback, Client, ClientId,
+//!     ClientSecret, RedirectUrl, oneshot,
+//! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = Client::new("client_id", "client_secret")
-//!         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
+//!     let oauth = Client::new(
+//!         ClientId::from("client_id"),
+//!         ClientSecret::from("client_secret")
+//!     )
+//!     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut().chat_api();

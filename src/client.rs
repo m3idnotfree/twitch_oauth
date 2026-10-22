@@ -11,7 +11,6 @@ use crate::{
     AccessToken, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
     RedirectUrl, RefreshToken,
     csrf::{self, CsrfConfig},
-    device::DeviceAuth,
     error::{self, BoxError},
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
@@ -142,11 +141,14 @@ impl OauthFlow for UserAuth {
 ///
 /// **App authentication** (most common for backend services):
 /// ```no_run
-/// use twitch_oauth_token::Client;
+/// use twitch_oauth_token::{Client, ClientId, ClientSecret};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let oauth = Client::new("client_id", "client_secret");
+///     let oauth = Client::new(
+///         ClientId::from("client_id"),
+///         ClientSecret::from("client_secret")
+///     );
 ///     
 ///     let token = oauth.app_access_token().await?;
 ///     
@@ -158,11 +160,14 @@ impl OauthFlow for UserAuth {
 /// **User authentication** (for user login flows):
 /// ```no_run
 /// use std::str::FromStr;
-/// use twitch_oauth_token::{Client, RedirectUrl};
+/// use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUrl};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
-///     let oauth = Client::new("your_client_id", "your_client_secret")
+///     let oauth = Client::new(
+///             ClientId::from("your_client_id"),
+///             ClientSecret::from("your_client_secret")
+///         )
 ///         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
@@ -283,9 +288,12 @@ where
     ///
     /// # Example
     /// ```no_run
-    /// # use twitch_oauth_token::Client;
+    /// # use twitch_oauth_token::{Client, ClientId, ClientSecret};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
-    /// let oauth = Client::new("client_id", "client_secret");
+    /// let oauth = Client::new(
+    ///     ClientId::from("client_id"),
+    ///     ClientSecret::from("client_secret")
+    /// );
     ///
     /// let token = oauth.app_access_token().await?;
     /// # Ok(())
@@ -323,12 +331,8 @@ where
 
 impl Client<AppAuth> {
     /// Create OAuth client for app authentication
-    pub fn new(client_id: impl Into<String>, client_secret: impl Into<String>) -> Self {
-        ClientBuilder::new(
-            ClientId::from(client_id.into()),
-            ClientSecret::from(client_secret.into()),
-        )
-        .build()
+    pub fn new(client_id: ClientId, client_secret: ClientSecret) -> Self {
+        ClientBuilder::new(client_id, client_secret).build()
     }
 
     /// Upgrade to user authentication by adding redirect URI
@@ -342,18 +346,6 @@ impl Client<AppAuth> {
             svc: self.svc,
             phanthom: PhantomData,
         }
-    }
-
-    /// Create OAuth client from existing credentials (advanced usage)
-    ///
-    /// Most users should use [`Client::new()`] instead.
-    pub fn from_credentials(client_id: ClientId, client_secret: ClientSecret) -> Self {
-        ClientBuilder::new(client_id, client_secret).build()
-    }
-
-    /// Create Device code grant flow
-    pub fn device_auth(client_id: ClientId) -> DeviceAuth {
-        DeviceAuth::new(client_id)
     }
 
     pub fn builder(client_id: ClientId, client_secret: ClientSecret) -> ClientBuilder {
@@ -377,9 +369,12 @@ impl Client<UserAuth> {
     /// # Example
     /// ```no_run
     /// # use std::str::FromStr;
-    /// # use twitch_oauth_token::{Client, RedirectUrl};
+    /// # use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUrl};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
-    /// let oauth = Client::new("client_id", "client_secret")
+    /// let oauth = Client::new(
+    ///         ClientId::from("client_id"),
+    ///         ClientSecret::from("client_secret")
+    ///     )
     ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();

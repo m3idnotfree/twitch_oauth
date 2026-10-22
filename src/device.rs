@@ -26,9 +26,9 @@ pub struct DeviceAuth {
 }
 
 impl DeviceAuth {
-    pub fn new(client_id: impl Into<ClientId>) -> Self {
+    pub fn new(client_id: ClientId) -> Self {
         Self {
-            client_id: client_id.into(),
+            client_id,
             scopes: HashSet::new(),
             svc: ClientService::new(Reqwest::new(crate::default_client())),
         }
