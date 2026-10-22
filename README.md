@@ -100,10 +100,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut device_flow = DeviceAuth::new(ClientId::from("client_id"));
     device_flow.scopes_mut().chat_api();
 
-    let resp = device_flow.request().await?;
+    let resp = device_flow.device_code().await?;
     println!("Visit: {}", resp.verification_uri);
 
-    let token = device_flow.poll(resp).await?;
+    let token = device_flow.wait_for_token(resp).await?;
     println!("Access token: {}", token.access_token.secret());
     println!("Refresh token: {}", token.refresh_token.secret());
     println!("Scopes: {:?}", token.scope);
@@ -117,7 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - **`oneshot`** - Built-in development server for handling OAuth callbacks
 - **`mock-api`** - Testing utilities and mock server support
-- **`tracing`** - Log events for `DeviceAuth::poll` and client setup
+- **`tracing`** - Log events for `DeviceAuth::wait_for_token`
 
 ## License
 

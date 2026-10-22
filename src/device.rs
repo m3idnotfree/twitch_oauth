@@ -58,7 +58,7 @@ impl DeviceAuth {
     /// Request a device code
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow>
-    pub async fn request(&self) -> Result<DeviceAuthResponse, Error> {
+    pub async fn device_code(&self) -> Result<DeviceCodeResponse, Error> {
         json(
             self.svc.clone(),
             DeviceCodeRequest::new(&self.client_id, &self.scopes_to_string()),
@@ -66,10 +66,10 @@ impl DeviceAuth {
         .await
     }
 
-    /// Poll for the user token
+    /// Poll until the user authorizes or the device code expires
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow>
-    pub async fn poll(&self, response: DeviceAuthResponse) -> Result<UserToken, Error> {
+    pub async fn wait_for_token(&self, response: DeviceCodeResponse) -> Result<UserToken, Error> {
         use chrono::Utc;
         use std::time::Duration;
         use tokio::time::sleep;
@@ -144,7 +144,7 @@ impl DeviceAuth {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct DeviceAuthResponse {
+pub struct DeviceCodeResponse {
     pub device_code: DeviceCode,
     pub expires_in: u64,
     pub interval: u64,
@@ -154,7 +154,7 @@ pub struct DeviceAuthResponse {
     pub created_at: i64,
 }
 
-impl DeviceAuthResponse {
+impl DeviceCodeResponse {
     pub fn verification_uri_without_code(&self) -> Url {
         let mut url = self.verification_uri.clone();
         url.set_query(None);
@@ -162,11 +162,11 @@ impl DeviceAuthResponse {
     }
 }
 
-impl Display for DeviceAuthResponse {
+impl Display for DeviceCodeResponse {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "DeviceAuthResponse(verification_uri: {}, user_code: {})",
+            "DeviceCodeResponse(verification_uri: {}, user_code: {})",
             self.verification_uri, self.user_code
         )
     }

@@ -73,9 +73,9 @@ pub async fn device_code_grant_flow() {
 
     server::device_code_grant_flow(&server).await;
 
-    let resp = device.request().await.unwrap();
+    let resp = device.device_code().await.unwrap();
     assert_eq!(token::device_code().secret(), resp.device_code.secret());
 
-    let token = device.poll(resp).await.unwrap();
+    let token = device.wait_for_token(resp).await.unwrap();
     assert_eq!(token::access().secret(), token.access_token.secret());
 }

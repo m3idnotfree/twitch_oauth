@@ -23,7 +23,7 @@
 //! **Device Authentication** ([`DeviceAuth`])
 //! - For desktop apps, CLI tools, and devices that cannot store a client secret
 //! - Does not require a client secret or redirect URI
-//! - Use [`DeviceAuth::new`], [`DeviceAuth::request()`], and [`DeviceAuth::poll()`]
+//! - Use [`DeviceAuth::new`], [`DeviceAuth::device_code()`], and [`DeviceAuth::wait_for_token()`]
 //!
 //! ### Type Safety
 //!
@@ -143,10 +143,10 @@
 //!         .send_chat_message()
 //!         .get_channel_emotes();
 //!
-//!     let resp = device_flow.request().await?;
+//!     let resp = device_flow.device_code().await?;
 //!     println!("Visit: {}", resp.verification_uri);
 //!
-//!     let token = device_flow.poll(resp).await?;
+//!     let token = device_flow.wait_for_token(resp).await?;
 //!     println!("Token: {}", token.access_token.secret());
 //!
 //!     Ok(())
@@ -377,7 +377,7 @@ mod tokens;
 mod types;
 
 pub use client::{AppAuth, Client, ClientBuilder, UserAuth};
-pub use device::{DeviceAuth, DeviceAuthResponse};
+pub use device::{DeviceAuth, DeviceCodeResponse};
 pub use error::{Error, ErrorKind};
 pub use request::{AuthrozationRequest, validate_access_token};
 pub use scope::Scope;

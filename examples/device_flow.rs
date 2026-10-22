@@ -20,10 +20,10 @@ async fn main() -> Result<()> {
     let mut device_flow = DeviceAuth::new(client_id);
     device_flow.scopes_mut().chat_api();
 
-    let resp = device_flow.request().await?;
+    let resp = device_flow.device_code().await?;
     println!("Visit: {}", resp.verification_uri);
 
-    let token = device_flow.poll(resp).await?;
+    let token = device_flow.wait_for_token(resp).await?;
     println!("{token:?}");
     Ok(())
 }
