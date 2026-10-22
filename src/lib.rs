@@ -380,8 +380,7 @@ pub mod mock_api;
 
 // Re-export
 pub use asknothingx2_util::oauth::{
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, DeviceCode, DeviceUrl,
-    RedirectUrl, RefreshToken, RevocationUrl, TokenUrl, ValidateUrl,
+    AccessToken, AuthorizationCode, ClientId, ClientSecret, DeviceCode, RedirectUrl, RefreshToken,
 };
 
 pub mod csrf {
