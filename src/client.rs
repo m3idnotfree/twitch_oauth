@@ -78,7 +78,7 @@ impl ClientBuilder {
             csrf_config: self.csrf_config.unwrap_or_default(),
             svc: self
                 .svc
-                .unwrap_or_else(|| ClientService::new(Reqwest::new(crate::default_client()))),
+                .unwrap_or_else(|| ClientService::new(Reqwest::new(crate::HTTP_CLIENT.clone()))),
             phanthom: PhantomData,
         }
     }

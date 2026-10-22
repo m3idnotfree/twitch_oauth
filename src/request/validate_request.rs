@@ -11,7 +11,7 @@ use crate::{
 /// <https://dev.twitch.tv/docs/authentication/validate-tokens/>
 pub async fn validate_access_token(access_token: &AccessToken) -> Result<TokenInfo, Error> {
     crate::client::json(
-        ClientService::new(Reqwest::new(crate::default_client())),
+        ClientService::new(Reqwest::new(crate::HTTP_CLIENT.clone())),
         ValidateRequest::new(access_token),
     )
     .await
