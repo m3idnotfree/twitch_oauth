@@ -13,7 +13,7 @@ use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 use twitch_oauth_token::{
     AccessToken, AuthCallback, Client, ClientId, ClientSecret, RedirectUrl, TokenInfo, UserAuth,
-    UserToken, csrf::CsrfConfig,
+    UserToken, csrf::Config,
 };
 
 const COOKIE_NAME: &str = "OAuth-state";
@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
     );
 
     let client = Client::builder(ClientId::from(client_id), ClientSecret::from(client_secret))
-        .csrf_config(CsrfConfig::new(0, 180))
+        .csrf_config(Config::new(0, 180))
         .build();
     let oauth = client.with_redirect_uri(RedirectUrl::from_str(&redirect_uri)?);
 

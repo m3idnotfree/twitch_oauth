@@ -238,7 +238,7 @@
 //!
 //! **Important for multi-server deployments:**
 //! - By default, each [`Client`] instance generates a random secret key
-//! - For load-balanced or clustered environments, use [`ClientBuilder::secret_key`] to share the same secret across all instances
+//! - For load-balanced or clustered environments, use [`ClientBuilder::csrf_key`] to share the same secret across all instances
 //! - Without a shared secret key, tokens generated on one server will fail validation on another
 //!
 //! #### CSRF Configuration
@@ -246,7 +246,7 @@
 //! You can customize CSRF token validation behavior:
 //!
 //! ```
-//! use twitch_oauth_token::{Client, ClientId, ClientSecret, csrf::CsrfConfig};
+//! use twitch_oauth_token::{Client, ClientId, ClientSecret, csrf::Config};
 //!
 //! // Default: 30 minutes expiry, no clock skew tolerance
 //! let oauth = Client::builder(
@@ -260,7 +260,7 @@
 //!     ClientId::from("client_id"),
 //!     ClientSecret::from("client_secret"),
 //! )
-//! .csrf_config(CsrfConfig::new(60, 600))
+//! .csrf_config(Config::new(60, 600))
 //! .build();
 //!
 //! // Strict: 5 minutes expiry, no clock skew tolerance
@@ -268,14 +268,14 @@
 //!     ClientId::from("client_id"),
 //!     ClientSecret::from("client_secret"),
 //! )
-//! .csrf_config(CsrfConfig::default().with_max_age(300))
+//! .csrf_config(Config::default().with_max_age(300))
 //! .build();
 //! ```
 //!
 //! **When to customize:**
 //! - **High-security apps**: Shorter expiry times (300-900 seconds)
 //! - **Mobile apps**: Clock skew tolerance (30-60 seconds) for device time differences
-//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`ClientBuilder::secret_key`]
+//! - **Server clusters**: Clock skew tolerance for distributed systems and shared secret key via  [`ClientBuilder::csrf_key`]
 //!
 //! ### Secure Defaults
 //!
@@ -397,7 +397,7 @@ pub use asknothingx2_util::oauth::{
 
 pub mod csrf {
     pub use asknothingx2_util::oauth::signed_token::{
-        Error, TokenConfig as CsrfConfig, current_timestamp, extract_datetime, extract_timestamp,
+        Error, TokenConfig as Config, current_timestamp, extract_datetime, extract_timestamp,
         generate, generate_at_time, generate_secret_key, is_expired, token_age, verify,
         verify_at_time, verify_with_config,
     };

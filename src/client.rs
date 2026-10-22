@@ -9,8 +9,7 @@ use tower_service::Service;
 
 use crate::{
     AccessToken, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
-    RedirectUrl, RefreshToken,
-    csrf::{self, CsrfConfig},
+    RedirectUrl, RefreshToken, csrf,
     error::{self, BoxError},
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
@@ -21,8 +20,8 @@ use crate::{
 pub struct ClientBuilder {
     client_id: ClientId,
     client_secret: ClientSecret,
-    csrf_config: Option<CsrfConfig>,
-    secret_key: Option<[u8; 32]>,
+    csrf_config: Option<csrf::Config>,
+    csrf_key: Option<[u8; 32]>,
     svc: Option<ClientService>,
 }
 
@@ -33,7 +32,7 @@ impl ClientBuilder {
             client_secret,
             svc: None,
             csrf_config: None,
-            secret_key: None,
+            csrf_key: None,
         }
     }
 
@@ -45,17 +44,16 @@ impl ClientBuilder {
     /// Defaults:
     /// - max_age: 1800s (30 minutes)
     /// - clock_skew: None (no tolerance for time differences)
-    pub fn csrf_config(mut self, config: CsrfConfig) -> Self {
+    pub fn csrf_config(mut self, config: csrf::Config) -> Self {
         self.csrf_config = Some(config);
         self
     }
 
-    /// Set custom secret key for CSRF token generation
+    /// Set custom secret key for CSRF token generation and validation
     ///
     /// By default, a random secret key is generated automatically for each `Client` instance.
-    /// Set custom secret key for CSRF token generation and validation
-    pub fn secret_key(mut self, secret_key: [u8; 32]) -> Self {
-        self.secret_key = Some(secret_key);
+    pub fn csrf_key(mut self, csrf_key: [u8; 32]) -> Self {
+        self.csrf_key = Some(csrf_key);
         self
     }
 
@@ -76,7 +74,7 @@ impl ClientBuilder {
             client_id: self.client_id,
             client_secret: self.client_secret,
             redirect_uri: (),
-            secret_key: self.secret_key.unwrap_or_else(csrf::generate_secret_key),
+            csrf_key: self.csrf_key.unwrap_or_else(csrf::generate_secret_key),
             csrf_config: self.csrf_config.unwrap_or_default(),
             svc: self
                 .svc
@@ -188,8 +186,8 @@ where
     client_id: ClientId,
     client_secret: ClientSecret,
     redirect_uri: Flow::RedirectUrl,
-    secret_key: [u8; 32],
-    csrf_config: CsrfConfig,
+    csrf_key: [u8; 32],
+    csrf_config: csrf::Config,
     pub(crate) svc: ClientService,
     phanthom: PhantomData<Flow>,
 }
@@ -225,7 +223,7 @@ where
     /// especially in `Arc<RwLock<Client>>` patterns.
     ///
     /// For initial configuration during construction, use [`ClientBuilder::csrf_config`] instead.
-    pub fn set_csrf_config(&mut self, config: CsrfConfig) {
+    pub fn set_csrf_config(&mut self, config: csrf::Config) {
         self.csrf_config = config;
     }
 
@@ -341,7 +339,7 @@ impl Client<AppAuth> {
             client_id: self.client_id,
             client_secret: self.client_secret,
             redirect_uri,
-            secret_key: self.secret_key,
+            csrf_key: self.csrf_key,
             csrf_config: self.csrf_config,
             svc: self.svc,
             phanthom: PhantomData,
@@ -392,7 +390,7 @@ impl Client<UserAuth> {
         AuthrozationRequest::new(
             &self.client_id,
             &self.redirect_uri,
-            csrf::generate(&self.secret_key, Some(&self.client_id)),
+            csrf::generate(&self.csrf_key, Some(&self.client_id)),
         )
     }
 
@@ -430,7 +428,7 @@ impl Client<UserAuth> {
         state: String,
     ) -> Result<crate::UserToken, Error> {
         csrf::verify_with_config(
-            &self.secret_key,
+            &self.csrf_key,
             &state,
             Some(&self.client_id),
             &self.csrf_config,
@@ -454,9 +452,9 @@ impl Client<UserAuth> {
     /// Use this to rotate CSRF secret keys in a running application,
     /// especially in `Arc<RwLock<Client>>` patterns or multi-server deployments.
     ///
-    /// For initial configuration during construction, use [`ClientBuilder::secret_key`] instead.
-    pub fn set_secret_key(&mut self, secret_key: [u8; 32]) {
-        self.secret_key = secret_key;
+    /// For initial configuration during construction, use [`ClientBuilder::csrf_key`] instead.
+    pub fn set_csrf_key(&mut self, csrf_key: [u8; 32]) {
+        self.csrf_key = csrf_key;
     }
 }
 
