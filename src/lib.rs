@@ -351,7 +351,7 @@
 //!
 //! ## Testing
 //!
-//! For local testing with Twitch Mock API, see [`test_oauth`] (requires `test` feature).
+//! For local testing with Twitch Mock API, see [`mock_api`] (requires `mock-api` feature).
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
@@ -375,8 +375,8 @@ pub use types::AuthCallback;
 #[cfg(feature = "oneshot")]
 pub use asknothingx2_util::oauth::oneshot;
 
-#[cfg(feature = "test")]
-pub mod test_oauth;
+#[cfg(feature = "mock-api")]
+pub mod mock_api;
 
 // Re-export
 pub use asknothingx2_util::oauth::{

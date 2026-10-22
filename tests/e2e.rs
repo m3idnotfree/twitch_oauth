@@ -1,4 +1,3 @@
-#![cfg(feature = "test")]
 mod help;
 
 use help::{config, server, setup, token, url};

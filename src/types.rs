@@ -25,8 +25,8 @@ pub enum GrantType {
     AuthorizationCode,
     RefreshToken,
     DeviceCode,
-    #[cfg(feature = "test")]
-    UserToken,
+    #[cfg(feature = "mock-api")]
+    MockUserToken,
 }
 
 impl Display for GrantType {
@@ -42,8 +42,8 @@ impl GrantType {
             Self::AuthorizationCode => "authorization_code",
             Self::RefreshToken => "refresh_token",
             Self::DeviceCode => "urn:ietf:params:oauth:grant-type:device_code",
-            #[cfg(feature = "test")]
-            Self::UserToken => "user_token",
+            #[cfg(feature = "mock-api")]
+            Self::MockUserToken => "user_token",
         }
     }
 }

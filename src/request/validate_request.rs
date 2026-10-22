@@ -29,14 +29,6 @@ impl<'a> ValidateRequest<'a> {
     }
 }
 
-#[allow(dead_code)]
-#[cfg(feature = "test")]
-impl<'a> ValidateRequest<'a> {
-    pub async fn send(self, client: &reqwest::Client) -> Result<TokenInfo, Error> {
-        crate::client::json(ClientService::new(Reqwest::new(client.clone())), self).await
-    }
-}
-
 impl IntoRequest for ValidateRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::ValidateAccessToken;
 

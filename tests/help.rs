@@ -37,7 +37,6 @@ pub mod token {
     }
 }
 
-#[cfg(feature = "test")]
 pub mod setup {
     use asknothingx2_http::client::Reqwest;
     use twitch_oauth_token::{Client, ClientId, DeviceAuth, UserAuth};

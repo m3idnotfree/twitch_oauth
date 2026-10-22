@@ -465,16 +465,6 @@ impl Client<UserAuth> {
     }
 }
 
-#[cfg(feature = "test")]
-impl<Flow> Client<Flow>
-where
-    Flow: OauthFlow,
-{
-    pub fn with_test(self) -> crate::test_oauth::TwitchOauthTest<Flow> {
-        crate::test_oauth::TwitchOauthTest::new(self)
-    }
-}
-
 impl Display for Client<AppAuth> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "Client(client_id: {})", self.client_id)

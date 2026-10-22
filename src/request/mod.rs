@@ -21,7 +21,7 @@ use crate::error::BoxError;
 pub const CLIENT_ID: &str = "client_id";
 pub const GRANT_TYPE: &str = "grant_type";
 
-const CLIENT_SECRET: &str = "client_secret";
+pub(crate) const CLIENT_SECRET: &str = "client_secret";
 
 pub(crate) const AUTH_URL: &str = "https://id.twitch.tv/oauth2/authorize";
 pub(crate) const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";

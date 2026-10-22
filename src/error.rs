@@ -177,10 +177,10 @@ pub(crate) enum Operation {
     ValidateAccessToken,
     DeviceCode,
     DeviceToken,
-    #[cfg(feature = "test")]
-    MockUserAccessToken,
-    #[cfg(feature = "test")]
-    MockApiUnits,
+    #[cfg(feature = "mock-api")]
+    MockUserToken,
+    #[cfg(feature = "mock-api")]
+    MockUnits,
 }
 
 impl Operation {
@@ -193,10 +193,10 @@ impl Operation {
             Self::ValidateAccessToken => "validate_access_token",
             Self::DeviceCode => "device_code",
             Self::DeviceToken => "device_token",
-            #[cfg(feature = "test")]
-            Self::MockUserAccessToken => "mock_user_access_token",
-            #[cfg(feature = "test")]
-            Self::MockApiUnits => "mock_api_units",
+            #[cfg(feature = "mock-api")]
+            Self::MockUserToken => "mock_user_token",
+            #[cfg(feature = "mock-api")]
+            Self::MockUnits => "mock_units",
         }
     }
 }
