@@ -7,7 +7,7 @@ use asknothingx2_http::{ClientService, HttpService, client::Reqwest};
 use tower_layer::{Identity, Layer, Stack};
 
 use crate::{
-    AccessToken, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
+    AccessToken, AuthorizationCode, AuthorizationRequest, ClientId, ClientSecret, Error,
     RedirectUrl, RefreshToken, csrf, error,
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
@@ -399,8 +399,8 @@ impl Client<UserAuth> {
     /// ```
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
-    pub fn authorization_url<'a>(&'a self) -> AuthrozationRequest<'a> {
-        AuthrozationRequest::new(
+    pub fn authorization_url<'a>(&'a self) -> AuthorizationRequest<'a> {
+        AuthorizationRequest::new(
             &self.client_id,
             &self.redirect_uri,
             csrf::generate(&self.csrf_key, Some(&self.client_id)),

@@ -11,7 +11,7 @@ use crate::{
 
 /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
 #[derive(Debug)]
-pub struct AuthrozationRequest<'a> {
+pub struct AuthorizationRequest<'a> {
     client_id: &'a ClientId,
     force_verify: Option<bool>,
     redirect_url: &'a RedirectUrl,
@@ -19,7 +19,7 @@ pub struct AuthrozationRequest<'a> {
     state: String,
 }
 
-impl<'a> AuthrozationRequest<'a> {
+impl<'a> AuthorizationRequest<'a> {
     pub fn new(client_id: &'a ClientId, redirect_url: &'a RedirectUrl, state: String) -> Self {
         Self {
             client_id,

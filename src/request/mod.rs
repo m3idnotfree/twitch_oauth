@@ -6,7 +6,7 @@ mod refresh_request;
 mod revoke_request;
 mod validate_request;
 
-pub use authorize_request::AuthrozationRequest;
+pub use authorize_request::AuthorizationRequest;
 pub use client_credentials::ClientCredentialsRequest;
 pub use device::{DeviceCodeRequest, DeviceTokenRequest};
 pub use exchange_code::ExchangeCodeRequest;

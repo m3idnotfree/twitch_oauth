@@ -379,7 +379,7 @@ mod types;
 pub use client::{AppAuth, Client, ClientBuilder, UserAuth};
 pub use device::{DeviceAuth, DeviceAuthBuilder, DeviceCodeResponse};
 pub use error::{Error, ErrorKind};
-pub use request::{AuthrozationRequest, validate_access_token};
+pub use request::{AuthorizationRequest, validate_access_token};
 pub use scope::Scope;
 pub use tokens::{AppToken, TokenInfo, UserToken};
 pub use types::AuthCallback;
