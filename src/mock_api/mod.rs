@@ -20,11 +20,10 @@
 //!     let client = units.clients().await?.remove(0);
 //!
 //!     let oauth = Client::builder(client.id, client.secret)
-//!         .http_client(MockApiService::localhost(
+//!         .service(MockApiService::localhost(
 //!             Reqwest::new(reqwest::Client::new()),
 //!             8080,
-//!         ))
-//!         .build();
+//!         ));
 //!
 //!     // Get app token from mock API
 //!     let app_token = oauth.app_access_token().await?;

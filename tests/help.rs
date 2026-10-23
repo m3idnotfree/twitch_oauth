@@ -39,6 +39,7 @@ pub mod token {
 
 pub mod setup {
     use asknothingx2_http::client::Reqwest;
+    use tower_layer::Layer;
     use twitch_oauth_token::{Client, ClientId, DeviceAuth, UserAuth};
     use wiremock::MockServer;
 
@@ -49,11 +50,8 @@ pub mod setup {
         let server = MockServer::start().await;
 
         let oauth = Client::builder(config::client_id().into(), config::client_secret().into())
-            .http_client(service::Host::new(
-                Reqwest::new(config::client()),
-                &server.uri(),
-            ))
-            .build()
+            .layer(service::HostLayer::new(&server.uri()))
+            .http_client(config::client())
             .with_redirect_uri(url::redirect());
 
         (server, oauth)
@@ -63,7 +61,7 @@ pub mod setup {
         let server = MockServer::start().await;
 
         let oauth = DeviceAuth::new(ClientId::from(config::client_id())).with_http_client(
-            service::Host::new(Reqwest::new(config::client()), &server.uri()),
+            service::HostLayer::new(&server.uri()).layer(Reqwest::new(config::client())),
         );
 
         (server, oauth)
@@ -322,21 +320,37 @@ pub mod server {
 pub mod service {
     use asknothingx2_http::Request;
     use http::Uri;
+    use tower_layer::Layer;
     use tower_service::Service;
+
+    #[derive(Clone)]
+    pub struct HostLayer {
+        base: Uri,
+    }
+
+    impl HostLayer {
+        pub fn new(base: &str) -> Self {
+            Self {
+                base: base.parse().unwrap(),
+            }
+        }
+    }
+
+    impl<S> Layer<S> for HostLayer {
+        type Service = Host<S>;
+
+        fn layer(&self, inner: S) -> Self::Service {
+            Host {
+                inner,
+                base: self.base.clone(),
+            }
+        }
+    }
 
     #[derive(Clone)]
     pub struct Host<S> {
         inner: S,
         base: Uri,
-    }
-
-    impl<S> Host<S> {
-        pub fn new(inner: S, base: &str) -> Self {
-            Self {
-                inner,
-                base: base.parse().unwrap(),
-            }
-        }
     }
 
     impl<S> Service<Request> for Host<S>

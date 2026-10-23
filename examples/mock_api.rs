@@ -29,12 +29,10 @@ async fn main() -> Result<()> {
         .next()
         .context("no mock users, run `twitch mock-api generate`")?;
 
-    let oauth = Client::builder(client.id, client.secret)
-        .http_client(MockApiService::localhost(
-            Reqwest::new(reqwest::Client::new()),
-            port,
-        ))
-        .build();
+    let oauth = Client::builder(client.id, client.secret).service(MockApiService::localhost(
+        Reqwest::new(reqwest::Client::new()),
+        port,
+    ));
 
     let app_token = oauth.app_access_token().await?;
     println!("{app_token:?}");

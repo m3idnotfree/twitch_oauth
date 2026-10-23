@@ -3,39 +3,39 @@ use std::{
     marker::PhantomData,
 };
 
-use asknothingx2_http::{ClientService, Request, client::Reqwest};
-use bytes::Bytes;
-use tower_service::Service;
+use asknothingx2_http::{ClientService, HttpService, client::Reqwest};
+use tower_layer::{Identity, Layer, Stack};
 
 use crate::{
     AccessToken, AuthorizationCode, AuthrozationRequest, ClientId, ClientSecret, Error,
-    RedirectUrl, RefreshToken, csrf,
-    error::{self, BoxError},
+    RedirectUrl, RefreshToken, csrf, error,
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
         ValidateRequest,
     },
 };
 
-pub struct ClientBuilder {
+pub struct ClientBuilder<L = Identity> {
     client_id: ClientId,
     client_secret: ClientSecret,
     csrf_config: Option<csrf::Config>,
     csrf_key: Option<[u8; 32]>,
-    svc: Option<ClientService>,
+    layers: L,
 }
 
-impl ClientBuilder {
+impl ClientBuilder<Identity> {
     pub fn new(client_id: ClientId, client_secret: ClientSecret) -> Self {
         Self {
             client_id,
             client_secret,
-            svc: None,
             csrf_config: None,
             csrf_key: None,
+            layers: Identity::new(),
         }
     }
+}
 
+impl<L> ClientBuilder<L> {
     /// Configure CSRF token validation settings
     ///
     /// This controls how CSRF tokens are validated during the OAuth flow.
@@ -57,28 +57,41 @@ impl ClientBuilder {
         self
     }
 
-    pub fn http_client<S, B>(mut self, service: S) -> Self
-    where
-        S: Service<Request, Response = http::Response<B>> + Clone + Send + Sync + 'static,
-        S::Error: Into<BoxError>,
-        S::Future: Send + 'static,
-        B: http_body::Body<Data = Bytes> + Send + Sync + 'static,
-        B::Error: Into<BoxError>,
-    {
-        self.svc = Some(ClientService::new(service));
-        self
+    pub fn layer<T>(self, layer: T) -> ClientBuilder<Stack<T, L>> {
+        ClientBuilder {
+            client_id: self.client_id,
+            client_secret: self.client_secret,
+            csrf_config: self.csrf_config,
+            csrf_key: self.csrf_key,
+            layers: Stack::new(layer, self.layers),
+        }
     }
 
-    pub fn build(self) -> Client {
+    pub fn build(self) -> Client
+    where
+        L: Layer<Reqwest, Service: HttpService>,
+    {
+        self.http_client(crate::HTTP_CLIENT.clone())
+    }
+
+    pub fn http_client(self, http_client: reqwest::Client) -> Client
+    where
+        L: Layer<Reqwest, Service: HttpService>,
+    {
+        self.service(Reqwest::new(http_client))
+    }
+
+    pub fn service<S>(self, service: S) -> Client
+    where
+        L: Layer<S, Service: HttpService>,
+    {
         Client {
             client_id: self.client_id,
             client_secret: self.client_secret,
             redirect_uri: (),
             csrf_key: self.csrf_key.unwrap_or_else(csrf::generate_secret_key),
             csrf_config: self.csrf_config.unwrap_or_default(),
-            svc: self
-                .svc
-                .unwrap_or_else(|| ClientService::new(Reqwest::new(crate::HTTP_CLIENT.clone()))),
+            svc: ClientService::new(self.layers.layer(service)),
             phanthom: PhantomData,
         }
     }
