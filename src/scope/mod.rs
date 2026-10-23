@@ -2,16 +2,21 @@ mod scopes_mut;
 
 pub use scopes_mut::ScopesMut;
 
-use std::{ops::Deref, str::FromStr};
+use std::{
+    collections::HashSet,
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
-use std::{collections::HashSet, fmt::Display};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub(crate) fn scopes_mut(scopes: &mut HashSet<Scope>) -> ScopesMut<'_> {
     scopes_mut::new(scopes)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Scope {
     /// View analytics data for the Twitch Extensions owned by the authenticated account.
     /// API
@@ -768,7 +773,7 @@ impl Scope {
 }
 
 impl Display for Scope {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_str())
     }
 }
@@ -779,19 +784,25 @@ impl From<Scope> for String {
     }
 }
 
-#[derive(Debug)]
-pub struct InvalidScopeError(String);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseScopeError(String);
 
-impl Display for InvalidScopeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalid scope: '{}'", self.0)
+impl ParseScopeError {
+    pub fn input(&self) -> &str {
+        &self.0
     }
 }
 
-impl std::error::Error for InvalidScopeError {}
+impl Display for ParseScopeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "unknown scope: {:?}", self.0)
+    }
+}
+
+impl StdError for ParseScopeError {}
 
 impl FromStr for Scope {
-    type Err = InvalidScopeError;
+    type Err = ParseScopeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -876,21 +887,13 @@ impl FromStr for Scope {
             "whispers:read" => Ok(Self::WhispersRead),
             "chat:edit" => Ok(Self::ChatEdit),
             "chat:read" => Ok(Self::ChatRead),
-            _ => Err(InvalidScopeError(s.to_string())),
+            _ => Err(ParseScopeError(s.to_string())),
         }
     }
 }
 
 impl AsRef<str> for Scope {
     fn as_ref(&self) -> &str {
-        self.as_str()
-    }
-}
-
-impl Deref for Scope {
-    type Target = str;
-
-    fn deref(&self) -> &str {
         self.as_str()
     }
 }
@@ -909,8 +912,8 @@ impl<'de> Deserialize<'de> for Scope {
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        s.parse()
-            .map_err(|e: InvalidScopeError| D::Error::custom(e))
+        String::deserialize(deserializer)?
+            .parse()
+            .map_err(serde::de::Error::custom)
     }
 }
