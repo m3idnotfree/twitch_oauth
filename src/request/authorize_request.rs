@@ -20,7 +20,11 @@ pub struct AuthorizationRequest<'a> {
 }
 
 impl<'a> AuthorizationRequest<'a> {
-    pub fn new(client_id: &'a ClientId, redirect_url: &'a RedirectUrl, state: String) -> Self {
+    pub(crate) fn new(
+        client_id: &'a ClientId,
+        redirect_url: &'a RedirectUrl,
+        state: String,
+    ) -> Self {
         Self {
             client_id,
             force_verify: None,
