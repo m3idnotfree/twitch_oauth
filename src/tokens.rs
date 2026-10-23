@@ -1,5 +1,4 @@
 use asknothingx2_util::oauth::ClientId;
-use chrono::Utc;
 use serde::{Deserialize, Serialize, Serializer};
 
 use crate::{AccessToken, RefreshToken, scope::Scope};
@@ -12,15 +11,6 @@ pub struct UserToken {
     pub refresh_token: RefreshToken,
     #[serde(default, deserialize_with = "deserialize_scopes")]
     pub scope: Vec<Scope>,
-    #[serde(default = "default_created_at")]
-    pub created_at: i64,
-}
-
-impl UserToken {
-    pub fn is_expired(&self) -> bool {
-        let now = Utc::now().timestamp();
-        now >= (self.created_at + self.expires_in as i64)
-    }
 }
 
 impl Serialize for UserToken {
@@ -30,13 +20,12 @@ impl Serialize for UserToken {
     {
         use serde::ser::SerializeStruct;
 
-        let mut state = serializer.serialize_struct("Token", 6)?;
+        let mut state = serializer.serialize_struct("Token", 5)?;
         state.serialize_field("access_token", &self.access_token)?;
         state.serialize_field("expires_in", &self.expires_in)?;
         state.serialize_field("token_type", &self.token_type)?;
         state.serialize_field("refresh_token", &self.refresh_token)?;
         state.serialize_field("scope", &self.scope)?;
-        state.serialize_field("created_at", &self.created_at)?;
         state.end()
     }
 }
@@ -60,10 +49,6 @@ pub struct AppToken {
     pub access_token: AccessToken,
     pub expires_in: u64,
     pub token_type: String,
-}
-
-pub fn default_created_at() -> i64 {
-    Utc::now().timestamp()
 }
 
 fn deserialize_scopes<'de, D>(deserializer: D) -> Result<Vec<Scope>, D::Error>

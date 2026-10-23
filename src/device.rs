@@ -15,7 +15,6 @@ use crate::{
     error,
     request::{DeviceCodeRequest, DeviceTokenRequest},
     scope::{ScopesMut, scopes_mut},
-    tokens::default_created_at,
 };
 
 pub struct DeviceAuthBuilder<L = Identity> {
@@ -110,19 +109,18 @@ impl DeviceAuth {
     ///
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow>
     pub async fn wait_for_token(&self, response: DeviceCodeResponse) -> Result<UserToken, Error> {
-        use chrono::Utc;
         use std::time::Duration;
-        use tokio::time::sleep;
+        use tokio::time::{Instant, sleep};
 
         let operation = error::Operation::DeviceToken;
-        let deadline = response.created_at + response.expires_in as i64;
+        let deadline = response.received_at + Duration::from_secs(response.expires_in);
         let scopes = self.scopes_to_string();
 
         #[cfg(feature = "tracing")]
         tracing::debug!(
             client_id = %self.client_id,
             interval_secs = response.interval,
-            remaining_secs = deadline - Utc::now().timestamp(),
+            remaining_secs = deadline.saturating_duration_since(Instant::now()).as_secs(),
             "starting device code poll"
         );
 
@@ -131,7 +129,7 @@ impl DeviceAuth {
         loop {
             sleep(Duration::from_secs(response.interval)).await;
 
-            if Utc::now().timestamp() >= deadline {
+            if Instant::now() >= deadline {
                 #[cfg(feature = "tracing")]
                 tracing::debug!(
                     client_id = %self.client_id,
@@ -190,8 +188,8 @@ pub struct DeviceCodeResponse {
     pub interval: u64,
     pub user_code: String,
     pub verification_uri: Url,
-    #[serde(default = "default_created_at")]
-    pub created_at: i64,
+    #[serde(skip, default = "tokio::time::Instant::now")]
+    received_at: tokio::time::Instant,
 }
 
 impl DeviceCodeResponse {
