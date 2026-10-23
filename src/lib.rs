@@ -377,7 +377,7 @@ mod tokens;
 mod types;
 
 pub use client::{AppAuth, Client, ClientBuilder, UserAuth};
-pub use device::{DeviceAuth, DeviceCodeResponse};
+pub use device::{DeviceAuth, DeviceAuthBuilder, DeviceCodeResponse};
 pub use error::{Error, ErrorKind};
 pub use request::{AuthrozationRequest, validate_access_token};
 pub use scope::Scope;

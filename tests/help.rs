@@ -38,8 +38,6 @@ pub mod token {
 }
 
 pub mod setup {
-    use asknothingx2_http::client::Reqwest;
-    use tower_layer::Layer;
     use twitch_oauth_token::{Client, ClientId, DeviceAuth, UserAuth};
     use wiremock::MockServer;
 
@@ -60,9 +58,9 @@ pub mod setup {
     pub async fn device_server() -> (MockServer, DeviceAuth) {
         let server = MockServer::start().await;
 
-        let oauth = DeviceAuth::new(ClientId::from(config::client_id())).with_http_client(
-            service::HostLayer::new(&server.uri()).layer(Reqwest::new(config::client())),
-        );
+        let oauth = DeviceAuth::builder(ClientId::from(config::client_id()))
+            .layer(service::HostLayer::new(&server.uri()))
+            .http_client(config::client());
 
         (server, oauth)
     }

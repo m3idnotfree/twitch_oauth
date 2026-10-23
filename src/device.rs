@@ -3,21 +3,78 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use asknothingx2_http::{ClientService, Request, client::Reqwest};
+use asknothingx2_http::{ClientService, HttpService, client::Reqwest};
 use asknothingx2_util::oauth::ClientId;
-use bytes::Bytes;
 use serde::Deserialize;
-use tower_service::Service;
+use tower_layer::{Identity, Layer, Stack};
 use url::Url;
 
 use crate::{
     DeviceCode, Error, Scope, UserToken,
     client::{json, read_json, send},
-    error::{self, BoxError},
+    error,
     request::{DeviceCodeRequest, DeviceTokenRequest},
     scope::{ScopesMut, scopes_mut},
     tokens::default_created_at,
 };
+
+pub struct DeviceAuthBuilder<L = Identity> {
+    client_id: ClientId,
+    scopes: HashSet<Scope>,
+    layers: L,
+}
+
+impl DeviceAuthBuilder<Identity> {
+    pub fn new(client_id: ClientId) -> Self {
+        Self {
+            client_id,
+            scopes: HashSet::new(),
+            layers: Identity::new(),
+        }
+    }
+}
+
+impl<L> DeviceAuthBuilder<L> {
+    pub fn scopes<I>(mut self, scopes: I) -> Self
+    where
+        I: IntoIterator<Item = Scope>,
+    {
+        self.scopes.extend(scopes);
+        self
+    }
+
+    pub fn layer<T>(self, layer: T) -> DeviceAuthBuilder<Stack<T, L>> {
+        DeviceAuthBuilder {
+            client_id: self.client_id,
+            scopes: self.scopes,
+            layers: Stack::new(layer, self.layers),
+        }
+    }
+    pub fn build(self) -> DeviceAuth
+    where
+        L: Layer<Reqwest, Service: HttpService>,
+    {
+        self.http_client(crate::HTTP_CLIENT.clone())
+    }
+
+    pub fn http_client(self, http_client: reqwest::Client) -> DeviceAuth
+    where
+        L: Layer<Reqwest, Service: HttpService>,
+    {
+        self.service(Reqwest::new(http_client))
+    }
+
+    pub fn service<S>(self, service: S) -> DeviceAuth
+    where
+        L: Layer<S, Service: HttpService>,
+    {
+        DeviceAuth {
+            client_id: self.client_id,
+            scopes: self.scopes,
+            svc: ClientService::new(self.layers.layer(service)),
+        }
+    }
+}
 
 pub struct DeviceAuth {
     client_id: ClientId,
@@ -27,32 +84,15 @@ pub struct DeviceAuth {
 
 impl DeviceAuth {
     pub fn new(client_id: ClientId) -> Self {
-        Self {
-            client_id,
-            scopes: HashSet::new(),
-            svc: ClientService::new(Reqwest::new(crate::HTTP_CLIENT.clone())),
-        }
-    }
-
-    pub fn with_http_client<S, B>(mut self, service: S) -> Self
-    where
-        S: Service<Request, Response = http::Response<B>> + Clone + Send + Sync + 'static,
-        S::Error: Into<BoxError>,
-        S::Future: Send + 'static,
-        B: http_body::Body<Data = Bytes> + Send + Sync + 'static,
-        B::Error: Into<BoxError>,
-    {
-        self.svc = ClientService::new(service);
-        self
-    }
-
-    pub fn with_scopes(mut self, scopes: HashSet<Scope>) -> Self {
-        self.scopes = scopes;
-        self
+        DeviceAuthBuilder::new(client_id).build()
     }
 
     pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
         scopes_mut(&mut self.scopes)
+    }
+
+    pub fn builder(client_id: ClientId) -> DeviceAuthBuilder {
+        DeviceAuthBuilder::new(client_id)
     }
 
     /// Request a device code
