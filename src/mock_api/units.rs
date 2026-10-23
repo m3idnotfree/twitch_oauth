@@ -1,9 +1,7 @@
-use asknothingx2_http::{Body, ClientService, Request, client::Reqwest};
+use asknothingx2_http::{Body, ClientService, HttpService, Request, client::Reqwest};
 use asknothingx2_util::api::{mime_type::Application, preset};
-use bytes::Bytes;
 use http::{Uri, header::ACCEPT, uri::PathAndQuery};
 use serde::{Deserialize, de::DeserializeOwned};
-use tower_service::Service;
 
 use crate::{
     ClientId, ClientSecret, Error,
@@ -39,14 +37,7 @@ impl MockUnits {
         }
     }
 
-    pub fn with_http_client<S, B>(mut self, service: S) -> Self
-    where
-        S: Service<Request, Response = http::Response<B>> + Clone + Send + Sync + 'static,
-        S::Error: Into<BoxError>,
-        S::Future: Send + 'static,
-        B: http_body::Body<Data = Bytes> + Send + Sync + 'static,
-        B::Error: Into<BoxError>,
-    {
+    pub fn with_service<S: HttpService>(mut self, service: S) -> Self {
         self.svc = ClientService::new(service);
         self
     }
