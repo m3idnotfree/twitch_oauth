@@ -376,7 +376,7 @@ mod request;
 mod tokens;
 mod types;
 
-pub use client::{AppAuth, Client, ClientBuilder, UserAuth};
+pub use client::{AppAuth, Client, ClientBuilder, OauthFlow, UserAuth};
 pub use device::{DeviceAuth, DeviceAuthBuilder, DeviceCodeResponse};
 pub use error::{Error, ErrorKind};
 pub use request::{AuthorizationRequest, validate_access_token};
