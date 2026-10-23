@@ -14,7 +14,7 @@ use crate::{
 pub struct ExchangeCodeRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
-    code: AuthorizationCode,
+    code: &'a AuthorizationCode,
     redirect_url: &'a RedirectUrl,
 }
 
@@ -22,7 +22,7 @@ impl<'a> ExchangeCodeRequest<'a> {
     pub fn new(
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
-        code: AuthorizationCode,
+        code: &'a AuthorizationCode,
         redirect_url: &'a RedirectUrl,
     ) -> Self {
         Self {

@@ -78,7 +78,7 @@ async fn handle_callback(
     oauth_callback: AuthCallback,
 ) -> Result<(), twitch_oauth_token::Error> {
     let token = oauth
-        .exchange_code(oauth_callback.code, oauth_callback.state)
+        .exchange_code(&oauth_callback.code, &oauth_callback.state)
         .await?;
 
     println!("Access token: {}", token.access_token.secret());

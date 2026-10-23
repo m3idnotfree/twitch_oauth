@@ -246,7 +246,7 @@ where
     /// ```no_run
     /// # use twitch_oauth_token::{Client, RefreshToken};
     /// # async fn run(oauth: Client, refresh_token: RefreshToken) -> Result<(), twitch_oauth_token::Error> {
-    /// let new_token = oauth.refresh_access_token(refresh_token).await?;
+    /// let new_token = oauth.refresh_access_token(&refresh_token).await?;
     /// # Ok(())
     /// # }
     /// ```
@@ -254,7 +254,7 @@ where
     /// <https://dev.twitch.tv/docs/authentication/refresh-tokens/>
     pub async fn refresh_access_token(
         &self,
-        refresh_token: RefreshToken,
+        refresh_token: &RefreshToken,
     ) -> Result<crate::UserToken, Error> {
         json(
             self.svc.clone(),
@@ -427,7 +427,7 @@ impl Client<UserAuth> {
     ///     oauth_callback: AuthCallback,
     /// ) -> Result<(), twitch_oauth_token::Error> {
     ///     let token = oauth
-    ///         .exchange_code(oauth_callback.code, oauth_callback.state)
+    ///         .exchange_code(&oauth_callback.code, &oauth_callback.state)
     ///         .await?;
     ///
     ///     Ok(())
@@ -437,12 +437,12 @@ impl Client<UserAuth> {
     /// <https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow>
     pub async fn exchange_code(
         &self,
-        code: AuthorizationCode,
-        state: String,
+        code: &AuthorizationCode,
+        state: &str,
     ) -> Result<crate::UserToken, Error> {
         csrf::verify_with_config(
             &self.csrf_key,
-            &state,
+            state,
             Some(&self.client_id),
             &self.csrf_config,
         )

@@ -36,7 +36,7 @@ async fn authorization_code_grant_flow() {
     assert_eq!(CODE, resp.code.secret());
     assert_eq!(state, resp.state);
 
-    let token = oauth.exchange_code(resp.code, resp.state).await.unwrap();
+    let token = oauth.exchange_code(&resp.code, &resp.state).await.unwrap();
 
     assert_eq!(ACCESS_TOKEN, token.access_token.secret());
     assert!(token.scope.contains(&Scope::ChatRead));
@@ -50,7 +50,7 @@ async fn refresh_access_token() {
     server::refresh_access_token(&server).await;
 
     let token = oauth
-        .refresh_access_token(REFRESH_TOKEN.into())
+        .refresh_access_token(&REFRESH_TOKEN.into())
         .await
         .unwrap();
     assert_eq!(token.access_token.secret(), ACCESS_TOKEN);

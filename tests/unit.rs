@@ -13,7 +13,7 @@ async fn csrf_validation_failure() {
     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000").unwrap());
 
     let result = oauth
-        .exchange_code(AuthorizationCode::from("code"), "state".to_string())
+        .exchange_code(&AuthorizationCode::from("code"), "state")
         .await;
 
     assert!(result.is_err());

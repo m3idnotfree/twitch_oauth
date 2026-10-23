@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
 
     let callback: AuthCallback = oneshot::listen(config).await?;
 
-    let token = oauth.exchange_code(callback.code, callback.state).await?;
+    let token = oauth.exchange_code(&callback.code, &callback.state).await?;
 
     println!("{token:?}");
     Ok(())

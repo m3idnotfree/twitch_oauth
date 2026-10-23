@@ -15,14 +15,14 @@ use crate::{
 pub struct RefreshRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
-    refresh_token: RefreshToken,
+    refresh_token: &'a RefreshToken,
 }
 
 impl<'a> RefreshRequest<'a> {
     pub fn new(
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
-        refresh_token: RefreshToken,
+        refresh_token: &'a RefreshToken,
     ) -> Self {
         Self {
             client_id,

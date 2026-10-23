@@ -119,7 +119,7 @@
 //!     query_params: AuthCallback,
 //! ) -> Result<(), twitch_oauth_token::Error> {
 //!     let token = oauth
-//!         .exchange_code(query_params.code, query_params.state)
+//!         .exchange_code(&query_params.code, &query_params.state)
 //!         .await?;
 //!     
 //!     // Store the tokens securely for future API calls
@@ -199,7 +199,7 @@
 //! ```
 //! # use twitch_oauth_token::{Error, RefreshToken, Client};
 //! # async fn run(oauth: Client, refresh_token: RefreshToken) -> Result<(), Error> {
-//! let new_token = oauth.refresh_access_token(refresh_token).await?;
+//! let new_token = oauth.refresh_access_token(&refresh_token).await?;
 //! # Ok(())
 //! # }
 //! ```
@@ -342,7 +342,7 @@
 //!     match oneshot::listen::<AuthCallback>(config).await {
 //!         Ok(callback) => {
 //!             let token = oauth
-//!                 .exchange_code(callback.code, callback.state)
+//!                 .exchange_code(&callback.code, &callback.state)
 //!                 .await?;
 //!             println!("Successfully got user token!");
 //!         }
