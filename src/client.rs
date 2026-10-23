@@ -230,16 +230,6 @@ where
         self.client_secret = client_secret;
     }
 
-    /// Update CSRF token validation settings at runtime
-    ///
-    /// Use this to adjust CSRF validation behavior in a running application,
-    /// especially in `Arc<RwLock<Client>>` patterns.
-    ///
-    /// For initial configuration during construction, use [`ClientBuilder::csrf_config`] instead.
-    pub fn set_csrf_config(&mut self, config: csrf::Config) {
-        self.csrf_config = config;
-    }
-
     /// **Refresh an access token** using a refresh token
     ///
     /// # Example
@@ -468,6 +458,16 @@ impl Client<UserAuth> {
     /// For initial configuration during construction, use [`ClientBuilder::csrf_key`] instead.
     pub fn set_csrf_key(&mut self, csrf_key: [u8; 32]) {
         self.csrf_key = csrf_key;
+    }
+
+    /// Update CSRF token validation settings at runtime
+    ///
+    /// Use this to adjust CSRF validation behavior in a running application,
+    /// especially in `Arc<RwLock<Client>>` patterns.
+    ///
+    /// For initial configuration during construction, use [`ClientBuilder::csrf_config`] instead.
+    pub fn set_csrf_config(&mut self, config: csrf::Config) {
+        self.csrf_config = config;
     }
 }
 
