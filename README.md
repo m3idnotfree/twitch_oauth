@@ -115,7 +115,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Feature Flags
 
-- **`oneshot`** - Built-in development server for handling OAuth callbacks
 - **`mock-api`** - Testing utilities and mock server support
 - **`tracing`** - Log events for `DeviceAuth::wait_for_token`
 

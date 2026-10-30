@@ -32,11 +32,6 @@ name = "mock-api"
 path = "examples/mock_api.rs"
 required-features = ["mock-api"]
 
-[[example]]
-name = "oneshot"
-path = "examples/oneshot.rs"
-required-features = ["oneshot"]
-
 [[test]]
 name = "mock_api"
 path = "tests/mock_api.rs"
@@ -72,7 +67,6 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 wiremock = "0.6.5"
 
 [features]
-full = ["mock-api", "oneshot", "tracing"]
+full = ["mock-api", "tracing"]
 mock-api = []
-oneshot = ["asknothingx2-util/oauth-server"]
 tracing = ["dep:tracing"]

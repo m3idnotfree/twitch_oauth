@@ -306,56 +306,6 @@
 //! # }
 //! ```
 //!
-//! ## Development Server
-//!
-//! For local development, use the built-in oneshot server to handle OAuth callbacks:
-//!
-//! ```no_run
-//! # #[cfg(feature = "oneshot")]
-//! # {
-//! use std::{str::FromStr, time::Duration};
-//! use twitch_oauth_token::{
-//!     AuthCallback, Client, ClientId,
-//!     ClientSecret, RedirectUrl, oneshot,
-//! };
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let oauth = Client::new(
-//!         ClientId::from("client_id"),
-//!         ClientSecret::from("client_secret")
-//!     )
-//!     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000")?);
-//!
-//!     let mut auth_request = oauth.authorization_url();
-//!     auth_request.scopes_mut().chat_api();
-//!
-//!     println!("Visit this URL to authorize:");
-//!     println!("{}", auth_request.url());
-//!     println!("Waiting for callback...");
-//!
-//!     let config = oneshot::Config::new()
-//!         .with_port(3000)
-//!         .with_duration(Duration::from_secs(120));
-//!
-//!     // Wait up to 2 minutes for the user to complete OAuth flow
-//!     match oneshot::listen::<AuthCallback>(config).await {
-//!         Ok(callback) => {
-//!             let token = oauth
-//!                 .exchange_code(&callback.code, &callback.state)
-//!                 .await?;
-//!             println!("Successfully got user token!");
-//!         }
-//!         Err(e) => {
-//!             eprintln!("OAuth flow failed: {}", e);
-//!         }
-//!     }
-//!
-//!     Ok(())
-//! }
-//! # }
-//! ```
-//!
 //! ## HTTP Client Configuration
 //!
 //! The default HTTP client works for most applications.
@@ -383,9 +333,6 @@ pub use request::{AuthorizationRequest, validate_access_token};
 pub use scope::Scope;
 pub use tokens::{AppToken, TokenInfo, UserToken};
 pub use types::AuthCallback;
-
-#[cfg(feature = "oneshot")]
-pub use asknothingx2_util::oauth::oneshot;
 
 #[cfg(feature = "mock-api")]
 pub mod mock_api;
