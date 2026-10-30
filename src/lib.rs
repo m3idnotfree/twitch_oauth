@@ -404,11 +404,14 @@ pub mod csrf {
 }
 
 static HTTP_CLIENT: std::sync::LazyLock<reqwest::Client> = std::sync::LazyLock::new(|| {
-    asknothingx2_util::api::preset::authentication(concat!(
-        env!("CARGO_PKG_NAME"),
-        "/",
-        env!("CARGO_PKG_VERSION")
-    ))
+    asknothingx2_http::config::preset::authentication(
+        reqwest::Client::builder(),
+        http::HeaderValue::from_static(concat!(
+            env!("CARGO_PKG_NAME"),
+            "/",
+            env!("CARGO_PKG_VERSION")
+        )),
+    )
     .build()
     .expect("failed to build default http client")
 });

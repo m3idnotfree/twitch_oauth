@@ -1,13 +1,14 @@
-use asknothingx2_http::{Body, ClientService, HttpService, Request, client::Reqwest};
-use asknothingx2_util::api::{mime_type::Application, preset};
-use http::{Uri, header::ACCEPT, uri::PathAndQuery};
+use asknothingx2_http::{
+    Body, ClientService, HttpService, Request, client::Reqwest, config::preset,
+};
+use http::{HeaderValue, Uri, header::ACCEPT, uri::PathAndQuery};
 use serde::{Deserialize, de::DeserializeOwned};
 
 use crate::{
     ClientId, ClientSecret, Error,
     client::json,
     error::{BoxError, Operation},
-    request::IntoRequest,
+    request::{APPLICATION_JSON, IntoRequest},
 };
 
 /// <https://dev.twitch.tv/docs/cli/mock-api-command/#getting-an-access-token>
@@ -23,11 +24,14 @@ impl MockUnits {
     }
 
     pub fn new(base: Uri) -> Self {
-        let client = preset::testing(concat!(
-            env!("CARGO_PKG_NAME"),
-            "-mock-api/",
-            env!("CARGO_PKG_VERSION")
-        ))
+        let client = preset::danger_test(
+            reqwest::Client::builder(),
+            HeaderValue::from_static(concat!(
+                env!("CARGO_PKG_NAME"),
+                "-mock-api/",
+                env!("CARGO_PKG_VERSION")
+            )),
+        )
         .build()
         .expect("failed to build mock API http client");
 
@@ -103,7 +107,7 @@ impl IntoRequest for UnitsRequest<'_> {
         parts.path_and_query = Some(PathAndQuery::from_static(self.path));
 
         Ok(http::Request::get(Uri::from_parts(parts)?)
-            .header(ACCEPT, Application::Json)
+            .header(ACCEPT, APPLICATION_JSON)
             .body(Body::empty())?)
     }
 }

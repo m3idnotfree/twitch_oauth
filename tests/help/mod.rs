@@ -1,5 +1,5 @@
-use asknothingx2_http::Request;
-use http::Uri;
+use asknothingx2_http::{Request, config::preset};
+use http::{HeaderValue, Uri};
 use tower_layer::Layer;
 use tower_service::Service;
 use url::Url;
@@ -13,11 +13,14 @@ pub const REDIRECT_URL: &str = "http://localhost:3000";
 pub const REFRESH_TOKEN: &str = "eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj";
 
 pub fn client() -> reqwest::Client {
-    asknothingx2_util::api::preset::testing(concat!(
-        env!("CARGO_PKG_NAME"),
-        "-test/",
-        env!("CARGO_PKG_VERSION")
-    ))
+    preset::danger_test(
+        reqwest::Client::builder(),
+        HeaderValue::from_static(concat!(
+            env!("CARGO_PKG_NAME"),
+            "-test/",
+            env!("CARGO_PKG_VERSION")
+        )),
+    )
     .build()
     .unwrap()
 }

@@ -1,14 +1,13 @@
 use std::{collections::HashSet, ops::Deref};
 
 use asknothingx2_http::{Body, ClientService, Request};
-use asknothingx2_util::api::mime_type::Application;
 use http::header::ACCEPT;
 use url::Url;
 
 use crate::{
     Client, ClientId, ClientSecret, Error, UserToken,
     client::{OauthFlow, json},
-    request::{AUTH_URL, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
+    request::{APPLICATION_JSON, AUTH_URL, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE, IntoRequest},
     scope::{Scope, ScopesMut, scopes_mut},
     types::GrantType,
 };
@@ -72,7 +71,7 @@ impl IntoRequest for MockUserTokenRequest<'_> {
             .append_pair("scope", &scopes);
 
         Ok(http::Request::post(url.as_str())
-            .header(ACCEPT, Application::Json)
+            .header(ACCEPT, APPLICATION_JSON)
             .body(Body::empty())?)
     }
 }

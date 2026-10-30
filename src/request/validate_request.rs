@@ -1,6 +1,5 @@
 use asknothingx2_http::{Body, ClientService, client::Reqwest};
-use asknothingx2_util::api::AuthScheme;
-use http::header::AUTHORIZATION;
+use http::{HeaderValue, header::AUTHORIZATION};
 
 use crate::{
     AccessToken, Error,
@@ -33,8 +32,9 @@ impl IntoRequest for ValidateRequest<'_> {
     const OPERATION: crate::error::Operation = crate::error::Operation::ValidateAccessToken;
 
     fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
-        let authorization =
-            AuthScheme::custom("OAuth", self.access_token.secret()).to_header_value()?;
+        let mut authorization =
+            HeaderValue::from_str(&format!("OAuth {}", self.access_token.secret()))?;
+        authorization.set_sensitive(true);
 
         Ok(http::Request::get(VALIDATE_URL)
             .header(AUTHORIZATION, authorization)

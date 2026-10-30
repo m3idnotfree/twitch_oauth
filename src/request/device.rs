@@ -1,12 +1,14 @@
 use std::ops::Deref;
 
 use asknothingx2_http::Body;
-use asknothingx2_util::api::mime_type::Application;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
     ClientId, DeviceCode,
-    request::{CLIENT_ID, DEVICE_URL, GRANT_TYPE, IntoRequest, TOKEN_URL},
+    request::{
+        APPLICATION_FORM_URLENCODED, APPLICATION_JSON, CLIENT_ID, DEVICE_URL, GRANT_TYPE,
+        IntoRequest, TOKEN_URL,
+    },
     types::GrantType,
 };
 
@@ -28,8 +30,8 @@ impl IntoRequest for DeviceCodeRequest<'_> {
 
     fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
         Ok(http::Request::post(DEVICE_URL)
-            .header(ACCEPT, Application::Json)
-            .header(CONTENT_TYPE, Application::FormUrlEncoded)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
                 (CLIENT_ID, self.client_id.deref()),
                 ("scopes", self.scopes),
@@ -60,8 +62,8 @@ impl IntoRequest for DeviceTokenRequest<'_> {
 
     fn into_request(self) -> Result<asknothingx2_http::Request, crate::error::BoxError> {
         Ok(http::Request::post(TOKEN_URL)
-            .header(ACCEPT, Application::Json)
-            .header(CONTENT_TYPE, Application::FormUrlEncoded)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
                 (CLIENT_ID, self.client_id.deref()),
                 ("scopes", self.scopes),

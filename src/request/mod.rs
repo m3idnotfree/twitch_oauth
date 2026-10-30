@@ -29,6 +29,9 @@ pub(crate) const REVOKE_URL: &str = "https://id.twitch.tv/oauth2/revoke";
 pub(crate) const VALIDATE_URL: &str = "https://id.twitch.tv/oauth2/validate";
 pub(crate) const DEVICE_URL: &str = "https://id.twitch.tv/oauth2/device";
 
+pub(crate) const APPLICATION_JSON: &str = "application/json";
+pub(crate) const APPLICATION_FORM_URLENCODED: &str = "application/x-www-form-urlencoded";
+
 pub(crate) trait IntoRequest {
     const OPERATION: crate::error::Operation;
 

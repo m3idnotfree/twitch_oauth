@@ -24,19 +24,24 @@ async fn authorization_code_grant_flow() {
     let url = swap_origin(auth_url.url(), &server);
     let state = server::authorization_code_grant_flow(&server, &url, &scopes).await;
 
-    let resp: AuthCallback = help::client()
+    let resp = help::client()
         .get(url)
         .send()
         .await
         .unwrap()
-        .json()
+        .bytes()
         .await
         .unwrap();
 
-    assert_eq!(CODE, resp.code.secret());
-    assert_eq!(state, resp.state);
+    let auth_callback: AuthCallback = serde_json::from_slice(&resp).unwrap();
 
-    let token = oauth.exchange_code(&resp.code, &resp.state).await.unwrap();
+    assert_eq!(CODE, auth_callback.code.secret());
+    assert_eq!(state, auth_callback.state);
+
+    let token = oauth
+        .exchange_code(&auth_callback.code, &auth_callback.state)
+        .await
+        .unwrap();
 
     assert_eq!(ACCESS_TOKEN, token.access_token.secret());
     assert!(token.scope.contains(&Scope::ChatRead));
