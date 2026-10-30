@@ -8,10 +8,9 @@
 //! - Units URL: http://localhost:8080/units
 //!
 //! ```no_run
-//! use asknothingx2_http::client::Reqwest;
 //! use twitch_oauth_token::{
 //!     Client,
-//!     mock_api::{MockApiService, MockUnits},
+//!     mock_api::{MockApiLayer, MockUnits},
 //! };
 //!
 //! #[tokio::main]
@@ -20,10 +19,8 @@
 //!     let client = units.clients().await?.remove(0);
 //!
 //!     let oauth = Client::builder(client.id, client.secret)
-//!         .service(MockApiService::localhost(
-//!             Reqwest::new(reqwest::Client::new()),
-//!             8080,
-//!         ));
+//!         .layer(MockApiLayer::localhost(8080))
+//!         .http_client(reqwest::Client::new());
 //!
 //!     // Get app token from mock API
 //!     let app_token = oauth.app_access_token().await?;
@@ -44,14 +41,41 @@
 mod units;
 mod user_token;
 
-pub use units::{MockClient, MockUnits, MockUser};
+pub use units::{
+    MockCategory, MockClient, MockMutedSegment, MockStream, MockSubscription, MockTag, MockTeam,
+    MockTeamUser, MockUnits, MockUser, MockVideo,
+};
 pub use user_token::MockUserTokenRequest;
 
 use std::task::{Context, Poll};
 
 use asknothingx2_http::Request;
 use http::Uri;
+use tower_layer::Layer;
 use tower_service::Service;
+
+#[derive(Debug, Clone)]
+pub struct MockApiLayer {
+    base: Uri,
+}
+
+impl MockApiLayer {
+    pub fn localhost(port: u16) -> Self {
+        Self::new(localhost(port))
+    }
+
+    pub fn new(base: Uri) -> Self {
+        Self { base }
+    }
+}
+
+impl<S> Layer<S> for MockApiLayer {
+    type Service = MockApiService<S>;
+
+    fn layer(&self, inner: S) -> Self::Service {
+        MockApiService::new(inner, self.base.clone())
+    }
+}
 
 /// Sends `https://id.twitch.tv/oauth2/{endpoint}` to `{base}/auth/{endpoint}`.
 /// Other paths are kept.
@@ -117,9 +141,10 @@ mod tests {
 
     use asknothingx2_http::{Body, Request};
     use http::Uri;
+    use tower_layer::Layer;
     use tower_service::Service;
 
-    use super::MockApiService;
+    use super::MockApiLayer;
 
     struct Echo;
 
@@ -137,13 +162,10 @@ mod tests {
         }
     }
 
-    fn call(mut svc: MockApiService<Echo>, uri: &str) -> String {
-        let req = http::Request::post(uri).body(Body::empty()).unwrap();
-        svc.call(req).into_inner().unwrap().to_string()
-    }
-
     fn send(base: &str, uri: &str) -> String {
-        call(MockApiService::new(Echo, base.parse().unwrap()), uri)
+        let req = http::Request::post(uri).body(Body::empty()).unwrap();
+        let mut svc = MockApiLayer::new(base.parse().unwrap()).layer(Echo);
+        svc.call(req).into_inner().unwrap().to_string()
     }
 
     #[test]

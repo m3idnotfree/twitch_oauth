@@ -1,10 +1,9 @@
 use std::env;
 
 use anyhow::{Context, Result};
-use asknothingx2_http::client::Reqwest;
 use twitch_oauth_token::{
     Client,
-    mock_api::{MockApiService, MockUnits},
+    mock_api::{MockApiLayer, MockUnits},
 };
 
 #[tokio::main]
@@ -29,10 +28,9 @@ async fn main() -> Result<()> {
         .next()
         .context("no mock users, run `twitch mock-api generate`")?;
 
-    let oauth = Client::builder(client.id, client.secret).service(MockApiService::localhost(
-        Reqwest::new(reqwest::Client::new()),
-        port,
-    ));
+    let oauth = Client::builder(client.id, client.secret)
+        .layer(MockApiLayer::localhost(port))
+        .http_client(reqwest::Client::new());
 
     let app_token = oauth.app_access_token().await?;
     println!("{app_token:?}");
