@@ -11,16 +11,7 @@ A Rust library for Twitch OAuth 2.0 authentication with compile-time safety and 
 - **Type-safe OAuth flows** - Compile-time prevention of invalid operations using the type-state pattern
 - **HMAC-based CSRF protection** - Cryptographically secure state validation using HMAC-SHA256 with timestamp validation
 - **Full Twitch scope support** - All [Twitch API scopes](https://dev.twitch.tv/docs/authentication/scopes/) with convenient helper methods
-- **Pre-configured HTTP client** - Includes an optimized authentication client preset from [asknothingx2-util](https://docs.rs/asknothingx2-util/latest/asknothingx2_util/api/preset/index.html)
 - **Twitch mock API support** - Built-in support for the [Twitch CLI mock API](https://dev.twitch.tv/docs/cli/mock-api-command/) for testing and certification
-
-## Installation
-
-```toml
-[dependencies]
-twitch_oauth_token = "5"
-tokio = { version = "1", features = ["full"] }
-```
 
 ## Quick Start
 

@@ -1,8 +1,62 @@
+## [6.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v5.0.1..v6.0.0) - 2026-10-30
+
+### Features
+
+- [**breaking**] remove the global HTTP client ([e262073](https://github.com/m3idnotfree/twitch_oauth/commit/e262073ae4a7d68f9a85687a114f14aedcf1c189))
+- [**breaking**] rename TwitchOauth to Client ([a1f16e4](https://github.com/m3idnotfree/twitch_oauth/commit/a1f16e4dc55f02148d4a6cdf8c8ecc32cd0c8280))
+- **(client)** [**breaking**] remove Client::get_client ([c024ce4](https://github.com/m3idnotfree/twitch_oauth/commit/c024ce4de5fa3131b9e99e71962406c42cd97371))
+- **(client)** [**breaking**] add ClientBuilder ([f9adb5d](https://github.com/m3idnotfree/twitch_oauth/commit/f9adb5d564b72edb431a5dc2c08bc6117ac723ee))
+- **(client)** [**breaking**] replace the URL fields with constants ([023d443](https://github.com/m3idnotfree/twitch_oauth/commit/023d44315717d512e3d412e7ab29da012a54315f))
+- **(device)** [**breaking**] send request as application/x-www-form-urlencoded ([06a25fb](https://github.com/m3idnotfree/twitch_oauth/commit/06a25fbc6f5efdc94b85fe0f48c8dd3fa52a3612))
+- **(mock-api)** [**breaking**] replace the test feature with mock-api ([4ed0b89](https://github.com/m3idnotfree/twitch_oauth/commit/4ed0b89d95412d4a52cbd7c4214cf753f35ea984))
+- [**breaking**] remove the URL type re-exports ([e2d17a0](https://github.com/m3idnotfree/twitch_oauth/commit/e2d17a004aa0c85a6e079b8062313d89a36c29d2))
+- **(client)** [**breaking**] take ClientId and ClientSecret in constructors ([1961471](https://github.com/m3idnotfree/twitch_oauth/commit/1961471a6cc2c0e68e47ba08719839e5525d7e5f))
+- **(csrf)** [**breaking**] rename secret_key to csrf_key and CsrfConfig to Config ([2da785b](https://github.com/m3idnotfree/twitch_oauth/commit/2da785babdf6e6a2105c68180aa929c209674f80))
+- **(client)** [**breaking**] rename get_redirect_uri to redirect_uri ([b939d9d](https://github.com/m3idnotfree/twitch_oauth/commit/b939d9da4a1d542bb3da88f98e23f2df7776a4c2))
+- **(device)** [**breaking**] rename request, poll and DeviceAuthResponse ([046e13b](https://github.com/m3idnotfree/twitch_oauth/commit/046e13b978ea43e8fd2d018436e77b631c43f49a))
+- **(client)** [**breaking**] add ClientBuilder::layer and ClientBuilder::service ([8dcbdfc](https://github.com/m3idnotfree/twitch_oauth/commit/8dcbdfc9307933ed4dd10e1f9e8b34313871b0a8))
+- **(device)** [**breaking**] add DeviceAuthBuilder ([7636123](https://github.com/m3idnotfree/twitch_oauth/commit/7636123d9535d95a158be40b18a8bd3802680bcd))
+- **(scope)** [**breaking**] remove Deref and rename InvalidScopeError ([7e196af](https://github.com/m3idnotfree/twitch_oauth/commit/7e196af716d2f90f733310daaf6c2614216cf498))
+- **(client)** [**breaking**] take tokens by reference ([45d4c98](https://github.com/m3idnotfree/twitch_oauth/commit/45d4c986f27c5f3a1a80e6a8381302b51981810d))
+- [**breaking**] rename AuthrozationRequest to AuthorizationRequest ([b03824b](https://github.com/m3idnotfree/twitch_oauth/commit/b03824bcf4b56c2c47b53d89670d243a32844d22))
+- [**breaking**] hide AuthorizationRequest::new ([ccf9379](https://github.com/m3idnotfree/twitch_oauth/commit/ccf937908fc01c636665ed350052d33a7fdaf2b4))
+- **(csrf)** [**breaking**] re-export only Config, Error and generate_secret_key ([7e41275](https://github.com/m3idnotfree/twitch_oauth/commit/7e41275731ea6232f2dcd437dd4b94cbf45e2349))
+- **(client)** [**breaking**] move set_csrf_config to Client<UserAuth> ([f36f065](https://github.com/m3idnotfree/twitch_oauth/commit/f36f06574ca080a155abd7c5d5bcb3f1bfbed53c))
+- **(client)** export OauthFlow ([828b2e1](https://github.com/m3idnotfree/twitch_oauth/commit/828b2e1ddbcb1d708b603a2ce76c57b19acee6a2))
+- **(mock_api)** [**breaking**] rename MockUnits::with_http_client to with_service ([661944b](https://github.com/m3idnotfree/twitch_oauth/commit/661944bd6384907599373cfc22ff8afd84ccf8aa))
+- [**breaking**] drop fields Twitch doesn't send ([97882e1](https://github.com/m3idnotfree/twitch_oauth/commit/97882e1dd0a4229f2f7163792d673d6ea2a56a55))
+- **(scope)** add Scope::ALL ([cd11612](https://github.com/m3idnotfree/twitch_oauth/commit/cd11612f5ca235bc8d39c86ab8c98f059acaa22d))
+- **(mock_api)** add MockApiLayer and all `/units` endpoints ([09565a7](https://github.com/m3idnotfree/twitch_oauth/commit/09565a7f95382553db55622b9e708bc62a128eaf))
+- [**breaking**] remove the oneshot feature ([4c7a0e3](https://github.com/m3idnotfree/twitch_oauth/commit/4c7a0e3d2c82a6799585819f7e506c64552f6320))
+
+### Bug Fixes
+
+- **(tokens)** [**breaking**] make login and user_id optional in TokenInfo ([b9c6e09](https://github.com/m3idnotfree/twitch_oauth/commit/b9c6e099ff826368c2470e359956c3305bc77818))
+
+### Refactoring
+
+- send requests through a tower::Service ([8157e5d](https://github.com/m3idnotfree/twitch_oauth/commit/8157e5dc3834d18c2fb209dd371d59fde00a76cf))
+
+### Performance
+
+- share one default reqwest client ([9bad855](https://github.com/m3idnotfree/twitch_oauth/commit/9bad85575fdb739c07ca6822559d4f15520e6d67))
+
+### Tests
+
+- simplify e2e helpers ([cac5d27](https://github.com/m3idnotfree/twitch_oauth/commit/cac5d2703c80a22a5309cbe15d45621377e4869c))
+
+### Miscellaneous
+
+- remove local-only patterns from .gitignore ([da1b389](https://github.com/m3idnotfree/twitch_oauth/commit/da1b389cdb3ffa7f7c01796ff5604162aed14302))
+- **(deps)** [**breaking**] bump asknothingx2-http to 0.2.0 ([dbda1f7](https://github.com/m3idnotfree/twitch_oauth/commit/dbda1f7bdd4f11a59903e6fde83fa38a376082af))
+- **(deps)** [**breaking**] bump asknothingx2-http to 0.2.2 and asknothingx2-util to 0.7.0 ([ca1bf39](https://github.com/m3idnotfree/twitch_oauth/commit/ca1bf39c953bb0b07bd14a0f1559fc66b4c4d157))
+
 ## [5.0.1](https://github.com/m3idnotfree/twitch_oauth/compare/v5.0.0..v5.0.1) - 2026-10-09
 
 ### Bug Fixes
 
 - **(error)** [**breaking**] render parse cause in Display instead of source ([8b28011](https://github.com/m3idnotfree/twitch_oauth/commit/8b280114c687f90eab8a0c26289924a9151a511c))
+
 ## [5.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v4.4.1..v5.0.0) - 2026-10-09
 
 ### Features
