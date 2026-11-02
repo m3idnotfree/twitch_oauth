@@ -1,10 +1,8 @@
-use std::ops::Deref;
-
 use asknothingx2_http::Body;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
 use crate::{
-    AuthorizationCode, ClientId, ClientSecret, RedirectUrl,
+    AuthorizationCode, ClientId, ClientSecret, RedirectUri,
     request::{
         APPLICATION_FORM_URLENCODED, APPLICATION_JSON, CLIENT_ID, CLIENT_SECRET, GRANT_TYPE,
         IntoRequest, TOKEN_URL,
@@ -17,7 +15,7 @@ pub struct ExchangeCodeRequest<'a> {
     client_id: &'a ClientId,
     client_secret: &'a ClientSecret,
     code: &'a AuthorizationCode,
-    redirect_url: &'a RedirectUrl,
+    redirect_url: &'a RedirectUri,
 }
 
 impl<'a> ExchangeCodeRequest<'a> {
@@ -25,7 +23,7 @@ impl<'a> ExchangeCodeRequest<'a> {
         client_id: &'a ClientId,
         client_secret: &'a ClientSecret,
         code: &'a AuthorizationCode,
-        redirect_url: &'a RedirectUrl,
+        redirect_url: &'a RedirectUri,
     ) -> Self {
         Self {
             client_id,
@@ -44,7 +42,7 @@ impl IntoRequest for ExchangeCodeRequest<'_> {
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
-                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_ID, self.client_id.as_str()),
                 (CLIENT_SECRET, self.client_secret.secret()),
                 ("code", self.code.secret()),
                 (GRANT_TYPE, GrantType::AuthorizationCode.as_str()),

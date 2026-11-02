@@ -55,7 +55,9 @@ async fn refresh_access_token() {
     server::refresh_access_token(&server).await;
 
     let token = oauth
-        .refresh_access_token(&REFRESH_TOKEN.into())
+        .refresh_access_token(&twitch_oauth_token::RefreshToken::new(
+            REFRESH_TOKEN.to_string(),
+        ))
         .await
         .unwrap();
     assert_eq!(token.access_token.secret(), ACCESS_TOKEN);
@@ -68,7 +70,9 @@ pub async fn validate_access_token() {
     server::validate_access_token(&server).await;
 
     let token = oauth
-        .validate_access_token(&ACCESS_TOKEN.into())
+        .validate_access_token(&twitch_oauth_token::AccessToken::new(
+            ACCESS_TOKEN.to_string(),
+        ))
         .await
         .unwrap();
     assert_eq!(CLIENT_ID, token.client_id.to_string());
@@ -81,7 +85,9 @@ pub async fn revoke_access_token() {
     server::revoke_access_token(&server).await;
 
     oauth
-        .revoke_access_token(&ACCESS_TOKEN.into())
+        .revoke_access_token(&twitch_oauth_token::AccessToken::new(
+            ACCESS_TOKEN.to_string(),
+        ))
         .await
         .unwrap();
 }

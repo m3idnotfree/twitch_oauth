@@ -8,7 +8,7 @@ use tower_layer::{Identity, Layer, Stack};
 
 use crate::{
     AccessToken, AuthorizationCode, AuthorizationRequest, ClientId, ClientSecret, Error,
-    RedirectUrl, RefreshToken, csrf, error,
+    RedirectUri, RefreshToken, csrf, error,
     request::{
         ClientCredentialsRequest, ExchangeCodeRequest, IntoRequest, RefreshRequest, RevokeRequest,
         ValidateRequest,
@@ -103,7 +103,7 @@ mod private {
 
 /// Marker trait for OAuth flow types - prevents external implementations
 pub trait OauthFlow: private::Sealed + Debug + Clone + Copy {
-    type RedirectUrl: Debug;
+    type RedirectUri: Debug;
 }
 
 /// **App Authentication** (Client Credentials Flow)
@@ -122,7 +122,7 @@ pub trait OauthFlow: private::Sealed + Debug + Clone + Copy {
 pub struct AppAuth;
 impl private::Sealed for AppAuth {}
 impl OauthFlow for AppAuth {
-    type RedirectUrl = ();
+    type RedirectUri = ();
 }
 
 /// **User Authentication** (Authorization Code Flow)
@@ -141,7 +141,7 @@ impl OauthFlow for AppAuth {
 pub struct UserAuth;
 impl private::Sealed for UserAuth {}
 impl OauthFlow for UserAuth {
-    type RedirectUrl = RedirectUrl;
+    type RedirectUri = RedirectUri;
 }
 
 /// **OAuth client for Twitch API authentication**
@@ -157,8 +157,8 @@ impl OauthFlow for UserAuth {
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///     let oauth = Client::new(
-///         ClientId::from("client_id"),
-///         ClientSecret::from("client_secret")
+///         ClientId::new("client_id".to_string()),
+///         ClientSecret::new("client_secret".to_string())
 ///     );
 ///     
 ///     let token = oauth.app_access_token().await?;
@@ -171,15 +171,15 @@ impl OauthFlow for UserAuth {
 /// **User authentication** (for user login flows):
 /// ```no_run
 /// use std::str::FromStr;
-/// use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUrl};
+/// use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri};
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), twitch_oauth_token::Error> {
 ///     let oauth = Client::new(
-///             ClientId::from("your_client_id"),
-///             ClientSecret::from("your_client_secret")
+///             ClientId::new("your_client_id".to_string()),
+///             ClientSecret::new("your_client_secret".to_string())
 ///         )
-///         .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
+///         .with_redirect_uri(RedirectUri::from_str("http://localhost:3000/auth/callback").unwrap());
 ///     
 ///     // Step 1: Get authorization URL (send user here)
 ///     let auth_request = oauth.authorization_url();
@@ -198,7 +198,7 @@ where
 {
     client_id: ClientId,
     client_secret: ClientSecret,
-    redirect_uri: Flow::RedirectUrl,
+    redirect_uri: Flow::RedirectUri,
     csrf_key: [u8; 32],
     csrf_config: csrf::Config,
     pub(crate) svc: ClientService,
@@ -292,8 +292,8 @@ where
     /// # use twitch_oauth_token::{Client, ClientId, ClientSecret};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = Client::new(
-    ///     ClientId::from("client_id"),
-    ///     ClientSecret::from("client_secret")
+    ///     ClientId::new("client_id".to_string()),
+    ///     ClientSecret::new("client_secret".to_string())
     /// );
     ///
     /// let token = oauth.app_access_token().await?;
@@ -337,7 +337,7 @@ impl Client<AppAuth> {
     }
 
     /// Upgrade to user authentication by adding redirect URI
-    pub fn with_redirect_uri(self, redirect_uri: RedirectUrl) -> Client<UserAuth> {
+    pub fn with_redirect_uri(self, redirect_uri: RedirectUri) -> Client<UserAuth> {
         Client {
             client_id: self.client_id,
             client_secret: self.client_secret,
@@ -355,7 +355,7 @@ impl Client<AppAuth> {
 }
 
 impl Client<UserAuth> {
-    pub fn redirect_uri(&self) -> &RedirectUrl {
+    pub fn redirect_uri(&self) -> &RedirectUri {
         &self.redirect_uri
     }
 
@@ -370,13 +370,13 @@ impl Client<UserAuth> {
     /// # Example
     /// ```no_run
     /// # use std::str::FromStr;
-    /// # use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUrl};
+    /// # use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri};
     /// # async fn run() -> Result<(), twitch_oauth_token::Error> {
     /// let oauth = Client::new(
-    ///         ClientId::from("client_id"),
-    ///         ClientSecret::from("client_secret")
+    ///         ClientId::new("client_id".to_string()),
+    ///         ClientSecret::new("client_secret".to_string())
     ///     )
-    ///     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback").unwrap());
+    ///     .with_redirect_uri(RedirectUri::from_str("http://localhost:3000/auth/callback").unwrap());
     ///
     /// let mut auth_request = oauth.authorization_url();
     /// auth_request.scopes_mut().chat_api();
@@ -393,7 +393,7 @@ impl Client<UserAuth> {
         AuthorizationRequest::new(
             &self.client_id,
             &self.redirect_uri,
-            csrf::generate(&self.csrf_key, Some(&self.client_id)),
+            csrf::generate(&self.csrf_key, Some(self.client_id.as_str())),
         )
     }
 
@@ -433,7 +433,7 @@ impl Client<UserAuth> {
         csrf::verify_with_config(
             &self.csrf_key,
             state,
-            Some(&self.client_id),
+            Some(self.client_id.as_str()),
             &self.csrf_config,
         )
         .map_err(|e| error::csrf(error::Operation::ExchangeCode, e))?;

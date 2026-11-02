@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Deref};
+use std::collections::HashSet;
 
 use asknothingx2_http::{Body, ClientService, Request};
 use http::header::ACCEPT;
@@ -64,7 +64,7 @@ impl IntoRequest for MockUserTokenRequest<'_> {
 
         let mut url = Url::parse(AUTH_URL)?;
         url.query_pairs_mut()
-            .append_pair(CLIENT_ID, self.client_id.deref())
+            .append_pair(CLIENT_ID, self.client_id.as_str())
             .append_pair(CLIENT_SECRET, self.client_secret.secret())
             .append_pair(GRANT_TYPE, GrantType::MockUserToken.as_str())
             .append_pair("user_id", self.user_id)

@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use asknothingx2_http::Body;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
@@ -36,7 +34,7 @@ impl IntoRequest for ClientCredentialsRequest<'_> {
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
-                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_ID, self.client_id.as_str()),
                 (CLIENT_SECRET, self.client_secret.secret()),
                 (GRANT_TYPE, GrantType::ClientCredentials.as_str()),
             ])?))?)

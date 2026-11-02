@@ -14,9 +14,8 @@ async fn main() -> Result<()> {
         .init();
     dotenvy::dotenv()?;
 
-    let client_id: ClientId = env::var("CLIENT_ID")
-        .context("CLIENT_ID environment variable not set")?
-        .into();
+    let client_id =
+        ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?);
     let mut device_flow = DeviceAuth::new(client_id);
     device_flow.scopes_mut().chat_api();
 

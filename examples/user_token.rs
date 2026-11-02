@@ -12,7 +12,7 @@ use axum_extra::{TypedHeader, headers::Cookie};
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 use twitch_oauth_token::{
-    AccessToken, AuthCallback, Client, ClientId, ClientSecret, RedirectUrl, TokenInfo, UserAuth,
+    AccessToken, AuthCallback, Client, ClientId, ClientSecret, RedirectUri, TokenInfo, UserAuth,
     UserToken, csrf::Config,
 };
 
@@ -38,10 +38,10 @@ async fn main() -> Result<()> {
         "Starting Twitch OAuth server"
     );
 
-    let client = Client::builder(ClientId::from(client_id), ClientSecret::from(client_secret))
+    let client = Client::builder(ClientId::new(client_id), ClientSecret::new(client_secret))
         .csrf_config(Config::new(0, 180))
         .build();
-    let oauth = client.with_redirect_uri(RedirectUrl::from_str(&redirect_uri)?);
+    let oauth = client.with_redirect_uri(RedirectUri::from_str(&redirect_uri)?);
 
     let state = AppState {
         oauth,

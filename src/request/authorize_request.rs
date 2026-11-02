@@ -1,9 +1,9 @@
-use std::{collections::HashSet, ops::Deref};
+use std::collections::HashSet;
 
 use url::Url;
 
 use crate::{
-    ClientId, RedirectUrl,
+    ClientId, RedirectUri,
     request::{AUTH_URL, CLIENT_ID},
     scope::{Scope, ScopesMut, scopes_mut},
     types::ResponseType,
@@ -14,7 +14,7 @@ use crate::{
 pub struct AuthorizationRequest<'a> {
     client_id: &'a ClientId,
     force_verify: Option<bool>,
-    redirect_url: &'a RedirectUrl,
+    redirect_url: &'a RedirectUri,
     scopes: HashSet<Scope>,
     state: String,
 }
@@ -22,7 +22,7 @@ pub struct AuthorizationRequest<'a> {
 impl<'a> AuthorizationRequest<'a> {
     pub(crate) fn new(
         client_id: &'a ClientId,
-        redirect_url: &'a RedirectUrl,
+        redirect_url: &'a RedirectUri,
         state: String,
     ) -> Self {
         Self {
@@ -51,8 +51,8 @@ impl<'a> AuthorizationRequest<'a> {
             let mut query_pairs = url.query_pairs_mut();
 
             query_pairs.extend_pairs([
-                (CLIENT_ID, self.client_id.deref()),
-                ("redirect_uri", self.redirect_url),
+                (CLIENT_ID, self.client_id.as_str()),
+                ("redirect_uri", self.redirect_url.as_str()),
                 ("response_type", ResponseType::Code.as_str()),
                 ("state", &self.state),
             ]);

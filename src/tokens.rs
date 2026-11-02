@@ -1,7 +1,6 @@
-use asknothingx2_util::oauth::ClientId;
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{AccessToken, RefreshToken, scope::Scope};
+use crate::{AccessToken, ClientId, RefreshToken, scope::Scope};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct UserToken {

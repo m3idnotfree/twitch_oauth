@@ -42,8 +42,8 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let oauth = Client::new(
-//!         ClientId::from("client_id"),
-//!         ClientSecret::from("client_secret")
+//!         ClientId::new("client_id".to_string()),
+//!         ClientSecret::new("client_secret".to_string())
 //!     );
 //!     
 //!     let token = oauth.app_access_token().await?;
@@ -61,16 +61,16 @@
 //! use std::str::FromStr;
 //! use twitch_oauth_token::{
 //!     AuthCallback, Client, ClientId,
-//!     ClientSecret, RedirectUrl,
+//!     ClientSecret, RedirectUri,
 //! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let oauth = Client::new(
-//!         ClientId::from("your_client_id"),
-//!         ClientSecret::from("your_client_secret")
+//!         ClientId::new("your_client_id".to_string()),
+//!         ClientSecret::new("your_client_secret".to_string())
 //!     )
-//!     .with_redirect_uri(RedirectUrl::from_str("http://localhost:3000/auth/callback")?);
+//!     .with_redirect_uri(RedirectUri::from_str("http://localhost:3000/auth/callback")?);
 //!
 //!     let mut auth_request = oauth.authorization_url();
 //!     auth_request.scopes_mut()
@@ -138,7 +138,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut device_flow = DeviceAuth::new(ClientId::from("your_client_id"));
+//!     let mut device_flow = DeviceAuth::new(ClientId::new("your_client_id".to_string()));
 //!     device_flow.scopes_mut()
 //!         .send_chat_message()
 //!         .get_channel_emotes();
@@ -250,23 +250,23 @@
 //!
 //! // Default: 30 minutes expiry, no clock skew tolerance
 //! let oauth = Client::builder(
-//!     ClientId::from("client_id"),
-//!     ClientSecret::from("client_secret"),
+//!     ClientId::new("client_id".to_string()),
+//!     ClientSecret::new("client_secret".to_string()),
 //! )
 //! .build();
 //!
 //! // Custom: 10 minutes expiry, 60 seconds clock skew tolerance
 //! let oauth = Client::builder(
-//!     ClientId::from("client_id"),
-//!     ClientSecret::from("client_secret"),
+//!     ClientId::new("client_id".to_string()),
+//!     ClientSecret::new("client_secret".to_string()),
 //! )
 //! .csrf_config(Config::new(60, 600))
 //! .build();
 //!
 //! // Strict: 5 minutes expiry, no clock skew tolerance
 //! let oauth = Client::builder(
-//!     ClientId::from("client_id"),
-//!     ClientSecret::from("client_secret"),
+//!     ClientId::new("client_id".to_string()),
+//!     ClientSecret::new("client_secret".to_string()),
 //! )
 //! .csrf_config(Config::default().with_max_age(300))
 //! .build();
@@ -338,8 +338,8 @@ pub use types::AuthCallback;
 pub mod mock_api;
 
 // Re-export
-pub use asknothingx2_util::oauth::{
-    AccessToken, AuthorizationCode, ClientId, ClientSecret, DeviceCode, RedirectUrl, RefreshToken,
+pub use asknothingx2_oauth::{
+    AccessToken, AuthorizationCode, ClientId, ClientSecret, DeviceCode, RedirectUri, RefreshToken,
 };
 
 pub mod csrf {

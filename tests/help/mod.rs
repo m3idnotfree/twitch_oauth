@@ -28,7 +28,7 @@ pub fn client() -> reqwest::Client {
 pub mod setup {
     use std::str::FromStr;
 
-    use twitch_oauth_token::{Client, ClientId, DeviceAuth, RedirectUrl, UserAuth};
+    use twitch_oauth_token::{Client, ClientId, DeviceAuth, RedirectUri, UserAuth};
     use wiremock::MockServer;
 
     use super::{CLIENT_ID, CLIENT_SECRET, OriginLayer, REDIRECT_URL};
@@ -36,10 +36,13 @@ pub mod setup {
     pub async fn oauth_server() -> (MockServer, Client<UserAuth>) {
         let server = MockServer::start().await;
 
-        let oauth = Client::builder(CLIENT_ID.into(), CLIENT_SECRET.into())
-            .layer(OriginLayer::new(&server.uri()))
-            .http_client(super::client())
-            .with_redirect_uri(RedirectUrl::from_str(REDIRECT_URL).unwrap());
+        let oauth = Client::builder(
+            twitch_oauth_token::ClientId::new(CLIENT_ID.to_string()),
+            twitch_oauth_token::ClientSecret::new(CLIENT_SECRET.to_string()),
+        )
+        .layer(OriginLayer::new(&server.uri()))
+        .http_client(super::client())
+        .with_redirect_uri(RedirectUri::from_str(REDIRECT_URL).unwrap());
 
         (server, oauth)
     }
@@ -47,7 +50,7 @@ pub mod setup {
     pub async fn device_server() -> (MockServer, DeviceAuth) {
         let server = MockServer::start().await;
 
-        let oauth = DeviceAuth::builder(ClientId::from(CLIENT_ID))
+        let oauth = DeviceAuth::builder(ClientId::new(CLIENT_ID.to_string()))
             .layer(OriginLayer::new(&server.uri()))
             .http_client(super::client());
 

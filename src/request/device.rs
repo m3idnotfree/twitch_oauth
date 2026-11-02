@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use asknothingx2_http::Body;
 use http::header::{ACCEPT, CONTENT_TYPE};
 
@@ -33,7 +31,7 @@ impl IntoRequest for DeviceCodeRequest<'_> {
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
-                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_ID, self.client_id.as_str()),
                 ("scopes", self.scopes),
             ])?))?)
     }
@@ -65,7 +63,7 @@ impl IntoRequest for DeviceTokenRequest<'_> {
             .header(ACCEPT, APPLICATION_JSON)
             .header(CONTENT_TYPE, APPLICATION_FORM_URLENCODED)
             .body(Body::from(super::form(&[
-                (CLIENT_ID, self.client_id.deref()),
+                (CLIENT_ID, self.client_id.as_str()),
                 ("scopes", self.scopes),
                 ("device_code", self.device_code.secret()),
                 (GRANT_TYPE, GrantType::DeviceCode.as_str()),

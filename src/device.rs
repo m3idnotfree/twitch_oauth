@@ -4,13 +4,12 @@ use std::{
 };
 
 use asknothingx2_http::{ClientService, HttpService, client::Reqwest};
-use asknothingx2_util::oauth::ClientId;
 use serde::Deserialize;
 use tower_layer::{Identity, Layer, Stack};
 use url::Url;
 
 use crate::{
-    DeviceCode, Error, Scope, UserToken,
+    ClientId, DeviceCode, Error, Scope, UserToken,
     client::{json, read_json, send},
     error,
     request::{DeviceCodeRequest, DeviceTokenRequest},
