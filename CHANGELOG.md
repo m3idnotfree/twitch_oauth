@@ -1,3 +1,10 @@
+## [7.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v6.0.0..v7.0.0) - 2026-11-02
+
+### Features
+
+- [**breaking**] replace asknothingx2-util newtypes with asknothingx2-oauth ([62c6844](https://github.com/m3idnotfree/twitch_oauth/commit/62c6844329f024aa822d84f0d7e87ee5ec605f70))
+- [**breaking**] return `State` along with the authorization URL ([8eabe92](https://github.com/m3idnotfree/twitch_oauth/commit/8eabe92f55c5f8fa325863ce3a751649705f2d80))
+
 ## [6.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v5.0.1..v6.0.0) - 2026-10-30
 
 ### Features

@@ -1,3 +1,97 @@
+## 6.0 -> 7.0
+
+`asknothingx2-util` is replaced with `asknothingx2-oauth`.
+
+`Client` no longer checks `state`. Save the random `state` in a cookie or session and verify the
+authorization response before exchanging the code.
+
+### Update Type Names
+
+```diff
+- RedirectUrl
++ RedirectUri
+
+- AuthCallback
++ AuthorizationResponse
+```
+
+### Authorization Request
+
+`url` now returns the `State` along with the URL. `url_with_state` is removed.
+
+```diff
+- let auth_url = auth_request.url();
+- let (auth_url, state) = auth_request.url_with_state();
++ let (auth_url, state) = auth_request.url();
+```
+
+```diff
+- let cookie = format!("state={state}");
++ let cookie = format!("state={}", state.secret());
+```
+
+### Authorization Response
+
+`exchange_code` only accepts a `VerifiedCode`, and `AuthorizationResponse::verify` is the only
+way to get one.
+
+```diff
+- let token = client.exchange_code(&response.code, &response.state).await?;
++ let code = response.verify(&State::new(saved_state))?;
++ let token = client.exchange_code(&code).await?;
+```
+
+`AuthorizationResponse` also parses the error response from Twitch, and `scope` can be missing.
+
+### Error Handling
+
+`verify` returns `AuthorizationResponseError`, not `Error`, and there is no `From` conversion
+between them. `ErrorKind::Csrf` is removed.
+
+```rust
+let code = match response.verify(&State::new(saved_state)) {
+    Ok(code) => code,
+    Err(AuthorizationResponseError::StateMismatch) => return Err("state mismatch".into()),
+    Err(err) if err.error_code() == Some(ErrorCode::AccessDenied) => return Err("user denied access"),
+    Err(err) => return Err(err.into()),
+};
+```
+
+### CSRF
+
+The `csrf` module and its settings are removed.
+
+```diff
+- csrf::Config
+- csrf::Error
+- csrf::generate_secret_key
+- ClientBuilder::csrf_config
+- ClientBuilder::csrf_key
+- Client::set_csrf_config
+- Client::set_csrf_key
+```
+
+### Newtypes
+
+`ClientId`, `ClientSecret`, `AccessToken`, `RefreshToken`, `AuthorizationCode` and `DeviceCode`
+are created with `new`, which takes a `String`. They no longer implement `From<&str>` or
+`From<String>`.
+
+```diff
+- ClientId::from("id")
++ ClientId::new("id".to_string())
+
+- ClientSecret::from("secret")
++ ClientSecret::new("secret".to_string())
+```
+
+`ClientId` no longer derefs to `str`.
+
+```diff
+- let id: &str = &client_id;
++ let id: &str = client_id.as_str();
+```
+
 ## 5.x -> 6.0
 
 ### Update Type Names
