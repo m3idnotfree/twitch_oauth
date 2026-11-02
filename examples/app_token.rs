@@ -1,69 +1,19 @@
-use std::{env, time::Instant};
+use std::env;
 
 use anyhow::{Context, Result};
-use tracing::{debug, error, info};
 use twitch_oauth_token::{Client, ClientId, ClientSecret};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt().init();
-
     dotenvy::dotenv()?;
 
-    let client_id =
-        ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?);
-    let client_secret = ClientSecret::new(
-        env::var("CLIENT_SECRET").context("CLIENT_SECRET environment variable not set")?,
+    let client = Client::new(
+        ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID is not set")?),
+        ClientSecret::new(env::var("CLIENT_SECRET").context("CLIENT_SECRET is not set")?),
     );
 
-    let start_time = Instant::now();
-
-    info!(
-        service = "twitch_oauth",
-        action = "get_app_token",
-        "Getting OAuth token"
-    );
-
-    let oauth = Client::new(client_id, client_secret);
-
-    debug!(
-        service = "twitch_oauth",
-        action = "get_app_token",
-        "Calling Twitch API"
-    );
-
-    let token = oauth
-        .app_access_token()
-        .await
-        .map_err(|e| {
-            error!(
-                service = "twitch_oauth",
-                action = "get_app_token",
-                error_type = e.kind().as_str(),
-                error_message = %e,
-                duration_ms = start_time.elapsed().as_millis(),
-                "Failed to get OAuth token"
-            );
-
-            e
-        })
-        .context("Failed to get Twitch app access token")?;
-
-    debug!(
-        service = "twitch_oauth",
-        action = "get_app_token",
-        duration_ms = start_time.elapsed().as_millis(),
-        "Received API response"
-    );
-
-    info!(
-        service = "twitch_oauth",
-        action = "get_app_token",
-        token_type = token.token_type,
-        expires_in = ?token.expires_in,
-        duration_ms = start_time.elapsed().as_millis(),
-        "Successfully got OAuth token"
-    );
+    let token = client.app_access_token().await?;
+    println!("token expires in {} seconds", token.expires_in);
 
     Ok(())
 }

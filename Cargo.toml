@@ -3,7 +3,7 @@ name = "twitch_oauth_token"
 version = "6.0.0"
 edition = "2024"
 rust-version = "1.85"
-description = "Type-safe Twitch OAuth 2.0 authentication library with CSRF protection and full scope support"
+description = "Twitch OAuth 2.0 client with state verification"
 documentation = "https://docs.rs/twitch_oauth_token"
 repository = "https://github.com/m3idnotfree/twitch_oauth"
 license = "MIT OR Apache-2.0"
@@ -25,7 +25,6 @@ path = "examples/user_token.rs"
 [[example]]
 name = "device"
 path = "examples/device_flow.rs"
-required-features = ["tracing"]
 
 [[example]]
 name = "mock-api"
@@ -39,8 +38,7 @@ required-features = ["mock-api"]
 
 [dependencies]
 asknothingx2-http = { version = "0.2.2", features = ["reqwest"] }
-asknothingx2-oauth = { version = "0.1.0", features = ["serde"] }
-asknothingx2-util = { version = "0.7.0", features = ["oauth"] }
+asknothingx2-oauth = { version = "0.1.0", features = ["generate-state", "serde"] }
 bytes = "1.12.1"
 http = "1.5.0"
 http-body = "1.1.0"
@@ -63,8 +61,6 @@ dotenvy = "0.15.7"
 scraper = "0.29.0"
 serde_json = "1.0.151"
 tokio = { version = "1.53.2", features = ["full"] }
-tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 wiremock = "0.6.5"
 
 [features]

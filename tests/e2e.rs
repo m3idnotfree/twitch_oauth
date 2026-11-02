@@ -1,7 +1,9 @@
 mod help;
 
-use help::{ACCESS_TOKEN, CLIENT_ID, CODE, DEVICE_CODE, REFRESH_TOKEN, server, setup, swap_origin};
-use twitch_oauth_token::{AuthCallback, Scope};
+use help::{
+    ACCESS_TOKEN, CLIENT_ID, DEVICE_CODE, access_token, refresh_token, server, setup, swap_origin,
+};
+use twitch_oauth_token::{AuthorizationResponse, Scope, State};
 
 #[tokio::test]
 async fn client_credentials_grant_flow() {
@@ -21,8 +23,13 @@ async fn authorization_code_grant_flow() {
     let mut auth_url = oauth.authorization_url();
     auth_url.scopes_mut().extend(scopes);
 
-    let url = swap_origin(auth_url.url(), &server);
-    let state = server::authorization_code_grant_flow(&server, &url, &scopes).await;
+    let (auth_url, state) = auth_url.url();
+    let url = swap_origin(auth_url, &server);
+    let url_state = server::authorization_code_grant_flow(&server, &url, &scopes).await;
+
+    assert_eq!(state, url_state);
+
+    let saved_state = state.secret().to_string();
 
     let resp = help::client()
         .get(url)
@@ -33,15 +40,11 @@ async fn authorization_code_grant_flow() {
         .await
         .unwrap();
 
-    let auth_callback: AuthCallback = serde_json::from_slice(&resp).unwrap();
+    let response: AuthorizationResponse = serde_json::from_slice(&resp).unwrap();
 
-    assert_eq!(CODE, auth_callback.code.secret());
-    assert_eq!(state, auth_callback.state);
+    let verified = response.verify(&State::new(saved_state)).unwrap();
 
-    let token = oauth
-        .exchange_code(&auth_callback.code, &auth_callback.state)
-        .await
-        .unwrap();
+    let token = oauth.exchange_code(&verified).await.unwrap();
 
     assert_eq!(ACCESS_TOKEN, token.access_token.secret());
     assert!(token.scope.contains(&Scope::ChatRead));
@@ -54,12 +57,7 @@ async fn refresh_access_token() {
 
     server::refresh_access_token(&server).await;
 
-    let token = oauth
-        .refresh_access_token(&twitch_oauth_token::RefreshToken::new(
-            REFRESH_TOKEN.to_string(),
-        ))
-        .await
-        .unwrap();
+    let token = oauth.refresh_access_token(&refresh_token()).await.unwrap();
     assert_eq!(token.access_token.secret(), ACCESS_TOKEN);
 }
 
@@ -69,12 +67,7 @@ pub async fn validate_access_token() {
 
     server::validate_access_token(&server).await;
 
-    let token = oauth
-        .validate_access_token(&twitch_oauth_token::AccessToken::new(
-            ACCESS_TOKEN.to_string(),
-        ))
-        .await
-        .unwrap();
+    let token = oauth.validate_access_token(&access_token()).await.unwrap();
     assert_eq!(CLIENT_ID, token.client_id.to_string());
 }
 
@@ -84,12 +77,7 @@ pub async fn revoke_access_token() {
 
     server::revoke_access_token(&server).await;
 
-    oauth
-        .revoke_access_token(&twitch_oauth_token::AccessToken::new(
-            ACCESS_TOKEN.to_string(),
-        ))
-        .await
-        .unwrap();
+    oauth.revoke_access_token(&access_token()).await.unwrap();
 }
 
 #[tokio::test]

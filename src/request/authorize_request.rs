@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use url::Url;
 
 use crate::{
-    ClientId, RedirectUri,
+    ClientId, RedirectUri, State,
     request::{AUTH_URL, CLIENT_ID},
     scope::{Scope, ScopesMut, scopes_mut},
     types::ResponseType,
@@ -16,21 +16,15 @@ pub struct AuthorizationRequest<'a> {
     force_verify: Option<bool>,
     redirect_url: &'a RedirectUri,
     scopes: HashSet<Scope>,
-    state: String,
 }
 
 impl<'a> AuthorizationRequest<'a> {
-    pub(crate) fn new(
-        client_id: &'a ClientId,
-        redirect_url: &'a RedirectUri,
-        state: String,
-    ) -> Self {
+    pub(crate) fn new(client_id: &'a ClientId, redirect_url: &'a RedirectUri) -> Self {
         Self {
             client_id,
             force_verify: None,
             redirect_url,
             scopes: HashSet::new(),
-            state,
         }
     }
 
@@ -43,9 +37,10 @@ impl<'a> AuthorizationRequest<'a> {
         self
     }
 
-    /// Generate authorization URL with HMAC-based CSRF protection
-    pub fn url(self) -> Url {
+    /// Returns the authorization URL and the [`State`]
+    pub fn url(self) -> (Url, State) {
         let mut url: Url = Url::parse(AUTH_URL).expect("AUTH_URL is a valid URL");
+        let state = State::generate();
 
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -54,7 +49,7 @@ impl<'a> AuthorizationRequest<'a> {
                 (CLIENT_ID, self.client_id.as_str()),
                 ("redirect_uri", self.redirect_url.as_str()),
                 ("response_type", ResponseType::Code.as_str()),
-                ("state", &self.state),
+                ("state", state.secret()),
             ]);
 
             let scopes = self
@@ -70,14 +65,6 @@ impl<'a> AuthorizationRequest<'a> {
                 query_pairs.append_pair("force_verify", &force_verify.to_string());
             }
         }
-
-        url
-    }
-
-    /// Generate authorization URL with state
-    pub fn url_with_state(self) -> (Url, String) {
-        let state = self.state.clone();
-        let url = self.url();
 
         (url, state)
     }

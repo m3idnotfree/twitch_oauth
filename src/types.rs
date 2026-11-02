@@ -1,9 +1,5 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use serde::Deserialize;
-
-use crate::AuthorizationCode;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum ResponseType {
     // Token,
@@ -46,11 +42,4 @@ impl GrantType {
             Self::MockUserToken => "user_token",
         }
     }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct AuthCallback {
-    pub code: AuthorizationCode,
-    pub scope: String,
-    pub state: String,
 }

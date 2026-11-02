@@ -1,21 +1,14 @@
 use std::env;
 
 use anyhow::{Context, Result};
-use tracing_subscriber::EnvFilter;
 use twitch_oauth_token::{ClientId, DeviceAuth};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("twitch_oauth_token=trace")),
-        )
-        .init();
     dotenvy::dotenv()?;
 
-    let client_id =
-        ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?);
+    let client_id = ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID is not set")?);
+
     let mut device_flow = DeviceAuth::new(client_id);
     device_flow.scopes_mut().chat_api();
 
@@ -23,6 +16,7 @@ async fn main() -> Result<()> {
     println!("Visit: {}", resp.verification_uri);
 
     let token = device_flow.wait_for_token(resp).await?;
-    println!("{token:?}");
+    println!("token expires in {} seconds", token.expires_in);
+
     Ok(())
 }

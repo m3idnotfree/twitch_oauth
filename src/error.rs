@@ -23,7 +23,6 @@ enum Kind {
     Body,
     Api(Api),
     Parse,
-    Csrf,
     DeviceCodeExpired,
 }
 
@@ -39,7 +38,6 @@ pub enum ErrorKind {
     Request,
     Api,
     Parse,
-    Csrf,
     DeviceCodeExpired,
 }
 
@@ -50,7 +48,6 @@ impl ErrorKind {
             Self::Request => "request",
             Self::Api => "api",
             Self::Parse => "parse",
-            Self::Csrf => "csrf",
             Self::DeviceCodeExpired => "device_code_expired",
         }
     }
@@ -77,7 +74,6 @@ impl Error {
             Kind::Request | Kind::Body => ErrorKind::Request,
             Kind::Api(_) => ErrorKind::Api,
             Kind::Parse => ErrorKind::Parse,
-            Kind::Csrf => ErrorKind::Csrf,
             Kind::DeviceCodeExpired => ErrorKind::DeviceCodeExpired,
         }
     }
@@ -144,7 +140,6 @@ impl Display for Error {
                 }
             }
             Kind::Parse => f.write_str("failed to deserialize response")?,
-            Kind::Csrf => f.write_str("failed to verify CSRF state")?,
             Kind::DeviceCodeExpired => f.write_str("device code expired")?,
         }
 
@@ -248,10 +243,6 @@ pub(crate) fn api(operation: Operation, status: u16, body: &[u8]) -> Error {
 
 pub(crate) fn parse(operation: Operation, source: impl Into<BoxError>) -> Error {
     Error::new(Kind::Parse, operation, Some(source.into()))
-}
-
-pub(crate) fn csrf(operation: Operation, source: impl Into<BoxError>) -> Error {
-    Error::new(Kind::Csrf, operation, Some(source.into()))
 }
 
 pub(crate) fn device_code_expired(operation: Operation) -> Error {

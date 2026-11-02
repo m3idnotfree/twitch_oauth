@@ -1,7 +1,10 @@
+use std::str::FromStr;
+
 use asknothingx2_http::{Request, config::preset};
 use http::{HeaderValue, Uri};
 use tower_layer::Layer;
 use tower_service::Service;
+use twitch_oauth_token::{AccessToken, ClientId, ClientSecret, RedirectUri, RefreshToken};
 use url::Url;
 
 pub const ACCESS_TOKEN: &str = "jostpf5q0uzmxmkba9iyug38kjtgh";
@@ -9,8 +12,28 @@ pub const CLIENT_ID: &str = "hof5gwx0su6owfnys0yan9c87zr6t";
 pub const CLIENT_SECRET: &str = "41vpdji4e9gif29md0ouet6fktd2";
 pub const CODE: &str = "gulfwdmys5lsm6qyz4xiz9q32l10";
 pub const DEVICE_CODE: &str = "ike3GM8QIdYZs43KdrWPIO36LofILoCyFEzjlQ91";
-pub const REDIRECT_URL: &str = "http://localhost:3000";
+pub const REDIRECT_URI: &str = "http://localhost:3000";
 pub const REFRESH_TOKEN: &str = "eyJfaWQmNzMtNGCJ9%6VFV5LNrZFUj8oU231/3Aj";
+
+pub fn client_id() -> ClientId {
+    ClientId::new(CLIENT_ID.to_string())
+}
+
+pub fn client_secret() -> ClientSecret {
+    ClientSecret::new(CLIENT_SECRET.to_string())
+}
+
+pub fn redirect_uri() -> RedirectUri {
+    RedirectUri::from_str(REDIRECT_URI).unwrap()
+}
+
+pub fn refresh_token() -> RefreshToken {
+    RefreshToken::new(REFRESH_TOKEN.to_string())
+}
+
+pub fn access_token() -> AccessToken {
+    AccessToken::new(ACCESS_TOKEN.to_string())
+}
 
 pub fn client() -> reqwest::Client {
     preset::danger_test(
@@ -26,23 +49,18 @@ pub fn client() -> reqwest::Client {
 }
 
 pub mod setup {
-    use std::str::FromStr;
-
-    use twitch_oauth_token::{Client, ClientId, DeviceAuth, RedirectUri, UserAuth};
+    use twitch_oauth_token::{Client, DeviceAuth, UserAuth};
     use wiremock::MockServer;
 
-    use super::{CLIENT_ID, CLIENT_SECRET, OriginLayer, REDIRECT_URL};
+    use crate::help::{OriginLayer, client_id, client_secret, redirect_uri};
 
     pub async fn oauth_server() -> (MockServer, Client<UserAuth>) {
         let server = MockServer::start().await;
 
-        let oauth = Client::builder(
-            twitch_oauth_token::ClientId::new(CLIENT_ID.to_string()),
-            twitch_oauth_token::ClientSecret::new(CLIENT_SECRET.to_string()),
-        )
-        .layer(OriginLayer::new(&server.uri()))
-        .http_client(super::client())
-        .with_redirect_uri(RedirectUri::from_str(REDIRECT_URL).unwrap());
+        let oauth = Client::builder(client_id(), client_secret())
+            .layer(OriginLayer::new(&server.uri()))
+            .http_client(super::client())
+            .with_redirect_uri(redirect_uri());
 
         (server, oauth)
     }
@@ -50,7 +68,7 @@ pub mod setup {
     pub async fn device_server() -> (MockServer, DeviceAuth) {
         let server = MockServer::start().await;
 
-        let oauth = DeviceAuth::builder(ClientId::new(CLIENT_ID.to_string()))
+        let oauth = DeviceAuth::builder(client_id())
             .layer(OriginLayer::new(&server.uri()))
             .http_client(super::client());
 
@@ -62,7 +80,7 @@ pub mod server {
     use std::collections::HashSet;
 
     use serde_json::json;
-    use twitch_oauth_token::Scope;
+    use twitch_oauth_token::{Scope, State};
     use url::Url;
     use wiremock::{
         Mock, MockBuilder, MockServer, ResponseTemplate,
@@ -70,7 +88,7 @@ pub mod server {
     };
 
     use super::{
-        ACCESS_TOKEN, CLIENT_ID, CLIENT_SECRET, CODE, DEVICE_CODE, REDIRECT_URL, REFRESH_TOKEN,
+        ACCESS_TOKEN, CLIENT_ID, CLIENT_SECRET, CODE, DEVICE_CODE, REDIRECT_URI, REFRESH_TOKEN,
     };
 
     fn form(key: &str, value: &str) -> BodyContainsMatcher {
@@ -116,7 +134,7 @@ pub mod server {
         server: &MockServer,
         url: &Url,
         scopes: &[Scope],
-    ) -> String {
+    ) -> State {
         let state = url
             .query_pairs()
             .find(|(k, _)| k == "state")
@@ -139,7 +157,7 @@ pub mod server {
         Mock::given(method("GET"))
             .and(path("/oauth2/authorize"))
             .and(query_param("client_id", CLIENT_ID))
-            .and(query_param("redirect_uri", REDIRECT_URL))
+            .and(query_param("redirect_uri", REDIRECT_URI))
             .and(query_param("response_type", "code"))
             .and(query_param("state", state.clone()))
             .and(has_scopes)
@@ -156,7 +174,7 @@ pub mod server {
             .and(form("client_secret", CLIENT_SECRET))
             .and(form("code", CODE))
             .and(form("grant_type", "authorization_code"))
-            .and(form("redirect_uri", REDIRECT_URL))
+            .and(form("redirect_uri", REDIRECT_URI))
             .respond_with(ResponseTemplate::new(200).set_body_json(json!({
                 "access_token": ACCESS_TOKEN,
                 "expires_in": 15485,
@@ -167,7 +185,7 @@ pub mod server {
             .mount(server)
             .await;
 
-        state
+        State::new(state.to_string())
     }
 
     pub async fn refresh_access_token(server: &MockServer) {

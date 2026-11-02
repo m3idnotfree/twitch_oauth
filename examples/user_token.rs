@@ -1,248 +1,101 @@
-use std::{collections::HashMap, env, str::FromStr, sync::Arc, time::Instant};
+use std::{env, str::FromStr};
 
 use anyhow::{Context, Result};
 use axum::{
     Router,
-    extract::{FromRef, Query, State},
-    http::{HeaderMap, header::SET_COOKIE},
+    extract::{Query, State},
+    http::{StatusCode, header::SET_COOKIE},
     response::{IntoResponse, Redirect},
     routing::get,
 };
 use axum_extra::{TypedHeader, headers::Cookie};
-use tokio::sync::RwLock;
-use tracing::{error, info, warn};
 use twitch_oauth_token::{
-    AccessToken, AuthCallback, Client, ClientId, ClientSecret, RedirectUri, TokenInfo, UserAuth,
-    UserToken, csrf::Config,
+    AuthorizationResponse, Client, ClientId, ClientSecret, ErrorCode, RedirectUri,
+    State as OAuthState, UserAuth,
 };
 
-const COOKIE_NAME: &str = "OAuth-state";
+const STATE_COOKIE: &str = "__Host-oauth_state";
+const STATE_MAX_AGE_SECS: u32 = 600;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt().init();
-
     dotenvy::dotenv()?;
 
-    let client_id = env::var("CLIENT_ID").context("CLIENT_ID environment variable not set")?;
-    let client_secret =
-        env::var("CLIENT_SECRET").context("CLIENT_SECRET environment variable not set")?;
-    let redirect_uri =
-        env::var("REDIRECT_URI").context("REDIRECT_URI environment variable not set")?;
-    let port = env::var("PORT").context("PORT environment variable not set")?;
-
-    info!(
-        service = "twitch_oauth",
-        action = "start_server",
-        redirect_uri = %redirect_uri,
-        "Starting Twitch OAuth server"
+    let client = Client::new(
+        ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID is not set")?),
+        ClientSecret::new(env::var("CLIENT_SECRET").context("CLIENT_SECRET is not set")?),
+    )
+    .with_redirect_uri(
+        RedirectUri::from_str(&env::var("REDIRECT_URI").context("REDIRECT_URI is not set")?)
+            .context("REDIRECT_URI is not a valid URL")?,
     );
-
-    let client = Client::builder(ClientId::new(client_id), ClientSecret::new(client_secret))
-        .csrf_config(Config::new(0, 180))
-        .build();
-    let oauth = client.with_redirect_uri(RedirectUri::from_str(&redirect_uri)?);
-
-    let state = AppState {
-        oauth,
-        user_tokens: Arc::new(RwLock::new(HashMap::new())),
-    };
 
     let app = Router::new()
-        .route("/auth/twitch", get(twitch_auth))
-        .route("/auth/callback", get(auth_callback))
-        .with_state(state);
+        .route("/auth/twitch", get(login))
+        .route("/auth/callback", get(callback))
+        .with_state(client);
 
-    let addr = format!("0.0.0.0:{}", port);
-    let listener = tokio::net::TcpListener::bind(addr.clone())
-        .await
-        .context("Failed to bind to port 3000")?;
-
-    info!(
-        service = "twitch_oauth",
-        action = "start_server",
-        address = addr,
-        "Server started successfully"
-    );
-
-    axum::serve(listener, app).await.context("Server error")?;
+    let port = env::var("PORT").context("PORT is not set")?;
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }
 
-async fn twitch_auth(State(client): State<Client<UserAuth>>) -> impl IntoResponse {
-    info!(
-        service = "twitch_oauth",
-        action = "generate_auth_url",
-        "Generated OAuth URL"
-    );
-
-    let mut auth_url = client.authorization_url();
-    auth_url
-        .scopes_mut()
-        .send_chat_message()
-        .get_channel_emotes()
-        .modify_channel_info();
-
-    let (auth_url, state) = auth_url.url_with_state();
-
-    let cookie =
-        format!("{COOKIE_NAME}={state}; SameSite=Lax; HttpOnly; Secure; Path=/; Max-Age=1800");
-
-    let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
-
-    (headers, Redirect::to(auth_url.as_str()))
+fn state_cookie(value: &str, max_age_secs: u32) -> String {
+    format!(
+        "{STATE_COOKIE}={value}; SameSite=Lax; HttpOnly; Secure; Path=/; Max-Age={max_age_secs}"
+    )
 }
 
-async fn auth_callback(
-    TypedHeader(cookies): TypedHeader<Cookie>,
-    Query(callback): Query<AuthCallback>,
-    State(state): State<AppState>,
-) -> String {
-    let start_time = Instant::now();
+async fn login(State(client): State<Client<UserAuth>>) -> impl IntoResponse {
+    let mut request = client.authorization_url();
+    request.scopes_mut().send_chat_message();
 
-    let stored_state = match cookies.get(COOKIE_NAME) {
-        Some(state) => state,
-        None => {
-            error!(
-                service = "twitch_oauth",
-                action = "handle_callback",
-                error_type = "missing_state_cookie",
-                duration_ms = start_time.elapsed().as_millis(),
-                "OAuth state cookie not found - possible CSRF attack or expired session"
-            );
-            return "Authentication failed: missing state cookie".to_string();
-        }
-    };
+    let (auth_url, state) = request.url();
 
-    if stored_state != callback.state {
-        warn!(
-            service = "twitch_oauth",
-            action = "handle_callback",
-            error_type = "state_mismatch",
-            duration_ms = start_time.elapsed().as_millis(),
-            "OAuth state mismatch - possible CSRF attack"
-        );
-        return "Authentication failed: invalid state".to_string();
-    }
-
-    info!(
-        service = "twitch_oauth",
-        action = "handle_callback",
-        "Processing OAuth callback"
-    );
-
-    match process_callback(callback, state).await {
-        Ok(user_info) => {
-            info!(
-                service = "twitch_oauth",
-                action = "handle_callback",
-                user_id = user_info.user_id,
-                username = user_info.login,
-                duration_ms = start_time.elapsed().as_millis(),
-                "Successfully authenticated user"
-            );
-            format!(
-                "Successfully authenticated as {}",
-                user_info.login.unwrap_or_default()
-            )
-        }
-        Err(e) => {
-            error!(
-                service = "twitch_oauth",
-                action = "handle_callback",
-                error_type = "authentication_failed",
-                error_message = %e,
-                duration_ms = start_time.elapsed().as_millis(),
-                "Failed to complete OAuth flow"
-            );
-            format!("Authentication failed: {:#}", e)
-        }
-    }
+    (
+        [(SET_COOKIE, state_cookie(state.secret(), STATE_MAX_AGE_SECS))],
+        Redirect::to(auth_url.as_str()),
+    )
 }
 
-async fn process_callback(callback: AuthCallback, state: AppState) -> Result<TokenInfo> {
-    info!(
-        service = "twitch_oauth",
-        action = "exchange_code",
-        "Exchanging authorization code for access token"
-    );
+async fn callback(
+    State(client): State<Client<UserAuth>>,
+    cookies: Option<TypedHeader<Cookie>>,
+    Query(response): Query<AuthorizationResponse>,
+) -> impl IntoResponse {
+    let result = complete_login(&client, cookies, response).await;
 
-    let token = state
-        .oauth
-        .exchange_code(&callback.code, &callback.state)
-        .await
-        .context("Failed to exchange authorization code for access token")?;
-
-    info!(
-        service = "twitch_oauth",
-        action = "exchange_code",
-        token_type = token.token_type,
-        expires_in = token.expires_in,
-        "Successfully got user access token"
-    );
-
-    let user_info = validate_and_get_user_info(state.oauth, &token.access_token).await?;
-    let user_id = user_info
-        .user_id
-        .clone()
-        .expect("a user access token must have a user_id");
-
-    let mut user_tokens = state.user_tokens.write().await;
-    user_tokens
-        .entry(user_id)
-        .and_modify(|t| *t = token.clone())
-        .or_insert(token);
-
-    Ok(user_info)
+    ([(SET_COOKIE, state_cookie("", 0))], result)
 }
 
-async fn validate_and_get_user_info(
-    oauth: Client<UserAuth>,
-    access_token: &AccessToken,
-) -> Result<TokenInfo> {
-    info!(
-        service = "twitch_oauth",
-        action = "validate_token",
-        "Validating access token and retrieving user info"
-    );
+async fn complete_login(
+    client: &Client<UserAuth>,
+    cookies: Option<TypedHeader<Cookie>>,
+    response: AuthorizationResponse,
+) -> Result<String, (StatusCode, &'static str)> {
+    let saved_state = cookies
+        .as_ref()
+        .and_then(|TypedHeader(cookies)| cookies.get(STATE_COOKIE))
+        .filter(|value| !value.is_empty())
+        .ok_or((StatusCode::BAD_REQUEST, "login expired, please try again"))?;
 
-    let token = oauth
-        .validate_access_token(access_token)
-        .await
-        .map_err(|e| {
-            error!(
-                service = "twitch_oauth",
-                action = "validate_token",
-                error_type = "validation_request_failed",
-                error_message = %e,
-                "Failed to validate access token"
-            );
+    let code = response
+        .verify(&OAuthState::new(saved_state.to_string()))
+        .map_err(|err| match err.error_code() {
+            None => (StatusCode::BAD_REQUEST, "login expired, please try again"),
+            Some(ErrorCode::AccessDenied) => (StatusCode::FORBIDDEN, "access was denied"),
+            Some(code) => {
+                eprintln!("authorization failed: {code:?}");
+                (StatusCode::BAD_REQUEST, "login failed")
+            }
+        })?;
 
-            e
-        })
-        .context("Failed to validate access token")?;
+    let token = client.exchange_code(&code).await.map_err(|err| {
+        eprintln!("failed to exchange authorization code: {err}");
+        (StatusCode::BAD_GATEWAY, "login failed")
+    })?;
 
-    info!(
-        service = "twitch_oauth",
-        action = "validate_token",
-        user_id = token.user_id,
-        username = token.login,
-        "Access token validated successfully"
-    );
-
-    Ok(token)
-}
-
-#[derive(Clone)]
-struct AppState {
-    pub oauth: Client<UserAuth>,
-    pub user_tokens: Arc<RwLock<HashMap<String, UserToken>>>,
-}
-
-impl FromRef<AppState> for Client<UserAuth> {
-    fn from_ref(input: &AppState) -> Self {
-        input.oauth.clone()
-    }
+    Ok(format!("token expires in {} seconds", token.expires_in))
 }

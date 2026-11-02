@@ -48,6 +48,7 @@ impl<L> DeviceAuthBuilder<L> {
             layers: Stack::new(layer, self.layers),
         }
     }
+
     pub fn build(self) -> DeviceAuth
     where
         L: Layer<Reqwest, Service: HttpService>,
