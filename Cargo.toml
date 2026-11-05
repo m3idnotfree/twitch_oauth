@@ -51,6 +51,7 @@ tokio = { version = "1.53.2", default-features = false, features = ["time"] }
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
 tracing = { version = "0.1.44", default-features = false, optional = true }
+twitch_thunder = { version = "1.0.0", features = ["serde"] }
 url = { version = "2.5.8", features = ["serde"] }
 
 [dev-dependencies]

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{AccessToken, ClientId, RefreshToken, scope::Scope};
+use crate::{AccessToken, ClientId, RefreshToken, Scope};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct UserToken {

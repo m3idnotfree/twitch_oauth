@@ -1,11 +1,8 @@
-use std::collections::HashSet;
-
 use url::Url;
 
 use crate::{
-    ClientId, RedirectUri, State,
+    ClientId, RedirectUri, Scopes, State,
     request::{AUTH_URL, CLIENT_ID},
-    scope::{Scope, ScopesMut, scopes_mut},
     types::ResponseType,
 };
 
@@ -15,7 +12,7 @@ pub struct AuthorizationRequest<'a> {
     client_id: &'a ClientId,
     force_verify: Option<bool>,
     redirect_url: &'a RedirectUri,
-    scopes: HashSet<Scope>,
+    scopes: Scopes,
 }
 
 impl<'a> AuthorizationRequest<'a> {
@@ -24,12 +21,12 @@ impl<'a> AuthorizationRequest<'a> {
             client_id,
             force_verify: None,
             redirect_url,
-            scopes: HashSet::new(),
+            scopes: Scopes::new(),
         }
     }
 
-    pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
-        scopes_mut(&mut self.scopes)
+    pub fn scopes_mut(&mut self) -> &mut Scopes {
+        &mut self.scopes
     }
 
     pub fn set_force_verify(&mut self, force_verify: bool) -> &mut Self {
@@ -52,14 +49,7 @@ impl<'a> AuthorizationRequest<'a> {
                 ("state", state.secret()),
             ]);
 
-            let scopes = self
-                .scopes
-                .into_iter()
-                .map(|x| x.as_str())
-                .collect::<Vec<_>>()
-                .join(" ");
-
-            query_pairs.append_pair("scope", &scopes);
+            query_pairs.append_pair("scope", &self.scopes.to_string());
 
             if let Some(force_verify) = self.force_verify {
                 query_pairs.append_pair("force_verify", &force_verify.to_string());

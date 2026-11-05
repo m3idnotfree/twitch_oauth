@@ -1,7 +1,7 @@
 use std::env;
 
 use anyhow::{Context, Result};
-use twitch_oauth_token::{ClientId, DeviceAuth};
+use twitch_oauth_token::{ClientId, DeviceAuth, Scope};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -10,7 +10,9 @@ async fn main() -> Result<()> {
     let client_id = ClientId::new(env::var("CLIENT_ID").context("CLIENT_ID is not set")?);
 
     let mut device_flow = DeviceAuth::new(client_id);
-    device_flow.scopes_mut().chat_api();
+    device_flow
+        .scopes_mut()
+        .extend([Scope::UserReadChat, Scope::UserWriteChat]);
 
     let resp = device_flow.device_code().await?;
     println!("Visit: {}", resp.verification_uri);

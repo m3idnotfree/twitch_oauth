@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use std::str::FromStr;
-use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri};
+use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri, Scope};
 
 fn main() {
     let oauth = Client::new(
@@ -50,7 +50,9 @@ fn main() {
     .with_redirect_uri(RedirectUri::from_str("http://example.com/auth/callback").unwrap());
 
     let mut auth_request = oauth.authorization_url();
-    auth_request.scopes_mut().chat_api();
+    auth_request
+        .scopes_mut()
+        .extend([Scope::UserReadChat, Scope::UserWriteChat,]);
 
     let (auth_url, state) = auth_request.url();
 
@@ -86,12 +88,15 @@ async fn handle_authorization_response(
 ### Device code grant flow
 
 ```rust
-use twitch_oauth_token::{ClientId, DeviceAuth};
+use twitch_oauth_token::{ClientId, DeviceAuth, Scope};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut device_flow = DeviceAuth::new(ClientId::new("client_id".to_string()));
-    device_flow.scopes_mut().chat_api();
+    device_flow
+        .scopes_mut()
+        .push(Scope::UserReadChat)
+        .push(Scope::UserWriteChat);
 
     let resp = device_flow.device_code().await?;
     println!("Visit: {}", resp.verification_uri);

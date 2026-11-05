@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use asknothingx2_http::{ClientService, HttpService, client::Reqwest};
 use serde::Deserialize;
@@ -9,16 +6,15 @@ use tower_layer::{Identity, Layer, Stack};
 use url::Url;
 
 use crate::{
-    ClientId, DeviceCode, Error, Scope, UserToken,
+    ClientId, DeviceCode, Error, Scope, Scopes, UserToken,
     client::{json, read_json, send},
     error,
     request::{DeviceCodeRequest, DeviceTokenRequest},
-    scope::{ScopesMut, scopes_mut},
 };
 
 pub struct DeviceAuthBuilder<L = Identity> {
     client_id: ClientId,
-    scopes: HashSet<Scope>,
+    scopes: Scopes,
     layers: L,
 }
 
@@ -26,7 +22,7 @@ impl DeviceAuthBuilder<Identity> {
     pub fn new(client_id: ClientId) -> Self {
         Self {
             client_id,
-            scopes: HashSet::new(),
+            scopes: Scopes::new(),
             layers: Identity::new(),
         }
     }
@@ -77,7 +73,7 @@ impl<L> DeviceAuthBuilder<L> {
 
 pub struct DeviceAuth {
     client_id: ClientId,
-    scopes: HashSet<Scope>,
+    scopes: Scopes,
     svc: ClientService,
 }
 
@@ -86,8 +82,8 @@ impl DeviceAuth {
         DeviceAuthBuilder::new(client_id).build()
     }
 
-    pub fn scopes_mut(&mut self) -> ScopesMut<'_> {
-        scopes_mut(&mut self.scopes)
+    pub fn scopes_mut(&mut self) -> &mut Scopes {
+        &mut self.scopes
     }
 
     pub fn builder(client_id: ClientId) -> DeviceAuthBuilder {

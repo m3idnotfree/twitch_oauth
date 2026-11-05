@@ -10,7 +10,7 @@ use axum::{
 };
 use axum_extra::{TypedHeader, headers::Cookie};
 use twitch_oauth_token::{
-    AuthorizationResponse, Client, ClientId, ClientSecret, ErrorCode, RedirectUri,
+    AuthorizationResponse, Client, ClientId, ClientSecret, ErrorCode, RedirectUri, Scope,
     State as OAuthState, UserAuth,
 };
 
@@ -50,7 +50,7 @@ fn state_cookie(value: &str, max_age_secs: u32) -> String {
 
 async fn login(State(client): State<Client<UserAuth>>) -> impl IntoResponse {
     let mut request = client.authorization_url();
-    request.scopes_mut().send_chat_message();
+    request.scopes_mut().push(Scope::UserWriteChat);
 
     let (auth_url, state) = request.url();
 

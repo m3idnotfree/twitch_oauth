@@ -2,7 +2,7 @@ use std::env;
 
 use anyhow::{Context, Result};
 use twitch_oauth_token::{
-    Client,
+    Client, Scope,
     mock_api::{MockApiLayer, MockUnits},
 };
 
@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
     println!("{app_token:?}");
 
     let mut user_token_request = oauth.mock_user_token(&user.id);
-    user_token_request.scopes_mut().update_user();
+    user_token_request.scopes_mut().push(Scope::UserEdit);
 
     let user_token = user_token_request.send().await?;
     println!("{user_token:?}");

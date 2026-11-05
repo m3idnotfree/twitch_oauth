@@ -37,7 +37,7 @@
 //!
 //! ```no_run
 //! use std::str::FromStr;
-//! use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri};
+//! use twitch_oauth_token::{Client, ClientId, ClientSecret, RedirectUri, Scope};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
@@ -48,10 +48,11 @@
 //!     .with_redirect_uri(RedirectUri::from_str("http://localhost:3000/auth/callback")?);
 //!
 //!     let mut auth_request = client.authorization_url();
-//!     auth_request.scopes_mut()
-//!         .send_chat_message()
-//!         .get_channel_emotes()
-//!         .modify_channel_info();
+//!     auth_request.scopes_mut().extend([
+//!         Scope::ChannelManageBroadcast,
+//!         Scope::UserReadEmotes,
+//!         Scope::UserWriteChat,
+//!     ]);
 //!
 //!     let (auth_url, state) = auth_request.url();
 //!     println!("Visit: {auth_url}");
@@ -99,14 +100,15 @@
 //! ### Device Code Grant Flow
 //!
 //! ```no_run
-//! use twitch_oauth_token::{ClientId, DeviceAuth};
+//! use twitch_oauth_token::{ClientId, DeviceAuth, Scope};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
 //!     let mut device_flow = DeviceAuth::new(ClientId::new("id".to_string()));
-//!     device_flow.scopes_mut()
-//!         .send_chat_message()
-//!         .get_channel_emotes();
+//!     device_flow
+//!         .scopes_mut()
+//!         .push(Scope::UserReadEmotes)
+//!         .push(Scope::UserWriteChat);
 //!
 //!     let resp = device_flow.device_code().await?;
 //!     println!("Visit: {}", resp.verification_uri);
@@ -116,41 +118,6 @@
 //!
 //!     Ok(())
 //! }
-//! ```
-//!
-//! ## Working with Scopes
-//!
-//! ```
-//! # use twitch_oauth_token::{Client, UserAuth};
-//!
-//! # fn run(oauth: Client<UserAuth>) {
-//! let mut auth_request = oauth.authorization_url();
-//!
-//! // Chat-related scopes
-//! auth_request.scopes_mut()
-//!     .send_chat_message()
-//!     .get_user_emotes()
-//!     .get_chatters()
-//!     .send_chat_announcement();
-//!
-//! // Channel management scopes  
-//! auth_request.scopes_mut()
-//!     .modify_channel_info()
-//!     .get_channel_followers()
-//!     .channel_ban_unban();
-//!
-//! // Moderation scopes
-//! auth_request.scopes_mut()
-//!     .ban_user()
-//!     .delete_chat_messages()
-//!     .update_automod_settings();
-//!
-//! // Or add entire API categories at once
-//! auth_request.scopes_mut()
-//!     .chat_api()
-//!     .moderation_api()
-//!     .users_api();
-//! # }
 //! ```
 //!
 //! ## Token Management
@@ -234,8 +201,6 @@
 //! For local testing with Twitch Mock API, see [`mock_api`] (requires `mock-api` feature).
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-pub mod scope;
-
 mod client;
 mod device;
 mod error;
@@ -247,7 +212,6 @@ pub use client::{AppAuth, Client, ClientBuilder, OauthFlow, UserAuth};
 pub use device::{DeviceAuth, DeviceAuthBuilder, DeviceCodeResponse};
 pub use error::{Error, ErrorKind};
 pub use request::{AuthorizationRequest, validate_access_token};
-pub use scope::Scope;
 pub use tokens::{AppToken, TokenInfo, UserToken};
 
 #[cfg(feature = "mock-api")]
@@ -258,6 +222,7 @@ pub use asknothingx2_oauth::{
     AccessToken, AuthorizationCode, AuthorizationResponse, AuthorizationResponseError, ClientId,
     ClientSecret, DeviceCode, ErrorCode, RedirectUri, RefreshToken, State, VerifiedCode,
 };
+pub use twitch_thunder::{ParseScopeError, Scope, Scopes};
 
 static HTTP_CLIENT: std::sync::LazyLock<reqwest::Client> = std::sync::LazyLock::new(|| {
     asknothingx2_http::config::preset::authentication(

@@ -83,7 +83,7 @@ pub async fn revoke_access_token() {
 #[tokio::test]
 pub async fn device_code_grant_flow() {
     let (server, mut device) = setup::device_server().await;
-    device.scopes_mut().chat_api();
+    device.scopes_mut().push(Scope::ChatEdit);
 
     server::device_code_grant_flow(&server).await;
 

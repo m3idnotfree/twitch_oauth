@@ -9,7 +9,7 @@
 //!
 //! ```no_run
 //! use twitch_oauth_token::{
-//!     Client,
+//!     Client, Scope,
 //!     mock_api::{MockApiLayer, MockUnits},
 //! };
 //!
@@ -28,7 +28,7 @@
 //!     let user = units.users().await?.remove(0);
 //!     // Get user token from mock API
 //!     let mut user_token_request = oauth.mock_user_token(&user.id);
-//!     user_token_request.scopes_mut().update_user();
+//!     user_token_request.scopes_mut().push(Scope::UserEdit);
 //!
 //!     let user_token = user_token_request.send().await?;
 //!
