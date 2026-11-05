@@ -1,3 +1,9 @@
+## [8.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v7.0.0..v8.0.0) - 2026-11-06
+
+### Features
+
+- [**breaking**] replace the scope module with twitch_thunder ([10ecc8e](https://github.com/m3idnotfree/twitch_oauth/commit/10ecc8ea460bcfcbd0891f6a251dd1c6bc3f8ff0))
+
 ## [7.0.0](https://github.com/m3idnotfree/twitch_oauth/compare/v6.0.0..v7.0.0) - 2026-11-02
 
 ### Features

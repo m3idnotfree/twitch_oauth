@@ -1,3 +1,34 @@
+## 7.0 -> 8.0
+
+The `scope` module is replaced with `twitch_thunder`. `Scope` and
+`Scopes` are re-exported from `twitch_thunder`.
+
+### Update Type Names
+
+```diff
+- scope::Scope
++ Scope
+
+- scope::ParseScopeError
++ ParseScopeError
+
+- scope::ScopeMut
++ Scopes
+```
+
+### Adding Scopes
+
+`scopes_mut` returns `&mut Scopes`. The helper methods such as `chat_api`
+are no longer provided. Use `push` or `extend` instead.
+
+```diff
+  let mut auth_request = oauth.authorization_url();
+- auth_request.scopes_mut().chat_api();
++ auth_request
++     .scopes_mut()
++     .extend([Scope::UserReadChat, Scope::UserWriteChat]);
+```
+
 ## 6.0 -> 7.0
 
 `asknothingx2-util` is replaced with `asknothingx2-oauth`.
