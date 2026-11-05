@@ -10,7 +10,7 @@ A Rust client for Twitch OAuth 2.0.
 - Refresh, validate, and revoke tokens
 - Separate client types for each grant flow
 - `exchange_code` accepts only a code that passed `AuthorizationResponse::verify`
-- Helper methods for all [Twitch API scopes](https://dev.twitch.tv/docs/authentication/scopes/)
+- Typed [Twitch API scopes](https://dev.twitch.tv/docs/authentication/scopes/) with `Scope` and `Scopes`
 - [Twitch CLI mock API](https://dev.twitch.tv/docs/cli/mock-api-command/) support
 
 ## Quick Start
